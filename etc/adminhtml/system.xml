@@ -1,0 +1,30 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_file.xsd">
+    <system>
+        <tab id="razoyo" translate="label" sortOrder="10">
+            <label>Razoyo</label>
+        </tab>
+        <section id="automaticffl" translate="label" sortOrder="130" showInDefault="1" showInWebsite="1" showInStore="1">
+            <class>separator-top</class>
+            <label>Automatic FFL</label>
+            <tab>razoyo</tab>
+            <resource>Razoyo_AutomaticFfl::config</resource>
+            <group id="configuration" translate="label" type="text" sortOrder="10" showInDefault="1" showInWebsite="0" showInStore="0">
+                <label>Configuration</label>
+                <field id="enabled" translate="label,tooltip" type="select" sortOrder="1" showInDefault="1" showInWebsite="0" showInStore="0">
+                    <label>Enabled</label>
+                    <tooltip>Will enable the Razoyo_AutomaticFfl module.</tooltip>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <config_path>automaticffl/configuration/enabled</config_path>
+                </field>
+                <field id="api_key" translate="label" type="text" sortOrder="1" showInDefault="1" showInWebsite="0" showInStore="0">
+                    <label>API Key</label>
+                    <!-- <depends>
+                        <field id="enabled">1</field>
+                    </depends> -->
+                    <config_path>automaticffl/configuration/api_key</config_path>
+                </field>
+            </group>
+        </section>
+    </system>
+</config>
