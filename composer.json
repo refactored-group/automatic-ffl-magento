@@ -2,18 +2,22 @@
     "name": "razoyo/automatic-ffl",
     "description": "Extension to automatically handle FFL for firearm transactions.",
     "type": "magento2-module",
+    "license": [],
+    "config": {
+        "sort-packages": true
+    },
     "version": "1.0.0",
-    "license": [
-        "OSL-3.0",
-        "AFL-3.0"
-    ],
+    "license": [],
     "require": {
-        "php": "~7.1.3||~7.2.0||~7.3.0"
+        "php": "~7.3.0||~7.4.0",
+        "magento/framework": "103.0.*"
     },
     "autoload": {
-        "files": [ "registration.php" ],
+        "files": [
+            "registration.php"
+        ],
         "psr-4": {
-        "Razoyo\\AutomaticFfl\\": ""
+            "Razoyo\\AutomaticFfl\\": ""
         }
     }
 }
