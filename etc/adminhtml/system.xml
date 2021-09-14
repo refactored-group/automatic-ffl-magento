@@ -14,7 +14,7 @@
                 <field id="enabled" translate="label,tooltip" type="select" sortOrder="1" showInDefault="1" showInWebsite="0" showInStore="0">
                     <label>Enabled</label>
                     <tooltip>Will enable the Razoyo_AutomaticFfl module.</tooltip>
-                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <source_model>Magento\Config\Model\Config\Source\Enabledisable</source_model>
                     <config_path>automaticffl/configuration/enabled</config_path>
                 </field>
                 <field id="api_key" translate="label" type="text" sortOrder="1" showInDefault="1" showInWebsite="0" showInStore="0">
