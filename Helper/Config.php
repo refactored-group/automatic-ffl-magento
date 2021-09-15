@@ -23,6 +23,6 @@ class Config extends AbstractHelper {
      * @return string
      */
     public function getApiKey($scope = ScopeConfigInterface::SCOPE_TYPE_DEFAULT) {
-        return $this->scopeConfig->getValue( 'automaticffl/configuration/api_key', $scope );
+        return $this->scopeConfig->getValue( 'automaticffl/configuration/store_hash', $scope );
     }
 }

@@ -17,12 +17,9 @@
                     <source_model>Magento\Config\Model\Config\Source\Enabledisable</source_model>
                     <config_path>automaticffl/configuration/enabled</config_path>
                 </field>
-                <field id="api_key" translate="label" type="text" sortOrder="1" showInDefault="1" showInWebsite="0" showInStore="0">
-                    <label>API Key</label>
-                    <!-- <depends>
-                        <field id="enabled">1</field>
-                    </depends> -->
-                    <config_path>automaticffl/configuration/api_key</config_path>
+                <field id="store_hash" translate="label" type="text" sortOrder="1" showInDefault="1" showInWebsite="0" showInStore="0">
+                    <label>Store Hash</label>
+                    <config_path>automaticffl/configuration/store_hash</config_path>
                 </field>
             </group>
         </section>
