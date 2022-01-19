@@ -1,23 +1,56 @@
 {
-    "name": "razoyo/automatic-ffl",
-    "description": "Extension to automatically handle FFL for firearm transactions.",
-    "type": "magento2-module",
-    "license": [],
-    "config": {
-        "sort-packages": true
+    "name": "razoyo/autoffl-m2-module",
+    "description": "Automatic FFL Magento 2 Extension",
+    "replace": {
+        "razoyo/autoffl-core": "self.version",
+        "razoyo/autoffl-admin": "self.version",
+        "razoyo/autoffl-checkout": "self.version",
+        "razoyo/autoffl-checkout-multishipping": "self.version"
     },
-    "version": "1.0.0",
-    "license": [],
+    "license": "[]",
     "require": {
-        "php": "~7.3.0||~7.4.0",
-        "magento/framework": "103.0.*"
+        "magento/framework": "~102|~103"
     },
+    "require-dev": {
+        "phpunit/phpunit": "~6.5",
+        "magento/magento-coding-standard": "~2.0"
+    },
+    "scripts": {
+        "test-phpcs": "vendor/bin/phpcs --standard=Magento2 ./core/ ./checkout/ ./admin/ ./checkout-multishipping/",
+        "post-install-cmd": [
+            "[ $COMPOSER_DEV_MODE -eq 1 ] && vendor/bin/phpcs --config-set installed_paths ../../magento/magento-coding-standard/"
+        ],
+        "post-update-cmd": [
+            "[ $COMPOSER_DEV_MODE -eq 1 ] && vendor/bin/phpcs --config-set installed_paths ../../magento/magento-coding-standard/"
+        ]
+    },
+    "type": "magento2-metapackage",
+    "version": "0.1.0",
+    "minimum-stability": "stable",
+    "authors": [
+        {
+            "name": "Razoyo",
+            "homepage": "https://www.razoyo.com/"
+        }
+    ],
     "autoload": {
         "files": [
-            "registration.php"
+            "core/registration.php",
+            "admin/registration.php",
+            "checkout/registration.php",
+            "checkout-multishipping/registration.php"
         ],
         "psr-4": {
-            "Razoyo\\AutomaticFfl\\": ""
+            "Razoyo\\AutoFflCore\\": "core",
+            "Razoyo\\AutoFflAdmin\\": "admin",
+            "Razoyo\\AutoFflCheckout\\": "checkout",
+            "Razoyo\\AutoFflCheckoutMultiShipping\\": "checkout-multishipping"
         }
-    }
+    },
+    "repositories": [
+        {
+            "type": "composer",
+            "url": "https://repo.magento.com/"
+        }
+    ]
 }

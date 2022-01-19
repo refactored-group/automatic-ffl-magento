@@ -1,0 +1,37 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Copyright © Razoyo (https://www.razoyo.com)
+ * @copyright Copyright © 2022. All rights reserved.
+ */
+-->
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_file.xsd">
+    <system>
+        <tab id="razoyo" translate="label" sortOrder="10">
+            <label>Razoyo</label>
+        </tab>
+        <section id="autoffl" translate="label" sortOrder="130" showInDefault="1" showInWebsite="1" showInStore="1">
+            <class>separator-top</class>
+            <label>Automatic FFL</label>
+            <tab>razoyo</tab>
+            <resource>Razoyo_AutoFflCore::config</resource>
+            <group id="configuration" translate="label" type="text" sortOrder="10" showInDefault="1" showInWebsite="0"
+                   showInStore="0">
+                <label>Configuration</label>
+                <field id="enabled" translate="label,tooltip" type="select" sortOrder="1" showInDefault="1"
+                       showInWebsite="0" showInStore="0">
+                    <label>Enabled</label>
+                    <tooltip>Will enable the Razoyo_AutomaticFfl module.</tooltip>
+                    <source_model>Magento\Config\Model\Config\Source\Enabledisable</source_model>
+                    <config_path>autoffl/configuration/enabled</config_path>
+                </field>
+                <field id="store_hash" translate="label" type="text" sortOrder="1" showInDefault="1" showInWebsite="0"
+                       showInStore="0">
+                    <label>Store Hash</label>
+                    <config_path>autoffl/configuration/store_hash</config_path>
+                </field>
+            </group>
+        </section>
+    </system>
+</config>

@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Copyright © Razoyo (https://www.razoyo.com)
+ * @copyright Copyright © 2022. All rights reserved.
+ */
+-->
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Store:etc/config.xsd">
+    <default>
+        <autoffl>
+            <configuration>
+                <enabled>1</enabled>
+                <store_hash>demo_store_hash</store_hash>
+            </configuration>
+        </autoffl>
+    </default>
+</config>

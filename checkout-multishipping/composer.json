@@ -1,0 +1,45 @@
+{
+    "name": "razoyo/autoffl-checkout-multishipping",
+    "description": "AutomaticFFL Multi-Shipping Checkout extension",
+    "version": "1.2.0",
+    "type": "magento2-module",
+    "license": "proprietary",
+    "authors": [
+        {
+            "name": "Razoyo",
+            "homepage": "https://www.razoyo.com/"
+        }
+    ],
+    "minimum-stability": "alpha",
+    "repositories": {
+        "magento": {
+            "type": "composer",
+            "url": "https://repo.magento.com/"
+        }
+    },
+    "require": {
+        "magento/framework": "~102|~103",
+        "magento/module-config": "~101",
+        "razoyo/autoffl-core": "~0.1.0"
+    },
+    "require-dev": {
+        "magento/magento-coding-standard": "~2.0"
+    },
+    "scripts": {
+        "test-phpcs": "vendor/bin/phpcs --standard=Magento2 etc/",
+        "post-install-cmd": [
+            "[ $COMPOSER_DEV_MODE -eq 1 ] && vendor/bin/phpcs --config-set installed_paths ../../magento/magento-coding-standard/"
+        ],
+        "post-update-cmd": [
+            "[ $COMPOSER_DEV_MODE -eq 1 ] && vendor/bin/phpcs --config-set installed_paths ../../magento/magento-coding-standard/"
+        ]
+    },
+    "autoload": {
+        "files": [
+            "registration.php"
+        ],
+        "psr-4": {
+            "Razoyo\\AutoFflCheckoutMultishipping\\": ""
+        }
+    }
+}
