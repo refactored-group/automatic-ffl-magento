@@ -5,3 +5,4 @@
 ./checkout app/code/Razoyo/AutoFflCheckout
 ./checkout-multishipping app/code/Razoyo/AutoFflCheckoutMultiShipping
 ./core app/code/Razoyo/AutoFflCore
+./gateway app/code/Razoyo/AutoFflGateway

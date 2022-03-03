@@ -41,6 +41,7 @@ class AddRequiredFflAttribute implements DataPatchInterface
             'type' => 'int',
             'label' => 'FFL Required',
             'input' => 'boolean',
+            'backend_model' => 'Magento\Eav\Model\Entity\Attribute\Source\Boolean',
             'source' => 'Magento\Eav\Model\Entity\Attribute\Source\Boolean',
             'required' => false,
             'attribute_set' => 'default',
@@ -49,6 +50,7 @@ class AddRequiredFflAttribute implements DataPatchInterface
             'used_in_product_listing' => false,
             'user_defined' => true,
         ]);
+        ##### TODO: add attribute to all attribute sets
     }
 
     /**
