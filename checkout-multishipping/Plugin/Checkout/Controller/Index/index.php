@@ -59,6 +59,9 @@ class Index
      */
     private $logger;
 
+    /**
+     * @var MultishippingHelper
+     */
     private $multishippingHelper;
 
     /**
@@ -72,6 +75,7 @@ class Index
      * @param Data $checkoutHelper
      * @param UrlInterface $urlBuilder
      * @param LoggerInterface $logger
+     * @param MultishippingHelper $multishippingHelper
      */
     public function __construct(
         PageFactory $resultPageFactory,
