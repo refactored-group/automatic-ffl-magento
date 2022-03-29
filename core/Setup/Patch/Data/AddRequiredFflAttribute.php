@@ -1,5 +1,8 @@
 <?php
-
+/**
+ * Copyright © Razoyo (https://www.razoyo.com)
+ * @copyright Copyright © 2022. All rights reserved.
+ */
 namespace Razoyo\AutoFflCore\Setup\Patch\Data;
 
 use Magento\Eav\Setup\EavSetup;

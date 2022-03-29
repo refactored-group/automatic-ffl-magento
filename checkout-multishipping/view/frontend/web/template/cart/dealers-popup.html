@@ -1,0 +1,53 @@
+<!--
+/**
+ * Copyright © Razoyo (https://www.razoyo.com)
+ * @copyright Copyright © 2022. All rights reserved.
+ */
+ --><div class="main-block">
+    <!-- Your Popup content with main div display none -->
+    <div id="dealers-popup" style="display:none; height: 100%; min-height: 100%">
+        <div class="ffl-flex-container">
+            <div class="ffl-heading"><h1 data-bind="i18n: 'Find your dealer'"></h1></div>
+            <div class="ffl-search-field"><input type="text" id="ffl-input-search"
+                                                 placeholder="Enter your Zip Code, City or FFL"
+                                                 name="ffl_search" value="" size="2" min="0"
+                                                 class="input-text ffl-search-input"
+                                                 autocomplete="off"></div>
+            <div class="ffl-miles"><span>
+                        <select name="ffl_miles_search" id="ffl-miles-search" class="select-ffl dealers-modal-button">
+                        <option value="5" data-bind="i18n: '5 Miles'"></option>
+                        <option value="10" data-bind="i18n: '10 Miles'"></option>
+                        <option value="30" data-bind="i18n: '30 Miles'"></option>
+                        <option value="75" data-bind="i18n: '75 Miles'"></option>
+                    </select>
+                    </span></div>
+            <div class="ffl-placeholder"></div>
+            <div class="ffl-search">
+                <button type="button" class="action primary dealers-modal-button" data-bind="click: getFflResults">
+                    <span data-bind="i18n: 'Search'"></span>
+                </button>
+            </div>
+            <div class="ffl-placeholder"></div>
+            <div class="ffl-cancel">
+                <button type="button" data-role="closeBtn" class="dealers-modal-button">
+                    <span data-bind="i18n: 'Cancel'"></span>
+                </button>
+            </div>
+        </div>
+        <div class="ffl-flex-container flex-container-results">
+            <div class="ffl-results" data-bind="foreach: {data: fflResults, as: 'dealer'}">
+                <div class="ffl-dealer">
+                    <p class="ffl-dealer-name"><!-- ko text: $data.business_name --><!-- /ko --></p>
+                    <p class="ffl-dealer-address"><!-- ko text: $data.formatted_address --><!-- /ko --></p>
+                    <p class="ffl-dealer-phone"><!-- ko text: $data.phone_number --><!-- /ko --></p>
+                    <p class="ffl-dealer-button"><a data-role="closeBtn" class="action active ffl-select-button"
+                                                    href="#"
+                                                    data-bind="{click: function(data, event) { return $parent.selectDealer($index()) }, html: 'Select'}"></a>
+                    </p>
+                </div>
+            </div>
+            <div class="ffl-map" id="ffl-map"></div>
+        </div>
+    </div>
+</div>
+<div data-bind="afterRender: renderDealersModal"></div>

@@ -19,4 +19,6 @@
         <plugin name="before_multishipping_checkout_addresses_post"
                 type="Razoyo\AutoFflCheckoutMultiShipping\Plugin\Multishipping\Controller\Checkout\AddressesPost"/>
     </type>
+    <preference for="Magento\Multishipping\Model\Checkout\Type\Multishipping"
+                type="Razoyo\AutoFflCheckoutMultiShipping\Model\Checkout\Type\Multishipping"/>
 </config>

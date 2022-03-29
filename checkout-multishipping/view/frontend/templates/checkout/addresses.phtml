@@ -3,6 +3,11 @@
  * Copyright © Razoyo (https://www.razoyo.com)
  * @copyright Copyright © 2022. All rights reserved.
  */
+/**
+ * Ship to multiple address template
+ *
+ * @var $block \Magento\Multishipping\Block\Checkout\Addresses
+ */
 ?>
 <form id="checkout_multishipping_form"
       data-mage-init='{
@@ -19,6 +24,7 @@
     </div>
     <input type="hidden" name="continue" value="0" id="can_continue_flag"/>
     <input type="hidden" name="new_address" value="0" id="add_new_address_flag"/>
+    <input type="hidden" name="ffl_current_address" value="" id="ffl_current_address"/>
     <div class="table-wrapper">
         <table class="items data table" id="multiship-addresses-table">
             <caption class="table-caption">
@@ -81,11 +87,23 @@
                                     </label>
                                     <div class="control">
                                         <?php if ($isRequiredFfl) : ?>
-                                            <!-- @TODO: (FRM-23) This button's label will change to "Change Dealer" after an address is chosen (FRM-23) -->
-                                            <!-- @TODO: (FRM-23) Display full address here -->
-                                            <button type="button" data-multiship-item-update="" class="action update" data-role="can-continue" data-flag="0">
-                                                <span><?= $block->escapeHtml(__('Select Dealer')) ?></span>
-                                            </button>
+                                            <div data-mage-init='
+                                                    { "Magento_Ui/js/core/app":
+                                                        {
+                                                        "components":
+                                                            { "selectDealerButton-<?php echo $_index?>":
+                                                                {
+                                                                    "component": "Razoyo_AutoFflCheckoutMultiShipping/js/cart/select-dealer-button",
+                                                                    "template": "Razoyo_AutoFflCheckoutMultiShipping/cart/select-dealer-button",
+                                                                    "config": <?= $block->getSelectDealerConfig($_item, $_index) ?>
+                                                                }
+                                                            }
+                                                         }
+                                                      }
+                                                '
+                                            id="dealer_button_<?= $_index . '_' . $_item->getQuoteItemId() ?>" class="action update select-dealer" data-bind="scope:'selectDealerButton-<?php echo $_index ?>'">
+                                                <!-- ko template: getTemplate() --><!-- /ko -->
+                                            </div>
                                         <?php else: ?>
                                             <?= $block->getAddressesHtmlSelect($_item, $_index) ?>
                                         <?php endif; ?>

@@ -1,0 +1,27 @@
+<?php
+/**
+ * Copyright © Razoyo (https://www.razoyo.com)
+ * @copyright Copyright © 2022. All rights reserved.
+ */
+/**
+ * Load Dealers PopUp UI Component
+ *
+ * @var $block \Razoyo\AutoFflCheckoutMultiShipping\Block\Checkout\Dealers
+ */
+?>
+<div data-mage-init='
+    { "Magento_Ui/js/core/app":
+        {
+        "components":
+            { "fflDealersPopupComponent" :
+                {
+                    "component": "Razoyo_AutoFflCheckoutMultiShipping/js/cart/dealers-popup",
+                    "template" : "Razoyo_AutoFflCheckoutMultiShipping/cart/dealers-popup",
+                    "config": <?= $block->getJsonConfig() ?>
+                }
+            }
+         }
+      }
+' data-bind="{scope:'fflDealersPopupComponent'}">
+<!-- ko template: getTemplate() --><!-- /ko -->
+</div>

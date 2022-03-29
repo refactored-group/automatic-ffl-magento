@@ -33,3 +33,8 @@ To get the latest changes from upstream, you can run the following command:
 ```bash
 modman update autoffl-m2-module
 ``` 
+
+Also do not forget to clear the Magento cache:
+```bash
+bin/magento cache:flush
+``` 

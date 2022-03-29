@@ -6,6 +6,10 @@
 
 namespace Razoyo\AutoFflCheckoutMultiShipping\Helper;
 
+use Magento\Checkout\Model\Session;
+use Magento\Framework\App\Helper\Context;
+use Magento\Framework\Data\Form\FormKey;
+
 /**
  * Data helper
  */
@@ -21,7 +25,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
     /**
      * Checkout session
      *
-     * @var \Magento\Checkout\Model\Session
+     * @var Session
      */
     protected $checkoutSession;
 
@@ -36,17 +40,25 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
     private $quote;
 
     /**
+     * @var FormKey
+     */
+    private $formKey;
+
+    /**
      * Construct
      *
-     * @param \Magento\Framework\App\Helper\Context $context
-     * @param \Magento\Checkout\Model\Session $checkoutSession
+     * @param Context $context
+     * @param Session $checkoutSession
      */
     public function __construct(
-        \Magento\Framework\App\Helper\Context $context,
-        \Magento\Checkout\Model\Session $checkoutSession
+        Context $context,
+        Session $checkoutSession,
+        FormKey $formKey
     ) {
         $this->checkoutSession = $checkoutSession;
         $this->quote = $this->getQuote();
+        $this->formKey = $formKey;
+
         parent::__construct($context);
     }
 
@@ -67,7 +79,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
      */
     private function getMaximumQty()
     {
-        return (int)$this->scopeConfig->getValue(
+        return (int)$this->getConfig(
             self::XML_PATH_CHECKOUT_MULTIPLE_MAXIMUM_QUANTITY,
             \Magento\Store\Model\ScopeInterface::SCOPE_STORE
         );
@@ -143,5 +155,25 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
     public function getCustomerQuote()
     {
         return $this->getQuote();
+    }
+
+    /**
+     * Get a configuration value
+     * @param $path
+     * @return mixed
+     */
+    public function getConfig($path)
+    {
+        return $this->scopeConfig->getValue($path);
+    }
+
+    /**
+     * Get a valid form key
+     * @return string
+     * @throws \Magento\Framework\Exception\LocalizedException
+     */
+    public function getFormKey()
+    {
+        return $this->formKey->getFormKey();
     }
 }
