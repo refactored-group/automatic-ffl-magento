@@ -6,7 +6,7 @@
 namespace Razoyo\AutoFflCheckoutMultiShipping\Block\Checkout;
 
 use Magento\Framework\View\Element\Template;
-use Razoyo\AutoFflCheckoutMultiShipping\Helper\Data;
+use Razoyo\AutoFflCore\Helper\Data;
 
 class Dealers extends Template
 {
@@ -46,7 +46,9 @@ class Dealers extends Template
             'google_maps_api_key' => $this->helper->getConfig(self::GOOGLE_MAPS_API_KEY_PATH),
             'create_address_url' => $this->getUrl('createaddress/index/index'),
             'ffl_api_url' => $this->helper->getConfig(self::FFL_STORE_URL_PATH),
-            'form_key' => $this->helper->getFormKey()
+            'form_key' => $this->helper->getFormKey(),
+            'is_ffl' => true,
+            'mode' => 'cart'
         ]);
     }
 }

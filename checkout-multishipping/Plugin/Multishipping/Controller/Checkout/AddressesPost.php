@@ -7,7 +7,7 @@
 namespace Razoyo\AutoFflCheckoutMultiShipping\Plugin\Multishipping\Controller\Checkout;
 
 use Closure;
-use Razoyo\AutoFflCheckoutMultiShipping\Helper\Data as MultishippingHelper;
+use Razoyo\AutoFflCore\Helper\Data as Helper;
 use Magento\Framework\App\Action\Context;
 
 /**
@@ -16,9 +16,9 @@ use Magento\Framework\App\Action\Context;
 class AddressesPost
 {
     /**
-     * @var MultishippingHelper
+     * @var Helper
      */
-    private $multishippingHelper;
+    private $helper;
 
     /**
      * @var Context
@@ -26,13 +26,13 @@ class AddressesPost
     private $context;
 
     /**
-     * @param MultishippingHelper $multishippingHelper
+     * @param Helper $helper
      */
     public function __construct(
-        MultishippingHelper $multishippingHelper,
+        Helper $helper,
         Context $context
     ) {
-        $this->multishippingHelper = $multishippingHelper;
+        $this->helper = $helper;
         $this->context = $context;
     }
 
@@ -46,12 +46,12 @@ class AddressesPost
      */
     public function aroundExecute(\Magento\Multishipping\Controller\Checkout\AddressesPost $subject, Closure $proceed)
     {
-        if ($this->multishippingHelper->hasFflItem()) {
-            $items = $this->multishippingHelper->getCustomerQuote()->getAllVisibleItems();
+        if ($this->helper->hasFflItem()) {
+            $items = $this->helper->getCustomerQuote()->getAllVisibleItems();
 
             if (count($items) > count($this->context->getRequest()->getPost('ship'))) {
                 $this->context->getMessageManager()->addErrorMessage(
-                    __('Please, select a Licensed Firearm Dealer for the following product(s): ') . $this->multishippingHelper->getFflItemsNames());
+                    __('Please, select a Licensed Firearm Dealer for the following product(s): ') . $this->helper->getFflItemsNames());
                 return $this->resultRedirectFactory->create()->setPath('multishipping/checkout');
             }
         }

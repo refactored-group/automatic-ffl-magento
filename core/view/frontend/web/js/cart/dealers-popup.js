@@ -7,15 +7,16 @@ define([
     'uiComponent',
     'ko',
     'Magento_Ui/js/modal/modal',
-    'Razoyo_AutoFflCheckoutMultiShipping/js/cart/select-dealer-button'
-], function ($, Component, ko, modal, dealerButton) {
+    'Razoyo_AutoFflCore/js/cart/select-dealer-button',
+    'uiRegistry'
+], function ($, Component, ko, modal, dealerButton, checkoutData, createShippingAddress, selectShippingAddress, uiRegistry) {
     'use strict';
 
     var LatLngList = [];
 
     return Component.extend({
         defaults: {
-            template: 'Razoyo_AutoFflCheckoutMultiShipping/cart/dealers-popup'
+            template: 'Razoyo_AutoFflCore/cart/dealers-popup'
         },
         currentFflItemId: ko.observable(),
         fflResults: ko.observable(),
@@ -122,6 +123,17 @@ define([
          */
         parseDealersResult: function (dealers) {
             var self = this;
+            LatLngList = [];
+
+            //Clear all markers
+            google.maps.Map.prototype.clearOverlays = function() {
+                for (var i = 0; i < LatLngList.length; i++ ) {
+                    LatLngList[i].setMap(null);
+                }
+                LatLngList.length = 0;
+            }
+
+            //Add new markers
             $(dealers).each(function (i, dealer) {
                 // Format address to display in the results list
                 dealers[i].formatted_address = dealer.premise_street + ', ' + dealer.premise_city + ', ' + dealer.premise_state + ' ' + dealer.premise_zip;

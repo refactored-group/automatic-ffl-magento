@@ -11,7 +11,7 @@ define([
 
     return Component.extend({
         defaults: {
-            template: 'Razoyo_AutoFflCheckoutMultiShipping/cart/select-dealer-button'
+            template: 'Razoyo_AutoFflCore/cart/select-dealer-button'
         },
         // These observables will be shared across all instances of this UI Component
         currentFflItemId: ko.observable(),

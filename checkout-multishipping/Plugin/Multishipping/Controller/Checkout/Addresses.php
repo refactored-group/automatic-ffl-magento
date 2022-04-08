@@ -7,7 +7,7 @@
 namespace Razoyo\AutoFflCheckoutMultiShipping\Plugin\Multishipping\Controller\Checkout;
 
 use Closure;
-use Razoyo\AutoFflCheckoutMultiShipping\Helper\Data as MultishippingHelper;
+use Razoyo\AutoFflCore\Helper\Data as Helper;
 use Magento\Framework\App\Action\Context;
 
 /**
@@ -16,9 +16,9 @@ use Magento\Framework\App\Action\Context;
 class Addresses
 {
     /**
-     * @var MultishippingHelper
+     * @var Helper
      */
-    private $multishippingHelper;
+    private $helper;
 
     /**
      * @var Context
@@ -26,13 +26,13 @@ class Addresses
     private $context;
 
     /**
-     * @param MultishippingHelper $multishippingHelper
+     * @param Helper $helper
      */
     public function __construct(
-        MultishippingHelper $multishippingHelper,
+        Helper $helper,
         Context $context
     ) {
-        $this->multishippingHelper = $multishippingHelper;
+        $this->helper = $helper;
         $this->context = $context;
     }
 
@@ -46,7 +46,7 @@ class Addresses
      */
     public function aroundExecute(\Magento\Multishipping\Controller\Checkout\Addresses $subject, Closure $proceed)
     {
-        if ($this->multishippingHelper->hasFflItem()) {
+        if ($this->helper->hasFflItem()) {
             $this->context->getMessageManager()->addNoticeMessage(
                 __('You have a firearm in your cart and must choose a Licensed Firearm Dealer (FFL) for the shipping address(es).'));
         }

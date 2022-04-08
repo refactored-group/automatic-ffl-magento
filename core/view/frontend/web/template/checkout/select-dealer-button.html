@@ -1,0 +1,17 @@
+<!--
+/**
+ * Copyright © Razoyo (https://www.razoyo.com)
+ * @copyright Copyright © 2022. All rights reserved.
+ */
+ -->
+<!-- ko if: (mode == 'checkout' && is_ffl || mode !== 'checkout') -->
+<div class="ffl-address" data-bind="html: dealerAddress[dealerButtonId]"></div>
+<input type="hidden" data-bind="attr: {
+            name: addressFieldName,
+            id: addressFieldName,
+            value: dealerAddressId[dealerButtonId]
+    }">
+<button type="button" class="action update select-dealer" data-bind="click: openSelectDealerModal">
+    <span data-bind="html: fflButtonLabel"></span>
+</button>
+<!--/ko-->

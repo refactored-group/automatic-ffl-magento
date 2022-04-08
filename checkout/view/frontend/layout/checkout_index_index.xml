@@ -1,0 +1,62 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Copyright © Razoyo (https://www.razoyo.com)
+ * @copyright Copyright © 2022. All rights reserved.
+ */
+-->
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+
+    <body>
+        <referenceBlock name="checkout.root">
+            <arguments>
+                <argument name="jsLayout" xsi:type="array">
+                    <item name="components" xsi:type="array">
+                        <item name="checkout" xsi:type="array">
+                            <item name="children" xsi:type="array">
+                                <item name="steps" xsi:type="array">
+                                    <item name="children" xsi:type="array">
+                                        <item name="shipping-step" xsi:type="array">
+                                            <item name="children" xsi:type="array">
+                                                <item name="shippingAddress" xsi:type="array">
+                                                    <item name="children" xsi:type="array">
+                                                        <item name="address-list-additional-addresses" xsi:type="array">
+                                                            <item name="children" xsi:type="array">
+                                                                <item name="ffl_select_button" xsi:type="array">
+                                                                    <item name="component" xsi:type="string">Razoyo_AutoFflCore/js/cart/select-dealer-button</item>
+                                                                    <item name="config" xsi:type="array">
+                                                                        <item name="dealerButtonId" xsi:type="string">1</item>
+                                                                        <item name="addressFieldName" xsi:type="string">2</item>
+                                                                        <item name="is_ffl" xsi:type="helper" helper="Razoyo\AutoFflCore\Helper\Data::isFflCart" />
+                                                                        <item name="mode" xsi:type="string">checkout</item>
+                                                                    </item>
+                                                                </item>
+                                                                <item name="ffl_dealers_popup" xsi:type="array">
+                                                                    <item name="component" xsi:type="string">Razoyo_AutoFflCore/js/checkout/dealers-popup</item>
+                                                                    <item name="config" xsi:type="array">
+                                                                        <item name="google_maps_api_key" xsi:type="helper" helper="Razoyo\AutoFflCore\Helper\Data::getGoogleMapsApiKey" />
+                                                                        <item name="google_maps_url" xsi:type="helper" helper="Razoyo\AutoFflCore\Helper\Data::getGoogleMapsApiUrl" />
+                                                                        <item name="ffl_api_url" xsi:type="helper" helper="Razoyo\AutoFflCore\Helper\Data::getFflApiUrl" />
+                                                                        <item name="store_hash" xsi:type="helper" helper="Razoyo\AutoFflCore\Helper\Data::getStoreHash" />
+                                                                        <item name="regionJson" xsi:type="helper" helper="Magento\Directory\Helper\Data::getRegionJson" />
+                                                                        <item name="is_ffl" xsi:type="helper" helper="Razoyo\AutoFflCore\Helper\Data::isFflCart" />
+                                                                        <item name="mode" xsi:type="string">checkout</item>
+                                                                    </item>
+                                                                </item>
+                                                            </item>
+                                                        </item>
+                                                    </item>
+                                                </item>
+                                            </item>
+                                        </item>
+                                    </item>
+                                </item>
+                            </item>
+                        </item>
+                    </item>
+                </argument>
+            </arguments>
+        </referenceBlock>
+    </body>
+</page>

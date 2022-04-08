@@ -19,7 +19,7 @@ use Magento\Framework\Message\ManagerInterface;
 use Magento\Framework\UrlInterface;
 use Magento\Framework\View\Result\PageFactory;
 use Psr\Log\LoggerInterface;
-use Razoyo\AutoFflCheckoutMultiShipping\Helper\Data as MultishippingHelper;
+use Razoyo\AutoFflCore\Helper\Data as Helper;
 
 /**
  * Class Index
@@ -60,9 +60,9 @@ class Index
     private $logger;
 
     /**
-     * @var MultishippingHelper
+     * @var Helper
      */
-    private $multishippingHelper;
+    private $helper;
 
     /**
      * @param PageFactory $resultPageFactory
@@ -75,7 +75,7 @@ class Index
      * @param Data $checkoutHelper
      * @param UrlInterface $urlBuilder
      * @param LoggerInterface $logger
-     * @param MultishippingHelper $multishippingHelper
+     * @param Helper $helper
      */
     public function __construct(
         PageFactory $resultPageFactory,
@@ -88,7 +88,7 @@ class Index
         Data $checkoutHelper,
         UrlInterface $urlBuilder,
         LoggerInterface $logger,
-        MultishippingHelper $multishippingHelper
+        Helper $helper
     ) {
         $this->checkoutHelper = $checkoutHelper;
         $this->customerSession = $customerSession;
@@ -100,7 +100,7 @@ class Index
         $this->resultPageFactory = $resultPageFactory;
         $this->urlBuilder = $urlBuilder;
         $this->logger = $logger;
-        $this->multishippingHelper = $multishippingHelper;
+        $this->helper = $helper;
     }
 
     /**
@@ -113,7 +113,7 @@ class Index
      */
     public function aroundExecute(ParentControllor $subject, Closure $proceed)
     {
-        if ($this->multishippingHelper->isMultishippingCheckoutAvailable()) {
+        if ($this->helper->isMultishippingCheckoutAvailable()) {
             return $this->resultRedirectFactory->create()->setPath('multishipping/checkout');
         }
 

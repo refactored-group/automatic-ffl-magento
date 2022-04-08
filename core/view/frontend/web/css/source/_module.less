@@ -121,3 +121,39 @@
         flex: 0 1 100%;
     }
 }
+.ffl-dealer {
+    display: block;
+    position: relative;
+    padding: 20px;
+    border: 3px solid #eeeeee;
+    margin-bottom: 20px;
+    background: #f2f2f2;
+    &:hover {
+        border: 3px solid #ff5501 !important;
+        background: #ffffff !important;
+    }
+    .preferred {
+        &:after {
+            background: #1a79c2;
+            color: #fff;
+            content: '\e605';
+            font-family: 'luma-icons';
+            height: 27px;
+            width: 29px;
+            font-size: 19px;
+            line-height: 21px;
+            padding-top: 2px;
+            position: absolute;
+            right: 0;
+            text-align: center;
+            top: 0;
+        }
+    }
+}
+.ffldealer {
+    .preferred {
+        border: 3px solid #1a79c2 !important;
+        background: #fff !important;
+    }
+}
+

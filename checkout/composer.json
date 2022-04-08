@@ -21,7 +21,7 @@
         "magento/framework": "~102|~103",
         "magento/module-config": "~101",
         "razoyo/autoffl-core": "~0.1.0",
-        "razoyo/autoffl-gateway": "*"
+        "magento/module-directory": "*"
     },
     "require-dev": {
         "magento/magento-coding-standard": "~2.0"

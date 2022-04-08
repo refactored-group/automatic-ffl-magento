@@ -4,23 +4,26 @@
  * @copyright Copyright © 2022. All rights reserved.
  */
 
-namespace Razoyo\AutoFflCheckoutMultiShipping\Helper;
+namespace Razoyo\AutoFflCore\Helper;
 
 use Magento\Checkout\Model\Session;
 use Magento\Framework\App\Helper\Context;
 use Magento\Framework\Data\Form\FormKey;
+use Magento\Multishipping\Helper\Data as MultishippingHelper;
 
 /**
  * Data helper
  */
 class Data extends \Magento\Framework\App\Helper\AbstractHelper
 {
-    /*
-     * Xml paths for multishipping checkout
-     *
-     **/
-    const XML_PATH_CHECKOUT_MULTIPLE_AVAILABLE = 'multishipping/options/checkout_multiple';
-    const XML_PATH_CHECKOUT_MULTIPLE_MAXIMUM_QUANTITY = 'multishipping/options/checkout_multiple_maximum_qty';
+    /**
+     * Configuration paths
+     */
+    const XML_PATH_STORE_HASH = 'autoffl/configuration/store_hash';
+    const XML_PATH_IS_ENABLED = 'autoffl/configuration/enabled';
+    const XML_PATH_GOOGLE_MAPS_API_KEY = 'cms/pagebuilder/google_maps_api_key';
+    const XML_PATH_GOOGLE_MAPS_API_URL = 'autoffl/configuration/google_maps_api_url';
+    const XML_PATH_FFL_API_URL = 'autoffl/configuration/ffl_api_url';
 
     /**
      * Checkout session
@@ -45,6 +48,25 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
     private $formKey;
 
     /**
+     * @var bool
+     */
+    private $cartIsFfl = null;
+
+    /**
+     * @var bool|null
+     */
+    private $multishippingHelper;
+
+    /**
+     * @var bool|null
+     */
+    private $isEnabled = null;
+    /**
+     * @var bool|null
+     */
+    private $isMultiShipping = null;
+
+    /**
      * Construct
      *
      * @param Context $context
@@ -53,11 +75,13 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
     public function __construct(
         Context $context,
         Session $checkoutSession,
-        FormKey $formKey
+        FormKey $formKey,
+        MultishippingHelper $multishippingHelper
     ) {
         $this->checkoutSession = $checkoutSession;
         $this->quote = $this->getQuote();
         $this->formKey = $formKey;
+        $this->multishippingHelper = $multishippingHelper;
 
         parent::__construct($context);
     }
@@ -73,16 +97,70 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
     }
 
     /**
-     * Get maximum quantity allowed for shipping to multiple addresses
+     * Get FFL Store Hash
      *
-     * @return int
+     * @return string
      */
-    private function getMaximumQty()
+    public function getStoreHash()
     {
-        return (int)$this->getConfig(
-            self::XML_PATH_CHECKOUT_MULTIPLE_MAXIMUM_QUANTITY,
+        return $this->getConfig(
+            self::XML_PATH_STORE_HASH,
             \Magento\Store\Model\ScopeInterface::SCOPE_STORE
         );
+    }
+
+    /**
+     * Get Google Maps API Key
+     *
+     * @return string
+     */
+    public function getGoogleMapsApiKey()
+    {
+        return $this->getConfig(
+            self::XML_PATH_GOOGLE_MAPS_API_KEY,
+            \Magento\Store\Model\ScopeInterface::SCOPE_STORE
+        );
+    }
+
+    /**
+     * Get Google Maps API URL
+     *
+     * @return string
+     */
+    public function getGoogleMapsApiUrl()
+    {
+        return $this->getConfig(
+            self::XML_PATH_GOOGLE_MAPS_API_URL,
+            \Magento\Store\Model\ScopeInterface::SCOPE_STORE
+        );
+    }
+
+    /**
+     * Get FFL API URL
+     *
+     * @return string
+     */
+    public function getFflApiUrl()
+    {
+        return $this->getConfig(
+            self::XML_PATH_FFL_API_URL,
+            \Magento\Store\Model\ScopeInterface::SCOPE_STORE
+        );
+    }
+
+    /**
+     * Verify if FFL is enabled
+     * @return mixed
+     */
+    public function isEnabled()
+    {
+        if ($this->isEnabled === null) {
+            $this->isEnabled = $this->getConfig(
+                self::XML_PATH_IS_ENABLED,
+                \Magento\Store\Model\ScopeInterface::SCOPE_STORE
+            );
+        }
+        return $this->isEnabled;
     }
 
     /**
@@ -113,15 +191,35 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
      */
     public function isMultishippingCheckoutAvailable()
     {
-        $isMultiShipping = $this->scopeConfig->isSetFlag(
-            self::XML_PATH_CHECKOUT_MULTIPLE_AVAILABLE,
-            \Magento\Store\Model\ScopeInterface::SCOPE_STORE
-        );
-        #VERIFY CONTROLLER
-        return ($isMultiShipping) && $this->hasFflItem() && !$this->quote->hasItemsWithDecimalQty() &&
-            $this->quote->validateMinimumAmount(true) &&
-            $this->quote->getItemsSummaryQty() - $this->quote->getItemVirtualQty() > 0 &&
-            $this->quote->getItemsSummaryQty() <= $this->getMaximumQty();
+        if ($this->isMultiShipping === null) {
+            $this->isMultiShipping = $this->multishippingHelper->isMultishippingCheckoutAvailable();
+        }
+
+        return $this->isMultiShipping && $this->hasFflItem();
+    }
+
+    /**
+     * Verify if the current shopping cart is a FFL Cart.
+     * A FFl cart is a shopping cart with FFL products only.
+     * @return bool|null
+     */
+    public function isFflCart()
+    {
+        if ($this->cartIsFfl === null && $this->isEnabled()) {
+            $totalFflItems = 0;
+            $visibleCartItems = $this->quote->getAllVisibleItems();
+            $totalVisibleItems = count($visibleCartItems);
+
+            foreach ($visibleCartItems as $item) {
+                if ($item->getProduct()->getRequiredFfl() == 1) {
+                    $totalFflItems++;
+                }
+            }
+
+            $this->cartIsFfl = $totalVisibleItems == $totalFflItems;
+        }
+
+        return $this->cartIsFfl;
     }
 
     /**
