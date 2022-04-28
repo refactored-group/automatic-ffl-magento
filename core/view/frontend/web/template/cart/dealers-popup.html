@@ -14,7 +14,7 @@
                                                  placeholder="Enter your Zip Code, City or FFL"
                                                  name="ffl_search" value="" size="2" min="0"
                                                  class="input-text ffl-search-input"
-                                                 autocomplete="off"></div>
+                                                 autocomplete="off" event="{keypress: onEnter}"></div>
             <div class="ffl-miles"><span>
                         <select name="ffl_miles_search" id="ffl-miles-search" class="select-ffl dealers-modal-button">
                         <option value="5" data-bind="i18n: '5 Miles'"></option>
@@ -37,15 +37,17 @@
             </div>
         </div>
         <div class="ffl-flex-container flex-container-results">
-            <div class="ffl-results" data-bind="foreach: {data: fflResults, as: 'dealer'}">
-                <div class="ffl-dealer">
-                    <p class="ffl-dealer-name"><!-- ko text: $data.business_name --><!-- /ko --></p>
-                    <p class="ffl-dealer-address"><!-- ko text: $data.formatted_address --><!-- /ko --></p>
-                    <p class="ffl-dealer-phone"><!-- ko text: $data.phone_number --><!-- /ko --></p>
-                    <p class="ffl-dealer-button"><a data-role="closeBtn" class="action active ffl-select-button"
-                                                    href="#"
-                                                    data-bind="{click: function(data, event) { return $parent.selectDealer($index()) }, html: 'Select'}"></a>
-                    </p>
+            <div class="ffl-results">
+                <div class="ffl-searching-message" data-bind="i18n: 'Searching for dealers...', visible: isSearchingMessageVisible"></div>
+                <div class="ffl-no-dealers-message" data-bind="i18n: 'No dealers have been found.', visible: isNoDealersMessageVisible"></div>
+                <div data-bind="visible: isResultsVisible">
+                    <div data-bind="foreach: {data: fflResults, as: 'dealer'}">
+                        <div data-bind="{click: function(data, event) { return $parent.selectDealer($index()) }, class: $data.class }">
+                            <p class="ffl-dealer-name"><!-- ko text: $data.business_name_formatted --><!-- /ko --></p>
+                            <p class="ffl-dealer-address"><!-- ko text: $data.formatted_address --><!-- /ko --></p>
+                            <p class="ffl-dealer-phone"><!-- ko text: $data.phone_number --><!-- /ko --></p>
+                        </div>
+                    </div>
                 </div>
             </div>
             <div class="ffl-map" id="ffl-map"></div>

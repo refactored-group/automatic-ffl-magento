@@ -12,7 +12,4 @@
     <event name="controller_action_predispatch_checkout_cart_index">
         <observer name="Razoyo_AutoFflCore_Cart_Index" instance="Razoyo\AutoFflCore\Observer\Checkout\Index" />
     </event>
-    <event name="sales_order_place_before">
-        <observer name="Razoyo_AutoFflCore_Before_Place_order" instance="Razoyo\AutoFflCore\Observer\Checkout\Index" />
-    </event>
 </config>

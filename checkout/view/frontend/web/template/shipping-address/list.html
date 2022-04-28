@@ -1,0 +1,23 @@
+<!--
+/**
+ * Copyright © Magento, Inc. All rights reserved.
+ * See COPYING.txt for license details.
+ */
+-->
+<!-- ko if: (checkoutConfig.customerData.is_ffl == 1)-->
+<div class="step-title" data-role="title" data-bind="i18n: 'FFL Dealer Shipping Address (required for firearms)'"></div>
+<div class="message warning">
+    <div data-bind="i18n: 'You have a firearm in your cart and must choose a licensed firearm dealer (FFL) for the shipping address.'"></div>
+</div>
+<!-- /ko -->
+<!-- ko if: (visible)-->
+<div class="field addresses">
+    <div class="control">
+        <div class="shipping-address-items">
+            <!-- ko foreach: { data: elems, as: 'element' } -->
+            <!-- ko template: element.getTemplate() --><!-- /ko -->
+            <!-- /ko -->
+        </div>
+    </div>
+</div>
+<!-- /ko -->

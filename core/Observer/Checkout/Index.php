@@ -62,7 +62,7 @@ class Index implements ObserverInterface
     public function execute(Observer $observer)
     {
         if ($this->helper->isEnabled() && $this->helper->hasFflItem() && !$this->helper->isFflCart()) {
-            $message  = 'Your cart has items that need to be shipped to a Dealer.';
+            $message  = 'Your cart has items that need to be shipped to a Dealer. ';
             if ($this->helper->isMultishippingCheckoutAvailable()) {
                 $message .= 'You can not perform a regular checkout with a mixed cart. ';
                 $message .= 'Please, checkout using the "Check Out with Multiple Addresses" option. ';
@@ -74,7 +74,7 @@ class Index implements ObserverInterface
 
             $this->messageManager->addErrorMessage(__($message));
             if ($observer->getEvent()->getName() == 'sales_order_place_before') {
-                $this->_responseFactory->create()->setRedirect($this->url->getUrl('checkout/cart/index'))->sendResponse();
+                echo $this->url->getUrl('checkout/cart/index');
                 exit;
             } else if ($observer->getEvent()->getName() !== 'controller_action_predispatch_checkout_cart_index') {
                 $observer->getControllerAction()

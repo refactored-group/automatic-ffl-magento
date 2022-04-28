@@ -5,7 +5,7 @@
  */
  -->
 <div class="ffl-address" data-bind="html: dealerAddress[dealerButtonId]"></div>
-<input type="hidden" data-bind="attr: {
+<input type="text" class="ffl-cart-input-address" data-validate="{number: true, required:true, 'validate-greater-than-zero':true}" data-bind="attr: {
             name: addressFieldName,
             id: addressFieldName,
             value: dealerAddressId[dealerButtonId]

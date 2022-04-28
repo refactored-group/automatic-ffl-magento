@@ -49,9 +49,10 @@ class DefaultConfigProvider
          * any of the Customer Address Book addresses during the checkout.
          */
         if ($this->helper->isFflCart()) {
-            $result['customerData']['billingAddresses'] = $result['customerData']['addresses'];
+            $result['customerData']['billingAddresses'] = !empty($result['customerData']['addresses']) ?: [] ;
             $result['customerData']['addresses'] = [];
         }
+        $result['customerData']['is_ffl'] = (int) $this->helper->isFflCart();
 
         return $result;
     }

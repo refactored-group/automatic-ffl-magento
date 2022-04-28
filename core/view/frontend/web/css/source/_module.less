@@ -127,33 +127,55 @@
     padding: 20px;
     border: 3px solid #eeeeee;
     margin-bottom: 20px;
-    background: #f2f2f2;
+    background: #f9f9f9;
+    margin-right: 20px;
+    cursor: pointer;
     &:hover {
         border: 3px solid #ff5501 !important;
         background: #ffffff !important;
     }
-    .preferred {
+}
+
+.ffl-dealer-preferred {
+    display: block;
+    margin-right: 20px;
+    cursor: pointer;
+    position: relative;
+    padding: 20px;
+    margin-bottom: 20px;
+    border: 3px solid #1a79c2 !important;
+    background: #fff !important;
+    &:after {
+        background: #1a79c2;
+        color: #fff;
+        content: '\e605';
+        font-family: 'luma-icons';
+        height: 27px;
+        width: 29px;
+        font-size: 19px;
+        line-height: 21px;
+        padding-top: 2px;
+        position: absolute;
+        right: 0;
+        text-align: center;
+        top: 0;
+    }
+    &:hover {
+        border: 3px solid #ff5501 !important;
+        background: #ffffff !important;
         &:after {
-            background: #1a79c2;
-            color: #fff;
-            content: '\e605';
-            font-family: 'luma-icons';
-            height: 27px;
-            width: 29px;
-            font-size: 19px;
-            line-height: 21px;
-            padding-top: 2px;
-            position: absolute;
-            right: 0;
-            text-align: center;
-            top: 0;
+            background: #ff5501 !important;
         }
     }
 }
-.ffldealer {
-    .preferred {
-        border: 3px solid #1a79c2 !important;
-        background: #fff !important;
-    }
+
+.ffl-dealer-name {
+    font-weight: bold;
 }
 
+.ffl-cart-input-address {
+    width: 0px !important;
+    height: 0px !important;
+    padding:0px !important;
+    margin: 0px !important;
+}

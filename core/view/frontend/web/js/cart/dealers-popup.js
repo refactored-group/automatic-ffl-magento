@@ -8,18 +8,19 @@ define([
     'ko',
     'Magento_Ui/js/modal/modal',
     'Razoyo_AutoFflCore/js/cart/select-dealer-button',
-    'uiRegistry'
+    'uiRegistry',
 ], function ($, Component, ko, modal, dealerButton, checkoutData, createShippingAddress, selectShippingAddress, uiRegistry) {
-    'use strict';
 
-    var LatLngList = [];
-
+    //@TODO: Move the address handling to a model
     return Component.extend({
         defaults: {
             template: 'Razoyo_AutoFflCore/cart/dealers-popup'
         },
         currentFflItemId: ko.observable(),
         fflResults: ko.observable(),
+        isSearchingMessageVisible: ko.observable(),
+        isNoDealersMessageVisible: ko.observable(),
+        isResultsVisible: ko.observable(),
         modalOptions: {
             type: 'slide',
             responsive: true,
@@ -27,6 +28,11 @@ define([
             buttons: false
         },
         googleMap: null,
+        mapPositionsList: [],
+        mapMarkersList: [],
+        localStorageKey: 'multishipping-addresses',
+        blueMarkerUrl: 'http://maps.google.com/mapfiles/kml/paddle/blu-blank.png',
+        redMarkerUrl: 'http://maps.google.com/mapfiles/kml/paddle/red-blank.png',
 
         /** @inheritdoc */
         initialize: function () {
@@ -38,7 +44,28 @@ define([
                 self.currentFflItemId(value);
             });
 
+            // Hide messages
+            self.isSearchingMessageVisible(false);
+            self.isNoDealersMessageVisible(false);
+            self.isResultsVisible(false);
+
+            // Initialize local storage
+            this.initLocalStorage();
+
             return this;
+        },
+        onEnter: function(data, event){
+            event.keyCode === 13 && this.getFflResults();
+            return true;
+        },
+        /**
+         * Initialize local storage
+         */
+        initLocalStorage: function () {
+            var addresses = window.localStorage.getItem(self.localStorageKey);
+            if (!addresses) {
+                window.localStorage.setItem(self.localStorageKey, '{}');
+            }
         },
         /**
          * Render Modal UI and Google Maps
@@ -62,8 +89,8 @@ define([
             var self = this;
             var bounds = new google.maps.LatLngBounds();
 
-            for (var i = 0, LtLgLen = LatLngList.length; i < LtLgLen; i++) {
-                bounds.extend(LatLngList[i]);
+            for (var i = 0, LtLgLen = self.mapPositionsList.length; i < LtLgLen; i++) {
+                bounds.extend(self.mapPositionsList[i]);
             }
             self.googleMap.fitBounds(bounds);
         },
@@ -92,8 +119,26 @@ define([
                     // Assign the address to the elements on the Cart page
                     dealerButton().dealerAddress[self.currentFflItemId()](parsedResult.name);
                     dealerButton().dealerAddressId[self.currentFflItemId()](parsedResult.id);
+
+                    // Save new address into the local storage
+                    self.saveToLocalStorage(parsedResult);
+
                 }
             });
+        },
+        /**
+         * Save dealer address to the local storage
+         * @param parsedResult
+         */
+        saveToLocalStorage: function (parsedResult) {
+            var self = this;
+            var addresses = window.localStorage.getItem(self.localStorageKey);
+            addresses = JSON.parse(addresses);
+            addresses[self.currentFflItemId()] = {
+                name: parsedResult.name,
+                id: parsedResult.id
+            };
+            window.localStorage.setItem(self.localStorageKey, JSON.stringify(addresses));
         },
         /**
          * Send API request to FFL and retrieve a list of dealers
@@ -103,19 +148,47 @@ define([
             var searchString = $('#ffl-input-search').val();
             var searchRadius = $('#ffl-miles-search').val();
 
+            //Display searching for dealers message
+            self.isSearchingMessageVisible(true);
+            self.isNoDealersMessageVisible(false);
+            self.isResultsVisible(false);
+
             $.ajax({
                 url: self.ffl_api_url + '?location=' + searchString + '&radius=' + searchRadius,
                 headers: {"store-hash": self.store_hash},
                 success: function (result) {
-
-                    if (result.dealers.length > 0) {
+                    //Hide searching for dealers message
+                    self.isSearchingMessageVisible(false);
+                    if (result && result.dealers.length > 0) {
                         self.parseDealersResult(result.dealers);
                         self.centerMap();
+                        self.isResultsVisible(true);
+                        self.isNoDealersMessageVisible(false);
                     } else {
-                        $('#ffl_no_dealers').show();
+                        self.isSearchingMessageVisible(false);
+                        self.isResultsVisible(false);
+                        self.isNoDealersMessageVisible(true);
+                        self.removeMarkersFromMap();
                     }
+                },
+                error: function (result) {
+                    self.isSearchingMessageVisible(false);
+                    self.isResultsVisible(false);
+                    self.isNoDealersMessageVisible(true);
+                    self.removeMarkersFromMap();
                 }
             });
+        },
+        removeMarkersFromMap: function () {
+            var self = this;
+
+            //Clear all markers
+            for (var i = 0; i < self.mapMarkersList.length; i++) {
+                self.mapMarkersList[i].setMap(null);
+            }
+
+            // Clear all positions
+            self.mapPositionsList = [];
         },
         /**
          * Parse API results and create markers on the map
@@ -123,38 +196,87 @@ define([
          */
         parseDealersResult: function (dealers) {
             var self = this;
-            LatLngList = [];
 
             //Clear all markers
-            google.maps.Map.prototype.clearOverlays = function() {
-                for (var i = 0; i < LatLngList.length; i++ ) {
-                    LatLngList[i].setMap(null);
-                }
-                LatLngList.length = 0;
-            }
+            self.removeMarkersFromMap();
 
-            //Add new markers
             $(dealers).each(function (i, dealer) {
                 // Format address to display in the results list
+                dealers[i].id = (i + 1).toString();
+                dealers[i].index = i.toString();
                 dealers[i].formatted_address = dealer.premise_street + ', ' + dealer.premise_city + ', ' + dealer.premise_state + ' ' + dealer.premise_zip;
+                dealers[i].business_name_formatted = dealers[i].id + '. ' + dealers[i].business_name;
 
-                // Add marker to the map
-                self.addMarker({lat: dealer.lat, lng: dealer.lng});
+                if (dealers[i].preferred) {
+                    dealers[i].icon_url = self.blueMarkerUrl;
+                    dealers[i].class = 'ffl-dealer-preferred';
+                } else {
+                    dealers[i].icon_url = self.redMarkerUrl;
+                    dealers[i].class = 'ffl-dealer';
+                }
             });
-
             self.fflResults(dealers);
+
+            $(dealers).each(function (i, dealer) {
+                // Add marker to the map
+                self.addMarker(dealers[i]);
+            });
+        },
+        /**
+         * Add a popup to the marker
+         * @param marker
+         * @param dealer
+         */
+        addPopupToMarker: function (marker, dealer) {
+            var self = this;
+            const contentString =
+                '<div style="display: none"><div id="popupcontent' + dealer.index + '">' +
+                '<div id="siteNotice' + dealer.index + '">' +
+                "</div>" +
+                '<h2 id="firstHeading" class="firstHeading">' + dealer.business_name_formatted + '</h2>' +
+                '<div id="bodyContent">' +
+                "<p>" + dealer.formatted_address + "</p>" +
+                "<p><b>License: </b>" + dealer.license + "</p>" +
+                '<p><a href="#" data-bind="{click: function() {selectDealer(' + dealer.index + ')}}">' +
+                "Select this dealer</a> " +
+                "</p>" +
+                "</div>" +
+                "</div></div>";
+            $('#popupcontent' + dealer.index).remove();
+            $("body").append(contentString);
+            var domElement = document.getElementById('popupcontent' + dealer.index);
+            ko.applyBindings(this, domElement);
+
+            const infowindow = new google.maps.InfoWindow({
+                content: domElement,
+            });
+            marker.addListener("click", () => {
+                infowindow.open({
+                    anchor: marker,
+                    map: self.googleMap,
+                    shouldFocus: false,
+                });
+            });
         },
         /**
          * Add marker to the map
          * @param location
          */
-        addMarker: function (location) {
+        addMarker: function (dealer) {
             var self = this;
-            new google.maps.Marker({
-                position: location,
+            var marker = new google.maps.Marker({
+                position: {lat: dealer.lat, lng: dealer.lng},
                 map: self.googleMap,
+                label: dealer.id,
+                icon: {
+                    url: dealer.icon_url,
+                    labelOrigin: new google.maps.Point(33, 20)
+                },
             });
-            LatLngList.push(new google.maps.LatLng(location.lat, location.lng));
+
+            this.addPopupToMarker(marker, dealer);
+            this.mapMarkersList.push(marker);
+            self.mapPositionsList.push(new google.maps.LatLng(dealer.lat, dealer.lng));
         },
         /**
          * Init Google Maps
