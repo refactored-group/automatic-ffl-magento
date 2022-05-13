@@ -21,10 +21,19 @@ define([
             this._super();
             this.regionJson = JSON.parse(this.regionJson);
 
-            // Hide Create New Address form and edit address link from Checkout
-            // @TODO: find a better way of doing this
-            var styleTag = $('<style>#shipping-new-address-form, .edit-address-link { display: none !important; }</style>')
-            $('html > head').append(styleTag);
+            if (checkoutConfig.customerData.is_ffl == 1) {
+                // Hide Create New Address form and edit address link from Checkout
+                // @TODO: find a better way of doing this
+                var styleTag = $('<style>#shipping-new-address-form, .edit-address-link { display: none !important; }</style>')
+                $('html > head').append(styleTag);
+            } else {
+                //Clear previous dealer shipping address when no FFL item is detected
+                var shippingAddress = checkoutData.getNewCustomerShippingAddress();
+                if (shippingAddress.is_ffl) {
+                    checkoutData.setNewCustomerShippingAddress(false);
+                    checkoutData.setShippingAddressFromData(false);
+                }
+            }
 
             return this;
         },
@@ -55,6 +64,7 @@ define([
                 postcode: dealer.premise_zip,
                 region: region.name,
                 region_id: region.id,
+                is_ffl: 1,
                 street: {
                     0: dealer.premise_street,
                 },

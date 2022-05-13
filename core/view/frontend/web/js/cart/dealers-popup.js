@@ -63,7 +63,7 @@ define([
          */
         initLocalStorage: function () {
             var addresses = window.localStorage.getItem(self.localStorageKey);
-            if (!addresses) {
+            if (!addresses || checkoutConfig.customerData.is_ffl != 1) {
                 window.localStorage.setItem(self.localStorageKey, '{}');
             }
         },
