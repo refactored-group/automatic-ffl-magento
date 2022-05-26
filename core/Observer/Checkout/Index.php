@@ -61,19 +61,27 @@ class Index implements ObserverInterface
      */
     public function execute(Observer $observer)
     {
-        if ($this->helper->isEnabled() && $this->helper->hasFflItem() && !$this->helper->isFflCart()) {
+        if ($this->helper->isEnabled() && $this->helper->isMixedCart()) {
+            // @TODO: This message seems a little confusing, we need to work on a better one
             $message  = 'Your cart has items that need to be shipped to a Dealer. ';
+            $message .= 'You can not checkout with a mixed cart. ';
+            $message .= 'Please remove all items from your cart that need to be shipped to a Dealer or the items that do not.';
+
             if (!$this->helper->isMultishippingCheckoutAvailable()) {
-                // @TODO: This message seems a little confusing, we need to work on a better one
-                $message .= 'You can not checkout with a mixed cart. ';
-                $message .= 'Please remove all items from your cart that need to be shipped to a Dealer or the items that do not.';
                 $this->messageManager->addErrorMessage(__($message));
+                if ($observer->getEvent()->getName() !== 'controller_action_predispatch_checkout_cart_index') {
+                    return $observer->getControllerAction()
+                        ->getResponse()
+                        ->setRedirect($this->url->getUrl('checkout/cart/index'));
+                }
             }
 
             if ($observer->getEvent()->getName() == 'sales_order_place_before') {
+                $this->messageManager->addErrorMessage(__($message));
                 echo $this->url->getUrl('checkout/cart/index');
                 exit;
             } else if ($observer->getEvent()->getName() !== 'controller_action_predispatch_checkout_cart_index') {
+                $this->messageManager->addErrorMessage(__($message));
                 $observer->getControllerAction()
                     ->getResponse()
                     ->setRedirect($this->url->getUrl('multishipping/checkout'));

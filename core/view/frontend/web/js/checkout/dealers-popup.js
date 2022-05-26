@@ -29,7 +29,7 @@ define([
             } else {
                 //Clear previous dealer shipping address when no FFL item is detected
                 var shippingAddress = checkoutData.getNewCustomerShippingAddress();
-                if (shippingAddress.is_ffl) {
+                if (shippingAddress && shippingAddress.hasOwnProperty('is_ffl') && typeof shippingAddress.is_ffl === 1) {
                     checkoutData.setNewCustomerShippingAddress(false);
                     checkoutData.setShippingAddressFromData(false);
                 }

@@ -8,17 +8,8 @@ namespace Razoyo\AutoFflCheckoutMultiShipping\Plugin\Checkout\Controller\Index;
 
 use Closure;
 use Magento\Checkout\Controller\Index\Index as ParentControllor;
-use Magento\Checkout\Helper\Data;
-use Magento\Checkout\Model\Session;
-use Magento\Checkout\Model\Type\Onepage;
-use Magento\Customer\Model\Session as CustomerSession;
-use Magento\Framework\App\RequestInterface;
 use Magento\Framework\Controller\Result\RedirectFactory;
 use Magento\Framework\Controller\ResultInterface;
-use Magento\Framework\Message\ManagerInterface;
-use Magento\Framework\UrlInterface;
-use Magento\Framework\View\Result\PageFactory;
-use Psr\Log\LoggerInterface;
 use Razoyo\AutoFflCore\Helper\Data as Helper;
 
 /**
@@ -26,38 +17,8 @@ use Razoyo\AutoFflCore\Helper\Data as Helper;
  */
 class Index
 {
-    /** @var Data */
-    private $checkoutHelper;
-
-    /** @var CustomerSession */
-    private $customerSession;
-
-    /** @var RequestInterface */
-    private $request;
-
-    /** @var ManagerInterface */
-    private $messageManager;
-
     /** @var RedirectFactory */
     private $resultRedirectFactory;
-
-    /** @var Onepage */
-    private $onepage;
-
-    /** @var Session */
-    private $checkoutSession;
-
-    /** @var PageFactory */
-    private $resultPageFactory;
-    /**
-     * @var UrlInterface
-     */
-    private $urlBuilder;
-
-    /**
-     * @var LoggerInterface
-     */
-    private $logger;
 
     /**
      * @var Helper
@@ -65,41 +26,14 @@ class Index
     private $helper;
 
     /**
-     * @param PageFactory $resultPageFactory
-     * @param Session $checkoutSession
-     * @param Onepage $onepage
      * @param RedirectFactory $resultRedirectFactory
-     * @param ManagerInterface $messageManager
-     * @param RequestInterface $request
-     * @param CustomerSession $customerSession
-     * @param Data $checkoutHelper
-     * @param UrlInterface $urlBuilder
-     * @param LoggerInterface $logger
      * @param Helper $helper
      */
     public function __construct(
-        PageFactory $resultPageFactory,
-        Session $checkoutSession,
-        Onepage $onepage,
         RedirectFactory $resultRedirectFactory,
-        ManagerInterface $messageManager,
-        RequestInterface $request,
-        CustomerSession $customerSession,
-        Data $checkoutHelper,
-        UrlInterface $urlBuilder,
-        LoggerInterface $logger,
         Helper $helper
     ) {
-        $this->checkoutHelper = $checkoutHelper;
-        $this->customerSession = $customerSession;
-        $this->request = $request;
-        $this->messageManager = $messageManager;
         $this->resultRedirectFactory = $resultRedirectFactory;
-        $this->onepage = $onepage;
-        $this->checkoutSession = $checkoutSession;
-        $this->resultPageFactory = $resultPageFactory;
-        $this->urlBuilder = $urlBuilder;
-        $this->logger = $logger;
         $this->helper = $helper;
     }
 
@@ -113,7 +47,7 @@ class Index
      */
     public function aroundExecute(ParentControllor $subject, Closure $proceed)
     {
-        if ($this->helper->isMultishippingCheckoutAvailable()) {
+        if ($this->helper->isMultishippingCheckoutAvailable() && $this->helper->isMixedCart()) {
             return $this->resultRedirectFactory->create()->setPath('multishipping/checkout');
         }
 

@@ -223,6 +223,13 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
     }
 
     /**
+     * @return bool
+     */
+    public function isMixedCart() {
+        return $this->hasFflItem() && !$this->isFflCart();
+    }
+
+    /**
      * Get all FFL Items currently in the shopping cart
      * @return array
      */
