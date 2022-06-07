@@ -11,5 +11,8 @@
         <plugin name="after_magento_checkout_model_default_config_provider"
                 type="Razoyo\AutoFflCheckout\Plugin\Checkout\Model\DefaultConfigProvider"/>
     </type>
-
+    <type name="Magento\Sales\Model\Order\OrderCustomerExtractor">
+        <plugin name="after_Customer_order_extractor"
+                type="Razoyo\AutoFflCheckout\Plugin\OrderCustomerExtractorPlugin"/>
+    </type>
 </config>

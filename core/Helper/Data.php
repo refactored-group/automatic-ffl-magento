@@ -168,19 +168,29 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
      * @param \Magento\Quote\Model\Quote $quote
      * @return bool
      */
-    public function hasFflItem()
+    public function hasFflItem($quote = false)
     {
-        if ($this->hasFfl !== null) {
+        if ($quote === false && $this->hasFfl !== null) {
             return $this->hasFfl;
         }
+
+        if (!$quote) {
+            $quote = $this->quote;
+        }
+        $hasFfl = false;
+
         $this->hasFfl = false;
-        $items = $this->quote->getAllVisibleItems();
+        $items = $quote->getAllVisibleItems();
         foreach ($items as $item) {
             if ($item->getProduct()->getRequiredFfl()) {
-                $this->hasFfl = true;
+                $hasFfl = true;
             }
         }
-        return $this->hasFfl;
+
+        if (!$quote) {
+            $this->hasFfl = $hasFfl;
+        }
+        return $hasFfl;
     }
 
     /**

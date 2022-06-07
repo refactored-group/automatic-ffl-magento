@@ -10,9 +10,6 @@ use Closure;
 use Razoyo\AutoFflCore\Helper\Data as Helper;
 use Magento\Framework\App\Action\Context;
 
-/**
- * Class Addresses
- */
 class DefaultConfigProvider
 {
     /**
