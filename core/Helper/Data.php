@@ -168,14 +168,16 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
      * @param \Magento\Quote\Model\Quote $quote
      * @return bool
      */
-    public function hasFflItem($quote = false)
+    public function hasFflItem($quoteParam = false)
     {
-        if ($quote === false && $this->hasFfl !== null) {
+        if ($quoteParam === false && $this->hasFfl !== null) {
             return $this->hasFfl;
         }
 
-        if (!$quote) {
+        if (!$quoteParam) {
             $quote = $this->quote;
+        } else {
+            $quote = $quoteParam;
         }
         $hasFfl = false;
 
@@ -187,7 +189,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
             }
         }
 
-        if (!$quote) {
+        if (!$quoteParam) {
             $this->hasFfl = $hasFfl;
         }
         return $hasFfl;
