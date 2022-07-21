@@ -78,7 +78,7 @@
                 </div>
             </form>
             <div class="no-quotes-block"
-                 ifnot="rates().length > 0 && checkoutConfig.customerData.is_ffl == 1"
+                 if="rates().length < 1 && checkoutConfig.customerData.is_ffl == 1"
                  translate="'Select a Dealer to see shipping rates'" />
 
             <div class="no-quotes-block"
