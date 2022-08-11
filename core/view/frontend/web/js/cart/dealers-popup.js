@@ -155,7 +155,7 @@ define([
 
             $.ajax({
                 url: self.ffl_api_url + '?location=' + searchString + '&radius=' + searchRadius,
-                headers: {"store-hash": self.store_hash},
+                headers: {"store-hash": self.store_hash, "origin": window.location.origin},
                 success: function (result) {
                     //Hide searching for dealers message
                     self.isSearchingMessageVisible(false);

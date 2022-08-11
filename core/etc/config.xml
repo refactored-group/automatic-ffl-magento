@@ -13,7 +13,7 @@
                 <enabled>1</enabled>
                 <store_hash>demo_store_hash</store_hash>
                 <google_maps_api_url>https://maps.googleapis.com/maps/api/js</google_maps_api_url>
-                <ffl_api_url>https://app.automaticffl.com/big_commerce/api/dealers/radius</ffl_api_url>
+                <ffl_api_url>https://app.automaticffl.com/magento/api/dealers/radius</ffl_api_url>
             </configuration>
         </autoffl>
     </default>
