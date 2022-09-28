@@ -1,13 +1,13 @@
 {
-    "name": "razoyo/autoffl-checkout-multishipping",
+    "name": "refactoredgroup/autoffl-checkout-multishipping",
     "description": "AutomaticFFL Multi-Shipping Checkout extension",
     "version": "1.2.0",
     "type": "magento2-module",
     "license": "proprietary",
     "authors": [
         {
-            "name": "Razoyo",
-            "homepage": "https://www.razoyo.com/"
+            "name": "Refactored Group",
+            "homepage": "https://www.refactored.group/"
         }
     ],
     "minimum-stability": "alpha",
@@ -20,7 +20,7 @@
     "require": {
         "magento/framework": "~102|~103",
         "magento/module-config": "~101",
-        "razoyo/autoffl-core": "~0.1.0",
+        "refactoredgroup/autoffl-core": "~0.1.0",
         "magento/module-multishipping": "*",
         "magento/module-directory": "*"
     },
@@ -41,7 +41,7 @@
             "registration.php"
         ],
         "psr-4": {
-            "Razoyo\\AutoFflCheckoutMultishipping\\": ""
+            "RefactoredGroup\\AutoFflCheckoutMultishipping\\": ""
         }
     }
 }

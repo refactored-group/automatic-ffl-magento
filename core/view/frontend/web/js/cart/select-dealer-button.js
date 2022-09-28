@@ -1,5 +1,5 @@
 /**
- * Copyright © Razoyo (https://www.razoyo.com)
+ * Copyright © Refactored Group (https://www.refactored.group)
  * @copyright Copyright © 2022. All rights reserved.
  */
 define([
@@ -11,7 +11,7 @@ define([
 
     return Component.extend({
         defaults: {
-            template: 'Razoyo_AutoFflCore/cart/select-dealer-button'
+            template: 'RefactoredGroup_AutoFflCore/cart/select-dealer-button'
         },
         // These observables will be shared across all instances of this UI Component
         currentFflItemId: ko.observable(),

@@ -1,16 +1,16 @@
 <?php
 /**
- * Copyright © Razoyo (https://www.razoyo.com)
+ * Copyright © Refactored Group (https://www.refactored.group)
  * @copyright Copyright © 2022. All rights reserved.
  */
 
-namespace Razoyo\AutoFflCheckoutMultiShipping\Plugin\Checkout\Controller\Index;
+namespace RefactoredGroup\AutoFflCheckoutMultiShipping\Plugin\Checkout\Controller\Index;
 
 use Closure;
 use Magento\Checkout\Controller\Index\Index as ParentControllor;
 use Magento\Framework\Controller\Result\RedirectFactory;
 use Magento\Framework\Controller\ResultInterface;
-use Razoyo\AutoFflCore\Helper\Data as Helper;
+use RefactoredGroup\AutoFflCore\Helper\Data as Helper;
 
 /**
  * Class Index

@@ -1,14 +1,14 @@
 <?xml version="1.0" ?>
 <!--
 /**
- * Copyright © Razoyo (https://www.razoyo.com)
+ * Copyright © Refactored Group (https://www.refactored.group)
  * @copyright Copyright © 2022. All rights reserved.
  */
  -->
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:App/etc/routes.xsd">
     <router id="standard">
         <route frontName="createaddress" id="createaddress">
-            <module name="Razoyo_AutoFflCheckoutMultiShipping"/>
+            <module name="RefactoredGroup_AutoFflCheckoutMultiShipping"/>
         </route>
     </router>
 </config>

@@ -1,15 +1,15 @@
 <?php
 /**
- * Copyright © Razoyo (https://www.razoyo.com)
+ * Copyright © Refactored Group (https://www.refactored.group)
  * @copyright Copyright © 2022. All rights reserved.
  */
-namespace Razoyo\AutoFflCore\Observer\Checkout;
+namespace RefactoredGroup\AutoFflCore\Observer\Checkout;
 
 use Magento\Framework\App\Request\Http as Request;
 use Magento\Framework\Event\Observer;
 use Magento\Framework\Event\ObserverInterface;
 use Magento\Framework\Message\ManagerInterface;
-use Razoyo\AutoFflCore\Helper\Data as Helper;
+use RefactoredGroup\AutoFflCore\Helper\Data as Helper;
 use Magento\Checkout\Model\Session;
 use Magento\Framework\UrlInterface;
 

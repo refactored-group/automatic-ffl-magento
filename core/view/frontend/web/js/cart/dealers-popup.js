@@ -1,5 +1,5 @@
 /**
- * Copyright © Razoyo (https://www.razoyo.com)
+ * Copyright © Refactored Group (https://www.refactored.group)
  * @copyright Copyright © 2022. All rights reserved.
  */
 define([
@@ -7,14 +7,14 @@ define([
     'uiComponent',
     'ko',
     'Magento_Ui/js/modal/modal',
-    'Razoyo_AutoFflCore/js/cart/select-dealer-button',
+    'RefactoredGroup_AutoFflCore/js/cart/select-dealer-button',
     'uiRegistry',
 ], function ($, Component, ko, modal, dealerButton, checkoutData, createShippingAddress, selectShippingAddress, uiRegistry) {
 
     //@TODO: Move the address handling to a model
     return Component.extend({
         defaults: {
-            template: 'Razoyo_AutoFflCore/cart/dealers-popup'
+            template: 'RefactoredGroup_AutoFflCore/cart/dealers-popup'
         },
         currentFflItemId: ko.observable(),
         fflResults: ko.observable(),
@@ -108,7 +108,7 @@ define([
              * Send a request to Magento and create the address in the backend.
              * This address won't be visible in the customer address book.
              *
-             * See \Razoyo\AutoFflCheckoutMultiShipping\Controller\Index\Index
+             * See \RefactoredGroup\AutoFflCheckoutMultiShipping\Controller\Index\Index
              */
             $.ajax({
                 url: self.create_address_url,

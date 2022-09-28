@@ -1,8 +1,8 @@
 # modman configuration file
 # See https://github.com/colinmollenhour/modman for more information
 
-./admin app/code/Razoyo/AutoFflAdmin
-./checkout app/code/Razoyo/AutoFflCheckout
-./checkout-multishipping app/code/Razoyo/AutoFflCheckoutMultiShipping
-./core app/code/Razoyo/AutoFflCore
-./gateway app/code/Razoyo/AutoFflGateway
+./admin app/code/RefactoredGroup/AutoFflAdmin
+./checkout app/code/RefactoredGroup/AutoFflCheckout
+./checkout-multishipping app/code/RefactoredGroup/AutoFflCheckoutMultiShipping
+./core app/code/RefactoredGroup/AutoFflCore
+./gateway app/code/RefactoredGroup/AutoFflGateway

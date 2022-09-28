@@ -1,15 +1,15 @@
 /**
- * Copyright © Razoyo (https://www.razoyo.com)
+ * Copyright © Refactored Group (https://www.refactored.group)
  * @copyright Copyright © 2022. All rights reserved.
  */
 define([
     'jquery',
-    'Razoyo_AutoFflCore/js/cart/dealers-popup',
+    'RefactoredGroup_AutoFflCore/js/cart/dealers-popup',
     'Magento_Checkout/js/checkout-data',
     'Magento_Checkout/js/action/create-shipping-address',
     'Magento_Checkout/js/action/select-shipping-address',
     'ko',
-    'Razoyo_AutoFflCore/js/checkout/select-dealer-button',
+    'RefactoredGroup_AutoFflCore/js/checkout/select-dealer-button',
     'Magento_Customer/js/customer-data',
 ], function ($, Component, checkoutData, createShippingAddress, selectShippingAddress, ko, dealerButton, storage) {
     'use strict';

@@ -1,12 +1,12 @@
 <?php
 /**
- * Copyright © Razoyo (https://www.razoyo.com)
+ * Copyright © Refactored Group (https://www.refactored.group)
  * @copyright Copyright © 2022. All rights reserved.
  */
-namespace Razoyo\AutoFflCheckoutMultiShipping\Block\Checkout;
+namespace RefactoredGroup\AutoFflCheckoutMultiShipping\Block\Checkout;
 
 use Magento\Framework\View\Element\Template;
-use Razoyo\AutoFflCore\Helper\Data;
+use RefactoredGroup\AutoFflCore\Helper\Data;
 
 class Dealers extends Template
 {

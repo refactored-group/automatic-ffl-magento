@@ -1,13 +1,13 @@
 <?php
 /**
- * Copyright © Razoyo (https://www.razoyo.com)
+ * Copyright © Refactored Group (https://www.refactored.group)
  * @copyright Copyright © 2022. All rights reserved.
  */
 
-namespace Razoyo\AutoFflCheckoutMultiShipping\Plugin\Multishipping\Controller\Checkout;
+namespace RefactoredGroup\AutoFflCheckoutMultiShipping\Plugin\Multishipping\Controller\Checkout;
 
 use Closure;
-use Razoyo\AutoFflCore\Helper\Data as Helper;
+use RefactoredGroup\AutoFflCore\Helper\Data as Helper;
 use Magento\Framework\App\Action\Context;
 
 /**

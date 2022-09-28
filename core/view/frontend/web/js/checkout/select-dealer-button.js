@@ -1,10 +1,10 @@
 /**
- * Copyright © Razoyo (https://www.razoyo.com)
+ * Copyright © Refactored Group (https://www.refactored.group)
  * @copyright Copyright © 2022. All rights reserved.
  */
 define([
     'jquery',
-    'Razoyo_AutoFflCore/js/cart/select-dealer-button',
+    'RefactoredGroup_AutoFflCore/js/cart/select-dealer-button',
     'ko',
     'Magento_Customer/js/customer-data'
 ], function ($, Component, ko, storage) {
@@ -12,7 +12,7 @@ define([
 
     return Component.extend({
         defaults: {
-            template: 'Razoyo_AutoFflCore/checkout/select-dealer-button'
+            template: 'RefactoredGroup_AutoFflCore/checkout/select-dealer-button'
         },
         fflButtonLabel: null,
         /** @inheritdoc */
