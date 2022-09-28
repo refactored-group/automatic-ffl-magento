@@ -1,16 +1,16 @@
 <?xml version="1.0"?>
 <!--
 /**
- * Copyright © Razoyo (https://www.razoyo.com)
+ * Copyright © Refactored Group (https://www.refactored.group)
  * @copyright Copyright © 2022. All rights reserved.
  */
 -->
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
     <type name="Magento\Customer\Model\ResourceModel\Address\CollectionFactory">
-        <plugin name="razoyo_autoffl_address_collection_factory_plugin" type="Razoyo\AutoFflCore\Plugin\AddressCollectionFactoryPlugin" sortOrder="100" disabled="false"/>
+        <plugin name="refactoredgroup_autoffl_address_collection_factory_plugin" type="RefactoredGroup\AutoFflCore\Plugin\AddressCollectionFactoryPlugin" sortOrder="100" disabled="false"/>
     </type>
     <type name="Magento\Sales\Model\Order">
-        <plugin name="razoyo_autoffl_model_order_plugin" type="Razoyo\AutoFflCore\Plugin\ModelOrderPlugin" sortOrder="200" disabled="false"/>
+        <plugin name="refactoredgroup_autoffl_model_order_plugin" type="RefactoredGroup\AutoFflCore\Plugin\ModelOrderPlugin" sortOrder="200" disabled="false"/>
     </type>
 </config>

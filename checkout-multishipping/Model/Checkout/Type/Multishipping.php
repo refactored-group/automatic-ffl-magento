@@ -1,9 +1,9 @@
 <?php
 /**
- * Copyright © Razoyo (https://www.razoyo.com)
+ * Copyright © Refactored Group (https://www.refactored.group)
  * @copyright Copyright © 2022. All rights reserved.
  */
-namespace Razoyo\AutoFflCheckoutMultiShipping\Model\Checkout\Type;
+namespace RefactoredGroup\AutoFflCheckoutMultiShipping\Model\Checkout\Type;
 
 use Magento\Customer\Api\AddressRepositoryInterface;
 use Magento\Customer\Model\Session;
@@ -118,7 +118,7 @@ class Multishipping extends \Magento\Multishipping\Model\Checkout\Type\Multiship
             $collection = $this->addressCollectionFactory->create();
             /**
              * Get all addresses for this customer but ignoring the is_delete attribute filter added
-             * by default. See \Razoyo\AutoFflCore\Plugin\AddressCollectionFactoryPlugin
+             * by default. See \RefactoredGroup\AutoFflCore\Plugin\AddressCollectionFactoryPlugin
              */
             $collection->getSelect()->reset('where');
             $collection->setCustomerFilter($this->getCustomer());

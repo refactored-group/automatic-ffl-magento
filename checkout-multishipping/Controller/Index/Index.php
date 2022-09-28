@@ -1,9 +1,9 @@
 <?php
 /**
- * Copyright © Razoyo (https://www.razoyo.com)
+ * Copyright © Refactored Group (https://www.refactored.group)
  * @copyright Copyright © 2022. All rights reserved.
  */
-namespace Razoyo\AutoFflCheckoutMultiShipping\Controller\Index;
+namespace RefactoredGroup\AutoFflCheckoutMultiShipping\Controller\Index;
 
 use Magento\Catalog\Model\ResourceModel\Product\CollectionFactory;
 use Magento\Customer\Api\AddressRepositoryInterface;

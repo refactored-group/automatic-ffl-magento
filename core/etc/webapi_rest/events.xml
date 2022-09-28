@@ -1,12 +1,12 @@
 <?xml version="1.0"?>
 <!--
 /**
- * Copyright © Razoyo (https://www.razoyo.com)
+ * Copyright © Refactored Group (https://www.refactored.group)
  * @copyright Copyright © 2022. All rights reserved.
  */
 -->
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:Event/etc/events.xsd">
     <event name="sales_order_place_before">
-        <observer name="Razoyo_AutoFflCore_Before_Place_order" instance="Razoyo\AutoFflCore\Observer\Checkout\Index" />
+        <observer name="RefactoredGroup_AutoFflCore_Before_Place_order" instance="RefactoredGroup\AutoFflCore\Observer\Checkout\Index" />
     </event>
 </config>

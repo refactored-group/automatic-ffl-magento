@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <!--
 /**
- * Copyright © Razoyo (https://www.razoyo.com)
+ * Copyright © Refactored Group (https://www.refactored.group)
  * @copyright Copyright © 2022. All rights reserved.
  */
 -->
@@ -9,10 +9,10 @@
         xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
     <type name="Magento\Checkout\Model\DefaultConfigProvider">
         <plugin name="after_magento_checkout_model_default_config_provider"
-                type="Razoyo\AutoFflCheckout\Plugin\Checkout\Model\DefaultConfigProvider"/>
+                type="RefactoredGroup\AutoFflCheckout\Plugin\Checkout\Model\DefaultConfigProvider"/>
     </type>
     <type name="Magento\Sales\Model\Order\OrderCustomerExtractor">
         <plugin name="after_Customer_order_extractor"
-                type="Razoyo\AutoFflCheckout\Plugin\OrderCustomerExtractorPlugin"/>
+                type="RefactoredGroup\AutoFflCheckout\Plugin\OrderCustomerExtractorPlugin"/>
     </type>
 </config>

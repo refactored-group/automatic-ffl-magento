@@ -1,14 +1,14 @@
 <?php
 /**
- * Copyright © Razoyo (https://www.razoyo.com)
+ * Copyright © Refactored Group (https://www.refactored.group)
  * @copyright Copyright © 2022. All rights reserved.
  */
 
-namespace Razoyo\AutoFflCheckout\Plugin;
+namespace RefactoredGroup\AutoFflCheckout\Plugin;
 
 use Magento\Sales\Api\OrderRepositoryInterface;
 use Magento\Quote\Api\CartRepositoryInterface;
-use Razoyo\AutoFflCore\Helper\Data as Helper;
+use RefactoredGroup\AutoFflCore\Helper\Data as Helper;
 
 class OrderCustomerExtractorPlugin
 {

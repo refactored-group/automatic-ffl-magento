@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <!--
 /**
- * Copyright © Razoyo (https://www.razoyo.com)
+ * Copyright © Refactored Group (https://www.refactored.group)
  * @copyright Copyright © 2022. All rights reserved.
  */
 -->
@@ -10,8 +10,8 @@
 
     <body>
         <referenceContainer name="content">
-            <block class="Razoyo\AutoFflCheckoutMultiShipping\Block\Checkout\Addresses" name="checkout_addresses"
-                   template="Razoyo_AutoFflCheckoutMultiShipping::checkout/addresses.phtml" cacheable="false">
+            <block class="RefactoredGroup\AutoFflCheckoutMultiShipping\Block\Checkout\Addresses" name="checkout_addresses"
+                   template="RefactoredGroup_AutoFflCheckoutMultiShipping::checkout/addresses.phtml" cacheable="false">
                 <arguments>
                     <argument name="renderer_template" xsi:type="string">
                         Magento_Multishipping::checkout/item/default.phtml
@@ -23,8 +23,8 @@
             </block>
         </referenceContainer>
         <referenceContainer name="content">
-            <block class="Razoyo\AutoFflCheckoutMultiShipping\Block\Checkout\Dealers" name="checkout_dealers_popup"
-                   template="Razoyo_AutoFflCheckoutMultiShipping::checkout/dealers.phtml" cacheable="false" />
+            <block class="RefactoredGroup\AutoFflCheckoutMultiShipping\Block\Checkout\Dealers" name="checkout_dealers_popup"
+                   template="RefactoredGroup_AutoFflCheckoutMultiShipping::checkout/dealers.phtml" cacheable="false" />
         </referenceContainer>
     </body>
 </page>

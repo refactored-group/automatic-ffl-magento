@@ -1,15 +1,15 @@
 <?xml version="1.0"?>
 <!--
 /**
- * Copyright © Razoyo (https://www.razoyo.com)
+ * Copyright © Refactored Group (https://www.refactored.group)
  * @copyright Copyright © 2022. All rights reserved.
  */
 -->
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:Event/etc/events.xsd">
     <event name="controller_action_predispatch_checkout_index_index">
-        <observer name="Razoyo_AutoFflCore_Checkout_Index" instance="Razoyo\AutoFflCore\Observer\Checkout\Index" />
+        <observer name="RefactoredGroup_AutoFflCore_Checkout_Index" instance="RefactoredGroup\AutoFflCore\Observer\Checkout\Index" />
     </event>
     <event name="controller_action_predispatch_checkout_cart_index">
-        <observer name="Razoyo_AutoFflCore_Cart_Index" instance="Razoyo\AutoFflCore\Observer\Checkout\Index" />
+        <observer name="RefactoredGroup_AutoFflCore_Cart_Index" instance="RefactoredGroup\AutoFflCore\Observer\Checkout\Index" />
     </event>
 </config>

@@ -1,5 +1,5 @@
 /**
- * Copyright © Razoyo (https://www.razoyo.com)
+ * Copyright © Refactored Group (https://www.refactored.group)
  * @copyright Copyright © 2022. All rights reserved.
  */
 define([
@@ -11,7 +11,7 @@ define([
 
     return Component.extend({
         defaults: {
-            template: 'Razoyo_AutoFflCore/checkout/ffl-dealder'
+            template: 'RefactoredGroup_AutoFflCore/checkout/ffl-dealder'
         },
         title: 'FFL Dealer Shipping Address (required for firearms)',
         /** @inheritdoc */

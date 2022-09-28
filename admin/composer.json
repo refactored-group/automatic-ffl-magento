@@ -1,13 +1,13 @@
 {
-    "name": "razoyo/autoffl-admin",
+    "name": "refactoredgroup/autoffl-admin",
     "description": "AutomaticFFL Admin extension",
     "version": "1.2.0",
     "type": "magento2-module",
     "license": "proprietary",
     "authors": [
         {
-            "name": "Razoyo",
-            "homepage": "https://www.razoyo.com/"
+            "name": "Refactored Group",
+            "homepage": "https://www.refactored.group/"
         }
     ],
     "minimum-stability": "alpha",
@@ -20,7 +20,7 @@
     "require": {
         "magento/framework": "~102|~103",
         "magento/module-config": "~101",
-        "razoyo/autoffl-core": "~0.1.0"
+        "refactoredgroup/autoffl-core": "~0.1.0"
     },
     "require-dev": {
         "magento/magento-coding-standard": "~2.0"
@@ -39,7 +39,7 @@
             "registration.php"
         ],
         "psr-4": {
-            "Razoyo\\AutoFflAdmin\\": ""
+            "RefactoredGroup\\AutoFflAdmin\\": ""
         }
     }
 }

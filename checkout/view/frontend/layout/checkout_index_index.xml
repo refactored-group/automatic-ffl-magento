@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <!--
 /**
- * Copyright © Razoyo (https://www.razoyo.com)
+ * Copyright © Refactored Group (https://www.refactored.group)
  * @copyright Copyright © 2022. All rights reserved.
  */
 -->
@@ -16,10 +16,10 @@
                         <item name="checkout" xsi:type="array">
                             <item name="children" xsi:type="array">
                                 <item name="ffl_checkout_title" xsi:type="array">
-                                    <item name="component" xsi:type="string">Razoyo_AutoFflCore/js/checkout/ffl-title</item>
+                                    <item name="component" xsi:type="string">RefactoredGroup_AutoFflCore/js/checkout/ffl-title</item>
                                     <item name="config" xsi:type="array">
-                                        <item name="template" xsi:type="string">Razoyo_AutoFflCore/checkout/ffl-title</item>
-                                        <item name="is_ffl" xsi:type="helper" helper="Razoyo\AutoFflCore\Helper\Data::isFflCart" />
+                                        <item name="template" xsi:type="string">RefactoredGroup_AutoFflCore/checkout/ffl-title</item>
+                                        <item name="is_ffl" xsi:type="helper" helper="RefactoredGroup\AutoFflCore\Helper\Data::isFflCart" />
                                     </item>
                                 </item>
                                 <item name="steps" xsi:type="array">
@@ -31,24 +31,24 @@
                                                         <item name="address-list-additional-addresses" xsi:type="array">
                                                             <item name="children" xsi:type="array">
                                                                 <item name="ffl_select_button" xsi:type="array">
-                                                                    <item name="component" xsi:type="string">Razoyo_AutoFflCore/js/checkout/select-dealer-button</item>
+                                                                    <item name="component" xsi:type="string">RefactoredGroup_AutoFflCore/js/checkout/select-dealer-button</item>
                                                                     <item name="config" xsi:type="array">
                                                                         <item name="dealerButtonId" xsi:type="string">1</item>
-                                                                        <item name="template" xsi:type="string">Razoyo_AutoFflCore/checkout/select-dealer-button</item>
+                                                                        <item name="template" xsi:type="string">RefactoredGroup_AutoFflCore/checkout/select-dealer-button</item>
                                                                         <item name="addressFieldName" xsi:type="string">2</item>
-                                                                        <item name="is_ffl" xsi:type="helper" helper="Razoyo\AutoFflCore\Helper\Data::isFflCart" />
+                                                                        <item name="is_ffl" xsi:type="helper" helper="RefactoredGroup\AutoFflCore\Helper\Data::isFflCart" />
                                                                         <item name="mode" xsi:type="string">checkout</item>
                                                                     </item>
                                                                 </item>
                                                                 <item name="ffl_dealers_popup" xsi:type="array">
-                                                                    <item name="component" xsi:type="string">Razoyo_AutoFflCore/js/checkout/dealers-popup</item>
+                                                                    <item name="component" xsi:type="string">RefactoredGroup_AutoFflCore/js/checkout/dealers-popup</item>
                                                                     <item name="config" xsi:type="array">
-                                                                        <item name="google_maps_api_key" xsi:type="helper" helper="Razoyo\AutoFflCore\Helper\Data::getGoogleMapsApiKey" />
-                                                                        <item name="google_maps_url" xsi:type="helper" helper="Razoyo\AutoFflCore\Helper\Data::getGoogleMapsApiUrl" />
-                                                                        <item name="ffl_api_url" xsi:type="helper" helper="Razoyo\AutoFflCore\Helper\Data::getFflApiUrl" />
-                                                                        <item name="store_hash" xsi:type="helper" helper="Razoyo\AutoFflCore\Helper\Data::getStoreHash" />
+                                                                        <item name="google_maps_api_key" xsi:type="helper" helper="RefactoredGroup\AutoFflCore\Helper\Data::getGoogleMapsApiKey" />
+                                                                        <item name="google_maps_url" xsi:type="helper" helper="RefactoredGroup\AutoFflCore\Helper\Data::getGoogleMapsApiUrl" />
+                                                                        <item name="ffl_api_url" xsi:type="helper" helper="RefactoredGroup\AutoFflCore\Helper\Data::getFflApiUrl" />
+                                                                        <item name="store_hash" xsi:type="helper" helper="RefactoredGroup\AutoFflCore\Helper\Data::getStoreHash" />
                                                                         <item name="regionJson" xsi:type="helper" helper="Magento\Directory\Helper\Data::getRegionJson" />
-                                                                        <item name="is_ffl" xsi:type="helper" helper="Razoyo\AutoFflCore\Helper\Data::isFflCart" />
+                                                                        <item name="is_ffl" xsi:type="helper" helper="RefactoredGroup\AutoFflCore\Helper\Data::isFflCart" />
                                                                         <item name="mode" xsi:type="string">checkout</item>
                                                                     </item>
                                                                 </item>

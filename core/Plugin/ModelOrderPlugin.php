@@ -1,14 +1,14 @@
 <?php
 /**
- * Copyright © Razoyo (https://www.razoyo.com)
+ * Copyright © Refactored Group (https://www.refactored.group)
  * @copyright Copyright © 2022. All rights reserved.
  */
-namespace Razoyo\AutoFflCore\Plugin;
+namespace RefactoredGroup\AutoFflCore\Plugin;
 
 use Magento\Framework\App\Request\Http as Request;
 use Magento\Framework\App\ResponseFactory;
 use Magento\Framework\Message\ManagerInterface;
-use Razoyo\AutoFflCore\Helper\Data as Helper;
+use RefactoredGroup\AutoFflCore\Helper\Data as Helper;
 use Magento\Framework\UrlInterface;
 
 class ModelOrderPlugin

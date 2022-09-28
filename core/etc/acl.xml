@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <!--
 /**
- * Copyright © Razoyo (https://www.razoyo.com)
+ * Copyright © Refactored Group (https://www.refactored.group)
  * @copyright Copyright © 2022. All rights reserved.
  */
 -->
@@ -13,7 +13,7 @@
                 <resource id="Magento_Backend::stores">
                     <resource id="Magento_Backend::stores_settings">
                         <resource id="Magento_Config::config">
-                            <resource id="Razoyo_AutoFflCore::config" title="Automatic FFL Section"
+                            <resource id="RefactoredGroup_AutoFflCore::config" title="Automatic FFL Section"
                                       sortOrder="10"></resource>
                         </resource>
                     </resource>

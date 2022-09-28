@@ -13,8 +13,8 @@ Each one of these directories contain a Magento 2 extension:
 ### Composer
 
 ```bash
-composer config repositories.razoyo-ffl git git@bitbucket.org:razoyo/autoffl-m2-module.git
-composer require razoyo/autoffl-m2-module
+composer config repositories.refactoredgroup git git@github.com:refactoredgroup/automatic-ffl-magento.git
+composer require refactoredgroup/automatic-ffl-magento
 ```
 ### Modman
 Download [modman](https://github.com/colinmollenhour/modman) `bash < <(wget -q --no-check-certificate -O - https://raw.github.com/colinmollenhour/modman/master/modman-installer)`
@@ -26,12 +26,12 @@ modman init
 
 Use modman to clone the remote repository into your local environment:
 ```bash
-modman clone git@bitbucket.org:razoyo/autoffl-m2-module.git
+modman clone git@github.com:refactoredgroup/automatic-ffl-magento.git
 ```
 
 To get the latest changes from upstream, you can run the following command:
 ```bash
-modman update autoffl-m2-module
+modman update automatic-ffl-magento
 ``` 
 
 Also do not forget to clear the Magento cache:

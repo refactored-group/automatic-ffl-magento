@@ -1,12 +1,12 @@
 {
-    "name": "razoyo/autoffl-m2-module",
+    "name": "refactoredgroup/autoffl-m2-module",
     "description": "Automatic FFL Magento 2 Extension",
     "replace": {
-        "razoyo/autoffl-core": "self.version",
-        "razoyo/autoffl-admin": "self.version",
-        "razoyo/autoffl-checkout": "self.version",
-        "razoyo/autoffl-checkout-multishipping": "self.version",
-        "razoyo/autoffl-gateway": "self.version"
+        "refactoredgroup/autoffl-core": "self.version",
+        "refactoredgroup/autoffl-admin": "self.version",
+        "refactoredgroup/autoffl-checkout": "self.version",
+        "refactoredgroup/autoffl-checkout-multishipping": "self.version",
+        "refactoredgroup/autoffl-gateway": "self.version"
     },
     "license": "[]",
     "require": {
@@ -30,8 +30,8 @@
     "minimum-stability": "stable",
     "authors": [
         {
-            "name": "Razoyo",
-            "homepage": "https://www.razoyo.com/"
+            "name": "Refactored Group",
+            "homepage": "https://www.refactored.group/"
         }
     ],
     "autoload": {
@@ -43,11 +43,11 @@
             "gateway/registration.php"
         ],
         "psr-4": {
-            "Razoyo\\AutoFflCore\\": "core",
-            "Razoyo\\AutoFflAdmin\\": "admin",
-            "Razoyo\\AutoFflCheckout\\": "checkout",
-            "Razoyo\\AutoFflCheckoutMultiShipping\\": "checkout-multishipping",
-            "Razoyo\\AutoFflGateway\\": "gateway"
+            "RefactoredGroup\\AutoFflCore\\": "core",
+            "RefactoredGroup\\AutoFflAdmin\\": "admin",
+            "RefactoredGroup\\AutoFflCheckout\\": "checkout",
+            "RefactoredGroup\\AutoFflCheckoutMultiShipping\\": "checkout-multishipping",
+            "RefactoredGroup\\AutoFflGateway\\": "gateway"
         }
     },
     "repositories": [
