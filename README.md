@@ -13,8 +13,8 @@ Each one of these directories contain a Magento 2 extension:
 ### Composer
 
 ```bash
-composer config repositories.refactoredgroup git git@github.com:refactoredgroup/automatic-ffl-magento.git
-composer require refactoredgroup/automatic-ffl-magento
+composer config repositories.refactored-group git git@github.com:refactored-group/automatic-ffl-magento.git
+composer require refactored-group/automatic-ffl-magento
 ```
 ### Modman
 Download [modman](https://github.com/colinmollenhour/modman) `bash < <(wget -q --no-check-certificate -O - https://raw.github.com/colinmollenhour/modman/master/modman-installer)`
@@ -26,7 +26,7 @@ modman init
 
 Use modman to clone the remote repository into your local environment:
 ```bash
-modman clone git@github.com:refactoredgroup/automatic-ffl-magento.git
+modman clone git@github.com:refactored-group/automatic-ffl-magento.git
 ```
 
 To get the latest changes from upstream, you can run the following command:
