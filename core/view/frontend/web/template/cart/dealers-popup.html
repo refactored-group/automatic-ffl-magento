@@ -50,9 +50,16 @@
                     </div>
                 </div>
             </div>
+            <div class="ffl-toast-container" id="ffl-floating-toast">
+                <div class="message-ffl ffl message">
+                    <div>
+                        <a href="#" onclick="javascript:jQuery('#ffl-floating-toast').hide();" class="close-button"></a>
+                        <div id="ffl-toast-message"></div>
+                    </div>
+                </div>
+            </div>
             <div class="ffl-map" id="ffl-map"></div>
         </div>
     </div>
 </div>
 <div data-bind="afterRender: renderDealersModal"></div>
-

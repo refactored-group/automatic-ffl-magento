@@ -45,6 +45,7 @@ class Dealers extends Template
             'google_maps_api_key' => $this->helper->getConfig(self::GOOGLE_MAPS_API_KEY_PATH),
             'create_address_url' => $this->getUrl('createaddress/index/index'),
             'ffl_api_url' => $this->helper->getDealersEndpoint(),
+            'stores_endpoint' => $this->helper->getStoresEndpoint(),
             'form_key' => $this->helper->getFormKey(),
             'is_ffl' => true,
             'mode' => 'cart'

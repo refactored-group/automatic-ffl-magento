@@ -287,7 +287,36 @@ define([
             this.googleMap = new google.maps.Map(document.getElementById("ffl-map"), {
                 zoom: 4,
                 center: myLatLng,
+                fullscreenControl: false,
+                panControl: false,
+                streetViewControl: false,
+                mapTypeId: 'roadmap',
             });
-        }
+
+            this.getToastMessage();
+
+            var controlDiv = document.getElementById('ffl-floating-toast');
+            this.googleMap.controls[google.maps.ControlPosition.RIGHT_TOP].push(controlDiv);
+        },
+        getToastMessage: function () {
+            var self = this;
+            $.ajax({
+                url: self.stores_endpoint,
+                headers: {"origin": window.location.origin},
+                success: function (result) {
+                    if (typeof result.announcement !== undefined && result.announcement != null) {
+                        //Set the message on the toast
+                        $('#ffl-toast-message').html(result.announcement);
+                    } else {
+                        $('#ffl-floating-toast').hide();
+                    }
+                },
+                error: function (result) {
+                    console.log(result);
+                    // hide the toast message
+                    $('#ffl-floating-toast').hide();
+                }
+            });
+        },
     });
 });

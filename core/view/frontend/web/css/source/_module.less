@@ -87,6 +87,9 @@
     height: 58px;
 }
 @media screen and (max-width: 800px) {
+    .ffl-dealer-preferred {
+        margin-right: 0px !important;
+    }
     .ffl-flex-container {
         padding-right: 25px;
         flex-wrap: wrap;
@@ -177,4 +180,48 @@
     height: 0px !important;
     padding:0px !important;
     margin: 0px !important;
+}
+
+.message.ffl {
+    margin: 0 0 10px;
+    padding: 12px 20px 12px 25px;
+    display: block;
+    font-size: 1.3rem;
+    background: #fdf0d5;
+    color: #6f4400;
+    padding-right: 25px;
+    position: relative;
+    border: 1px solid #eac675;
+}
+.message.ffl div {
+    padding-right: 20px;
+}
+.message.ffl .close-button {
+    float: right;
+    position: absolute;
+    right: 0;
+}
+.message.ffl .close-button:after {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    font-size: 12px;
+    line-height: 24px;
+    color: #a7a4a1;
+    content: '\e616';
+    font-family: 'luma-icons';
+    margin: -12px 0 0;
+    vertical-align: middle;
+    display: inline-block;
+    font-weight: normal;
+    overflow: hidden;
+    speak: none;
+    right: 0;
+    top: 8px;
+    width: 45px;
+    position: absolute;
+    text-align: center;
+}
+.ffl-toast-container {
+    padding: 5px;
+    margin: 5px;
 }
