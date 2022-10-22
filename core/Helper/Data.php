@@ -23,7 +23,10 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
     const XML_PATH_IS_ENABLED = 'autoffl/configuration/enabled';
     const XML_PATH_GOOGLE_MAPS_API_KEY = 'cms/pagebuilder/google_maps_api_key';
     const XML_PATH_GOOGLE_MAPS_API_URL = 'autoffl/configuration/google_maps_api_url';
-    const XML_PATH_FFL_API_URL = 'autoffl/configuration/ffl_api_url';
+    const XML_PATH_SANDBOX_MODE = 'autoffl/configuration/sandbox_mode';
+
+    const API_PRODUCTION_URL = 'https://app.automaticffl.com/store-front/api';
+    const API_SANDBOX_URL = 'https://app-dev.automaticffl.com/store-front/api';
 
     /**
      * Checkout session
@@ -142,10 +145,31 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
      */
     public function getFflApiUrl()
     {
-        return $this->getConfig(
-            self::XML_PATH_FFL_API_URL,
+
+        if ($this->getConfig(
+            self::XML_PATH_SANDBOX_MODE,
             \Magento\Store\Model\ScopeInterface::SCOPE_STORE
-        );
+        ) == 1) {
+            return self::API_SANDBOX_URL;
+        }
+
+        return self::API_PRODUCTION_URL;
+    }
+
+    /**
+     * @return string
+     */
+    public function getDealersEndpoint()
+    {
+        return sprintf('%s/%s/%s', $this->getFflApiUrl(), $this->getStoreHash(), 'dealers');
+    }
+
+    /**
+     * @return string
+     */
+    public function getStoresEndpoint()
+    {
+        return sprintf('%s/%s/%s', $this->getFflApiUrl(), 'stores', $this->getStoreHash());
     }
 
     /**

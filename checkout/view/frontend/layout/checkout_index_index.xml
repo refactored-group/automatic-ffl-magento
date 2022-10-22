@@ -45,7 +45,7 @@
                                                                     <item name="config" xsi:type="array">
                                                                         <item name="google_maps_api_key" xsi:type="helper" helper="RefactoredGroup\AutoFflCore\Helper\Data::getGoogleMapsApiKey" />
                                                                         <item name="google_maps_url" xsi:type="helper" helper="RefactoredGroup\AutoFflCore\Helper\Data::getGoogleMapsApiUrl" />
-                                                                        <item name="ffl_api_url" xsi:type="helper" helper="RefactoredGroup\AutoFflCore\Helper\Data::getFflApiUrl" />
+                                                                        <item name="ffl_api_url" xsi:type="helper" helper="RefactoredGroup\AutoFflCore\Helper\Data::getDealersEndpoint" />
                                                                         <item name="store_hash" xsi:type="helper" helper="RefactoredGroup\AutoFflCore\Helper\Data::getStoreHash" />
                                                                         <item name="regionJson" xsi:type="helper" helper="Magento\Directory\Helper\Data::getRegionJson" />
                                                                         <item name="is_ffl" xsi:type="helper" helper="RefactoredGroup\AutoFflCore\Helper\Data::isFflCart" />

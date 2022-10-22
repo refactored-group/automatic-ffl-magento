@@ -26,15 +26,15 @@
                     <source_model>Magento\Config\Model\Config\Source\Enabledisable</source_model>
                     <config_path>autoffl/configuration/enabled</config_path>
                 </field>
-                <field id="store_hash" translate="label" type="text" sortOrder="1" showInDefault="1" showInWebsite="0"
+                <field id="store_hash" translate="label" type="text" sortOrder="2" showInDefault="1" showInWebsite="0"
                        showInStore="0">
                     <label>Store Hash</label>
                     <config_path>autoffl/configuration/store_hash</config_path>
                 </field>
-                <field id="ffl_api_url" translate="label" type="text" sortOrder="1" showInDefault="1" showInWebsite="0"
-                       showInStore="0">
-                    <label>FFL API URL</label>
-                    <config_path>autoffl/configuration/ffl_api_url</config_path>
+                <field id="sandbox_mode" translate="label" type="select" sortOrder="3" showInDefault="1" showInWebsite="0" showInStore="0">
+                    <label>Sandbox Mode</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <config_path>autoffl/configuration/sandbox_mode</config_path>
                 </field>
             </group>
         </section>
