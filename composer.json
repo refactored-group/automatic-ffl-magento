@@ -1,11 +1,11 @@
 {
-    "name": "refactored-group/automatic-ffl-magento",
+    "name": "refactored-group/autoffl-m2-module",
     "description": "Automatic FFL Magento 2 Extension",
     "replace": {
-        "refactoredgroup/autoffl-core": "self.version",
-        "refactoredgroup/autoffl-admin": "self.version",
-        "refactoredgroup/autoffl-checkout": "self.version",
-        "refactoredgroup/autoffl-checkout-multishipping": "self.version"
+        "refactored-group/autoffl-core": "self.version",
+        "refactored-group/autoffl-admin": "self.version",
+        "refactored-group/autoffl-checkout": "self.version",
+        "refactored-group/autoffl-checkout-multishipping": "self.version"
     },
     "license": "[]",
     "scripts": {
