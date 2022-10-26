@@ -78,11 +78,11 @@
                 </div>
             </form>
             <div class="no-quotes-block"
-                 if="rates().length < 1 && checkoutConfig.customerData.is_ffl == 1"
+                 if="rates().length == null && checkoutConfig.customerData.is_ffl == 1"
                  translate="'Select a Dealer to see shipping rates'" />
 
             <div class="no-quotes-block"
-                 ifnot="rates().length > 0 && checkoutConfig.customerData.is_ffl != 1"
+                 if="rates().length === 0 && checkoutConfig.customerData.is_ffl == 1"
                  translate="'Sorry, no quotes are available for this order at this time'" />
         </div>
     </div>

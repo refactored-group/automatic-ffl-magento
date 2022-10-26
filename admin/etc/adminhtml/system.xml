@@ -37,6 +37,15 @@
                     <config_path>autoffl/configuration/sandbox_mode</config_path>
                 </field>
             </group>
+            <group id="google_maps" translate="label" type="text" sortOrder="10" showInDefault="1" showInWebsite="0"
+                   showInStore="0">
+                <label>Google Maps</label>
+                <field id="api_key" translate="label" type="text" sortOrder="2" showInDefault="1" showInWebsite="0"
+                       showInStore="0">
+                    <label>API Key</label>
+                    <config_path>autoffl/google_maps/api_key</config_path>
+                </field>
+            </group>
         </section>
     </system>
 </config>

@@ -31,6 +31,34 @@ define(['mage/utils/wrapper',
     'use strict';
 
     var mixin = {
+        /**
+         * Get shipping address from address list. This method is required for Magento 2.3.x
+         *
+         * @return {Object|null}
+         */
+        getShippingAddressFromCustomerAddressList: function () {
+            var shippingAddress = _.find(
+                addressList(),
+                function (address) {
+                    return checkoutData.getSelectedShippingAddress() == address.getKey() //eslint-disable-line
+                }
+            );
+
+            if (!shippingAddress) {
+                shippingAddress = _.find(
+                    addressList(),
+                    function (address) {
+                        return address.isDefaultShipping();
+                    }
+                );
+            }
+
+            if (!shippingAddress && addressList().length === 1) {
+                shippingAddress = addressList()[0];
+            }
+
+            return shippingAddress;
+        },
 
         applyShippingAddress: function (isEstimatedAddress) {
             var address,
@@ -45,7 +73,6 @@ define(['mage/utils/wrapper',
                 );
                 selectShippingAddress(address);
             }
-
 
             shippingAddress = quote.shippingAddress();
             isConvertAddress = isEstimatedAddress || false;

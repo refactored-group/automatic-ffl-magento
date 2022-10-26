@@ -42,7 +42,7 @@
                 <div class="ffl-no-dealers-message" data-bind="i18n: 'No dealers have been found.', visible: isNoDealersMessageVisible"></div>
                 <div data-bind="visible: isResultsVisible">
                     <div data-bind="foreach: {data: fflResults, as: 'dealer'}">
-                        <div data-bind="{click: function(data, event) { return $parent.selectDealer($index()) }, class: $data.class }">
+                        <div data-bind="{click: function(data, event) { return $parent.selectDealer($index()) }, attr: {class: $data.class}}">
                             <p class="ffl-dealer-name"><!-- ko text: $data.business_name_formatted --><!-- /ko --></p>
                             <p class="ffl-dealer-address"><!-- ko text: $data.formatted_address --><!-- /ko --></p>
                             <p class="ffl-dealer-phone"><!-- ko text: $data.phone_number --><!-- /ko --></p>

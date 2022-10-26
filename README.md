@@ -16,6 +16,11 @@ Each one of these directories contain a Magento 2 extension:
 composer config repositories.refactored-group git git@github.com:refactored-group/automatic-ffl-magento.git
 composer require refactored-group/automatic-ffl-magento
 ```
+Now enable the extensions and upgrade Magento:
+```bash
+bin/magento module:enable RefactoredGroup_AutoFflCore RefactoredGroup_AutoFflAdmin RefactoredGroup_AutoFflCheckout RefactoredGroup_AutoFflCheckoutMultiShipping
+php bin/magento setup:upgrade && php bin/magento setup:di:compile && bin/magento setup:stat:dep -f
+```
 ### Modman
 Download [modman](https://github.com/colinmollenhour/modman) `bash < <(wget -q --no-check-certificate -O - https://raw.github.com/colinmollenhour/modman/master/modman-installer)`
 

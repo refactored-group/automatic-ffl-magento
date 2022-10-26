@@ -21,7 +21,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
      */
     const XML_PATH_STORE_HASH = 'autoffl/configuration/store_hash';
     const XML_PATH_IS_ENABLED = 'autoffl/configuration/enabled';
-    const XML_PATH_GOOGLE_MAPS_API_KEY = 'cms/pagebuilder/google_maps_api_key';
+    const XML_PATH_GOOGLE_MAPS_API_KEY = 'autoffl/google_maps/api_key';
     const XML_PATH_GOOGLE_MAPS_API_URL = 'autoffl/configuration/google_maps_api_url';
     const XML_PATH_SANDBOX_MODE = 'autoffl/configuration/sandbox_mode';
 

@@ -10,10 +10,6 @@ use RefactoredGroup\AutoFflCore\Helper\Data;
 
 class Dealers extends Template
 {
-    const GOOGLE_MAPS_API_KEY_PATH = 'cms/pagebuilder/google_maps_api_key';
-    const GOOGLE_MAPS_URL_PATH = 'autoffl/configuration/google_maps_api_url';
-    const FFL_STORE_HASH_PATH = 'autoffl/configuration/store_hash';
-
     /**
      * @var Data
      */
@@ -40,9 +36,9 @@ class Dealers extends Template
     public function getJsonConfig()
     {
         return json_encode([
-            'store_hash' => $this->helper->getConfig(self::FFL_STORE_HASH_PATH),
-            'google_maps_url' => $this->helper->getConfig(self::GOOGLE_MAPS_URL_PATH),
-            'google_maps_api_key' => $this->helper->getConfig(self::GOOGLE_MAPS_API_KEY_PATH),
+            'store_hash' => $this->helper->getStoreHash(),
+            'google_maps_url' => $this->helper->getGoogleMapsApiUrl(),
+            'google_maps_api_key' => $this->helper->getGoogleMapsApiKey(),
             'create_address_url' => $this->getUrl('createaddress/index/index'),
             'ffl_api_url' => $this->helper->getDealersEndpoint(),
             'stores_endpoint' => $this->helper->getStoresEndpoint(),

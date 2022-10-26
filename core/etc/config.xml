@@ -15,6 +15,9 @@
                 <google_maps_api_url>https://maps.googleapis.com/maps/api/js</google_maps_api_url>
                 <sandbox_mode>0</sandbox_mode>
             </configuration>
+            <google_maps>
+                <api_key></api_key>
+            </google_maps>
         </autoffl>
     </default>
 </config>
