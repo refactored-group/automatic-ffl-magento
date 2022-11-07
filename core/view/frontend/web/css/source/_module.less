@@ -87,7 +87,19 @@
     height: 58px;
 }
 @media screen and (max-width: 800px) {
-    .ffl-dealer-preferred {
+    #ffl-input-search {
+        text-align: center !important;
+        font-size: 30px !important;
+        padding: 0 0 5px!important;
+        font-weight: bold;
+    }
+    #ffl-input-search::placeholder {
+        text-align: center !important;
+        font-size: 16px;
+        padding: 0 !important;
+        font-weight: normal;
+    }
+    .ffl-dealer-preferred, .ffl-dealer {
         margin-right: 0px !important;
     }
     .ffl-flex-container {
@@ -118,9 +130,14 @@
     }
     .ffl-results {
         flex: 0 1 100%;
+        padding-top: 20px;
     }
     .ffl-map {
         flex: 0 1 100%;
+    }
+    .flex-container-results {
+        flex-direction: column-reverse !important;
+        flex-wrap: nowrap !important;
     }
 }
 .ffl-dealer {
@@ -222,6 +239,7 @@
     text-align: center;
 }
 .ffl-toast-container {
-    padding: 5px;
-    margin: 5px;
+    width: 96%;
+    padding-right: 2%;
+    padding-top: 10px;
 }
