@@ -287,6 +287,9 @@ define([
             this.googleMap = new google.maps.Map(document.getElementById("ffl-map"), {
                 zoom: 4,
                 center: myLatLng,
+                mapTypeControlOptions: {
+                    mapTypeIds: []
+                },
                 fullscreenControl: false,
                 panControl: false,
                 streetViewControl: false,
