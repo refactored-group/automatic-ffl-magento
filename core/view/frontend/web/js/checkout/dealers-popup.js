@@ -27,11 +27,16 @@ define([
                 var styleTag = $('<style>#shipping-new-address-form, .edit-address-link { display: none !important; }</style>')
                 $('html > head').append(styleTag);
             } else {
-                //Clear previous dealer shipping address when no FFL item is detected
                 var shippingAddress = checkoutData.getNewCustomerShippingAddress();
-                if (shippingAddress && shippingAddress.hasOwnProperty('is_ffl') && typeof shippingAddress.is_ffl === 1) {
-                    checkoutData.setNewCustomerShippingAddress(false);
-                    checkoutData.setShippingAddressFromData(false);
+
+                if (shippingAddress && shippingAddress.hasOwnProperty('is_ffl') && shippingAddress.is_ffl === 1) {
+                    //Clear previous dealer shipping address when no FFL item is detected
+                    var data = storage.get('checkout-data')();
+                    data['shippingAddressFromData'] = null;
+                    data['newCustomerShippingAddress'] = null;
+                    data['selectedShippingAddress'] = null;
+
+                    window.localStorage.setItem('checkout-data', JSON.stringify(data));
                 }
             }
 
@@ -71,6 +76,7 @@ define([
                 telephone: dealer.phone_number,
                 save_in_address_book: 0
             };
+
             checkoutData.setShippingAddressFromData(addressData);
 
             // New address must be selected as a shipping address
@@ -89,14 +95,12 @@ define([
                 $('#shipping-new-address-form input[name=firstname]').val(addressData['firstname']).trigger('change');
                 $('#shipping-new-address-form input[name=lastname]').val(addressData['lastname']).trigger('change');
                 $('#shipping-new-address-form input[name=\'street[0]\']').val(addressData['street'][0]).trigger('change');
-                $('#shipping-new-address-form select[name=country_id] option[value=US]').attr('selected','selected').trigger('change');
-                $('#shipping-new-address-form select[name=region_id] option[value=' + addressData['region_id'] + ']').attr('selected','selected').trigger('change');
+                $('#shipping-new-address-form select[name=country_id] option[value=US]').attr('selected', 'selected').trigger('change');
+                $('#shipping-new-address-form select[name=region_id] option[value=' + addressData['region_id'] + ']').attr('selected', 'selected').trigger('change');
                 $('#shipping-new-address-form input[name=city]').val(addressData['city']).trigger('change');
                 $('#shipping-new-address-form input[name=postcode]').val(addressData['postcode']).trigger('change');
                 $('#shipping-new-address-form input[name=telephone]').val(addressData['telephone']).trigger('change');
             }
-
-            return;
         }
     });
 });
