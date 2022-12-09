@@ -82,8 +82,12 @@ define([
             // New address must be selected as a shipping address
             var newShippingAddress = createShippingAddress(addressData);
             selectShippingAddress(newShippingAddress);
-            checkoutData.setSelectedShippingAddress(newShippingAddress.getKey());
             checkoutData.setNewCustomerShippingAddress($.extend(true, {}, addressData));
+
+            // Set new shipping address as the selected address
+            var storageData = storage.get('checkout-data')();
+            storageData['selectedShippingAddress'] = newShippingAddress.getKey();
+            window.localStorage.setItem('checkout-data', JSON.stringify(storageData));
 
             $("#dealers-popup").modal("closeModal");
             dealerButton().dealerAddressId[self.currentFflItemId()]('1');
