@@ -1,7 +1,7 @@
 {
     "name": "refactored-group/autoffl-checkout",
     "description": "AutomaticFFL Checkout extension",
-    "version": "1.2.2",
+    "version": "1.2.3",
     "type": "magento2-module",
     "license": "proprietary",
     "authors": [
