@@ -67,9 +67,7 @@ define(['mage/utils/wrapper',
 
             var data = storage.get('checkout-data')();
 
-
-            if (addressList().length === 0 && (data['selectedShippingAddress'] ||
-                checkoutConfig.customerData.is_ffl != 1)) {
+            if (addressList().length === 0) {
                 address = addressConverter.formAddressDataToQuoteAddress(
                     checkoutData.getShippingAddressFromData()
                 );
