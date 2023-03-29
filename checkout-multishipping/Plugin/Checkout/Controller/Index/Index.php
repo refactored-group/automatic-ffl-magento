@@ -12,9 +12,6 @@ use Magento\Framework\Controller\Result\RedirectFactory;
 use Magento\Framework\Controller\ResultInterface;
 use RefactoredGroup\AutoFflCore\Helper\Data as Helper;
 
-/**
- * Class Index
- */
 class Index
 {
     /** @var RedirectFactory */

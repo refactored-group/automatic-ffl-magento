@@ -78,27 +78,34 @@ class Index implements ObserverInterface
                         ->getResponse()
                         ->setRedirect($this->url->getUrl('checkout/cart/index'));
                 }
-            } else if ($observer->getEvent()->getName() === 'controller_action_predispatch_checkout_cart_index') {
+            } elseif ($observer->getEvent()->getName() === 'controller_action_predispatch_checkout_cart_index') {
                 if (!$this->helper->isMultishippingCheckoutAvailable()) {
                     // @TODO: This message seems a little confusing, we need to work on a better one
-                    $message  = 'Your cart has items that need to be shipped to a Dealer. ';
-                    $message .= 'You can not checkout with a mixed cart. ';
-                    $message .= 'Please remove all items from your cart that need to be shipped to a Dealer or the items that do not.';
-                    $this->messageManager->addErrorMessage(__($message));
+                    $message  = __('Your cart has items that need to be shipped to a Dealer. '
+                        . 'You can not checkout with a mixed cart. '
+                        . 'Please remove all items from your cart that need to be shipped'
+                        . 'to a Dealer or the items that do not.');
+
+                    $this->messageManager->addErrorMessage($message);
                 } else {
                     // @TODO: This message seems a little confusing, we need to work on a better one
-                    $message  = 'Your cart has items that need to be shipped to a Dealer. ';
-                    $message .= 'You can not perform a regular checkout with a mixed cart, so we will redirect you to the Multi-Shipping Checkout.';
+                    $message  = __('Your cart has items that need to be shipped to a Dealer. '
+                        . 'You can not perform a regular checkout with a mixed cart,'
+                        . ' so we will redirect you to the Multi-Shipping Checkout.');
 
-                    $this->messageManager->addErrorMessage(__($message));
+                    $this->messageManager->addErrorMessage($message);
                 }
-            } else if ($observer->getEvent()->getName() === 'sales_order_place_before') {
-                $message  = 'Your cart has items that need to be shipped to a Dealer. ';
-                $message .= 'You can not perform a regular checkout with a mixed cart. Please, use the Multi-Shipping Checkout option.';
-                $this->messageManager->addErrorMessage(__($message));
+            } elseif ($observer->getEvent()->getName() === 'sales_order_place_before') {
+                $message  = __('Your cart has items that need to be shipped to a Dealer. '
+                    . 'You can not perform a regular checkout with a mixed cart. '
+                    . 'Please, use the Multi-Shipping Checkout option.');
+                $this->messageManager->addErrorMessage($message);
+
                 $observer->getControllerAction()
                     ->getResponse()
                     ->setRedirect($this->url->getUrl('checkout/cart/index'));
+
+                // phpcs:ignore Magento2.Security.LanguageConstruct.ExitUsage
                 exit;
             }
         }

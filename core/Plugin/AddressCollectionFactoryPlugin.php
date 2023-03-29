@@ -7,7 +7,7 @@ namespace RefactoredGroup\AutoFflCore\Plugin;
 
 class AddressCollectionFactoryPlugin
 {
-    function afterCreate(\Magento\Customer\Model\ResourceModel\Address\CollectionFactory $subject, $collection)
+    public function afterCreate(\Magento\Customer\Model\ResourceModel\Address\CollectionFactory $subject, $collection)
     {
         $collection->addAttributeToFilter([
             ['attribute' => 'is_deleted', 'null' => true],

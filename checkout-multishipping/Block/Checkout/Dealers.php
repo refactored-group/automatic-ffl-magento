@@ -23,8 +23,8 @@ class Dealers extends Template
     public function __construct(
         Template\Context $context,
         Data $helper,
-        array $data = [])
-    {
+        array $data = []
+    ) {
         parent::__construct($context, $data);
         $this->helper = $helper;
     }

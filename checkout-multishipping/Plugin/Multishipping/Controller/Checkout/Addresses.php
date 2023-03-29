@@ -12,6 +12,7 @@ use Magento\Framework\App\Action\Context;
 
 /**
  * Class Addresses
+ * Implements plugin to show a message from FFL to a customer buying a FFL item
  */
 class Addresses
 {
@@ -37,7 +38,7 @@ class Addresses
     }
 
     /**
-     * Add a message telling the customer that he will be required to
+     * Add a message telling the customer that he will be required to choose a dealer
      * if the feature is enabled and has a FFL item in the quote
      *
      * @param \Magento\Multishipping\Controller\Checkout\Addresses $subject
@@ -48,7 +49,9 @@ class Addresses
     {
         if ($this->helper->hasFflItem()) {
             $this->context->getMessageManager()->addNoticeMessage(
-                __('You have a firearm in your cart and must choose a Licensed Firearm Dealer (FFL) for the shipping address(es).'));
+                __('You have a firearm in your cart and must choose a '
+                    . 'Licensed Firearm Dealer (FFL) for the shipping address(es).')
+            );
         }
 
         return $proceed();

@@ -42,7 +42,36 @@ class Multishipping extends \Magento\Multishipping\Model\Checkout\Type\Multiship
      */
     private $customerAddresses = false;
 
-
+    /**
+     * @param AddressCollectionFactory $addressCollectionFactory
+     * @param \Magento\Checkout\Model\Session $checkoutSession
+     * @param Session $customerSession
+     * @param OrderFactory $orderFactory
+     * @param AddressRepositoryInterface $addressRepository
+     * @param ManagerInterface $eventManager
+     * @param ScopeConfigInterface $scopeConfig
+     * @param Generic $session
+     * @param AddressFactory $addressFactory
+     * @param ToOrder $quoteAddressToOrder
+     * @param ToOrderAddress $quoteAddressToOrderAddress
+     * @param ToOrderPayment $quotePaymentToOrderPayment
+     * @param ToOrderItem $quoteItemToOrderItem
+     * @param StoreManagerInterface $storeManager
+     * @param SpecificationInterface $paymentSpecification
+     * @param Data $helper
+     * @param OrderSender $orderSender
+     * @param PriceCurrencyInterface $priceCurrency
+     * @param CartRepositoryInterface $quoteRepository
+     * @param SearchCriteriaBuilder $searchCriteriaBuilder
+     * @param FilterBuilder $filterBuilder
+     * @param TotalsCollector $totalsCollector
+     * @param array $data
+     * @param CartExtensionFactory|null $cartExtensionFactory
+     * @param AllowedCountries|null $allowedCountryReader
+     * @param \Magento\Multishipping\Model\Checkout\Type\Multishipping|null $placeOrderFactory
+     * @param LoggerInterface|null $logger
+     * @param DataObjectHelper|null $dataObjectHelper
+     */
     public function __construct(
         AddressCollectionFactory $addressCollectionFactory,
         \Magento\Checkout\Model\Session $checkoutSession,
