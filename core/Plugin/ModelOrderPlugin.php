@@ -59,15 +59,19 @@ class ModelOrderPlugin
      * @param \Magento\Sales\Model\Order $subject
      * @return void
      */
-    function beforePlace(\Magento\Sales\Model\Order $subject)
+    public function beforePlace(\Magento\Sales\Model\Order $subject)
     {
-        if ($this->helper->isEnabled() && $this->helper->hasFflItem() && !$this->helper->isFflCart() && $this->request->getModuleName() != 'multishipping') {
-            $message  = 'Your cart has items that need to be shipped to a Dealer. ';
+        if ($this->helper->isEnabled() && $this->helper->hasFflItem() && !$this->helper->isFflCart()
+            && $this->request->getModuleName() != 'multishipping') {
             // @TODO: This message seems a little confusing, we need to work on a better one
-            $message .= 'You can not checkout with a mixed cart. ';
-            $message .= 'Please remove all items from your cart that need to be shipped to a Dealer or the items that do not.';
-            $this->messageManager->addErrorMessage(__($message));
+            $message  = __('Your cart has items that need to be shipped to a Dealer. '
+                . 'You can not checkout with a mixed cart. '
+                . 'Please remove all items from your cart that need to be shipped '
+                . 'to a Dealer or the items that do not.');
+
+            $this->messageManager->addErrorMessage($message);
             $this->responseFactory->create()->setRedirect($this->url->getUrl('checkout/cart/index'))->sendResponse();
+            // phpcs:ignore Magento2.Security.LanguageConstruct.ExitUsage
             exit;
         }
     }

@@ -315,7 +315,6 @@ define([
                     }
                 },
                 error: function (result) {
-                    console.log(result);
                     // hide the toast message
                     $('#ffl-floating-toast').hide();
                 }

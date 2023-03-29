@@ -134,8 +134,14 @@ class Index extends \Magento\Framework\App\Action\Action implements \Magento\Fra
         /** @var  \Magento\Customer\Api\Data\AddressInterface $address */
         $address = $this->addressRepository->save($address);
 
-        $stringAddress = sprintf('%s, %s, %s, %s %s',
-            $data['business_name'], $data['premise_street'], $data['premise_city'], $data['premise_state'], $data['premise_zip']);
+        $stringAddress = sprintf(
+            '%s, %s, %s, %s %s',
+            $data['business_name'],
+            $data['premise_street'],
+            $data['premise_city'],
+            $data['premise_state'],
+            $data['premise_zip']
+        );
 
         $result->setContents(json_encode(['id' => $address->getId(), 'name' => $stringAddress]));
 

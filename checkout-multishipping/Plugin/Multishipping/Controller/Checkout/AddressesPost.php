@@ -10,9 +10,6 @@ use Closure;
 use RefactoredGroup\AutoFflCore\Helper\Data as Helper;
 use Magento\Framework\App\Action\Context;
 
-/**
- * Class Addresses
- */
 class AddressesPost
 {
     /**
@@ -51,7 +48,9 @@ class AddressesPost
 
             if (count($items) > count($this->context->getRequest()->getPost('ship'))) {
                 $this->context->getMessageManager()->addErrorMessage(
-                    __('Please, select a Licensed Firearm Dealer for the following product(s): ') . $this->helper->getFflItemsNames());
+                    __('Please, select a Licensed Firearm Dealer for the following product(s): ') .
+                    $this->helper->getFflItemsNames()
+                );
                 return $this->resultRedirectFactory->create()->setPath('multishipping/checkout');
             }
         }

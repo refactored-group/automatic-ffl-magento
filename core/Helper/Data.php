@@ -261,7 +261,8 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
     /**
      * @return bool
      */
-    public function isMixedCart() {
+    public function isMixedCart()
+    {
         return $this->hasFflItem() && !$this->isFflCart();
     }
 

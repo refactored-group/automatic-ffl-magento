@@ -8,10 +8,13 @@
  *
  * @var $block \Magento\Multishipping\Block\Checkout\Addresses
  */
+// phpcs:disable Magento2.Files.LineLength, Generic.Files.LineLength
+// phpcs:disable Magento2.Templates.ThisInTemplate.FoundHelper
 ?>
 <form id="checkout_multishipping_form"
       data-mage-init='{
-          "multiShipping": {"itemsQty": <?= /* @noEscape */ (int)$block->getCheckout()->getQuote()->getItemsSummaryQty() ?>},
+          "multiShipping":
+          {"itemsQty": <?= /* @noEscape */ (int)$block->getCheckout()->getQuote()->getItemsSummaryQty() ?>},
           "cartUpdate": {
                "validationURL": "<?= $block->escapeUrl($block->getUrl('multishipping/checkout/checkItems')) ?>",
                "eventName": "updateMulticartItemQty"
@@ -48,28 +51,30 @@
                             <?php if ($isRequiredFfl): ?>
                                 <div class="message notice">
                                     <div>
-                                        <?= $block->escapeHtml(__('This item must be shipped to a licensed dealer (FFL)')) ?>
+                                        <?php $fflMsg = __('This item must be shipped to a licensed dealer (FFL)'); ?>
+                                        <?= $block->escapeHtml($fflMsg); ?>
                                     </div>
                                 </div>
                             <?php endif; ?>
                         </td>
                         <td class="col qty" data-th="<?= $block->escapeHtml(__('Qty')) ?>">
                             <div class="field qty">
-                                <label for="ship-<?= $block->escapeHtml($_index) ?>-<?= $block->escapeHtml($_item->getQuoteItemId()) ?>-qty"
+                                <?php $qid = $block->escapeHtml($_item->getQuoteItemId()) ?>
+                                <label for="ship-<?= $block->escapeHtml($_index) ?>-<?= /* @noEscape */ $qid ?>-qty"
                                        class="label">
                                     <span><?= $block->escapeHtml(__('Qty')) ?></span>
                                 </label>
                                 <div class="control">
                                     <input type="number"
-                                           data-multiship-item-id="<?= $block->escapeHtml($_item->getSku()) ?>"
-                                           id="ship-<?= $block->escapeHtml($_index) ?>-<?= $block->escapeHtml($_item->getQuoteItemId()) ?>-qty"
-                                           name="ship[<?= $block->escapeHtml($_index) ?>][<?= $block->escapeHtml($_item->getQuoteItemId()) ?>][qty]"
-                                           value="<?= $block->escapeHtml($_item->getQty()) ?>"
-                                           size="2"
-                                           min="0"
-                                           class="input-text qty"
-                                           data-validate="{number: true, required:true, 'validate-greater-than-zero':true}"
-                                           autocomplete="off"
+                                       data-multiship-item-id="<?= $block->escapeHtml($_item->getSku()) ?>"
+                                       id="ship-<?= $block->escapeHtml($_index) ?>-<?= /* @noEscape */ $qid ?>-qty"
+                                       name="ship[<?= $block->escapeHtml($_index) ?>][<?= /* @noEscape */ $qid ?>][qty]"
+                                       value="<?= $block->escapeHtml($_item->getQty()) ?>"
+                                       size="2"
+                                       min="0"
+                                       class="input-text qty"
+                                       data-validate="{number: true, required:true, 'validate-greater-than-zero':true}"
+                                       autocomplete="off"
                                     />
                                 </div>
                             </div>
@@ -81,27 +86,29 @@
                                 </div>
                             <?php else: ?>
                                 <div class="field address">
-                                    <label for="ship_<?= $block->escapeHtml($_index) ?>_<?= $block->escapeHtml($_item->getQuoteItemId()) ?>_address"
-                                           class="label">
+                                    <?php $eindex = $block->escapeHtml($_index) ?>
+                                    <label for="ship_<?= /* @noEscape */ $eindex ?>_<?= /* @noEscape */ $qid ?>_address"
+                                        class="label">
                                         <span><?= $block->escapeHtml(__('Send To')) ?></span>
                                     </label>
                                     <div class="control">
-                                        <?php if ($isRequiredFfl) : ?>
+                                        <?php if ($isRequiredFfl): ?>
                                             <div data-mage-init='
                                                     { "Magento_Ui/js/core/app":
                                                         {
                                                         "components":
-                                                            { "selectDealerButton-<?php echo $_index?>":
+                                                            { "selectDealerButton-<?= /* @noEscape */ $_index?>":
                                                                 {
                                                                     "component": "RefactoredGroup_AutoFflCore/js/cart/select-dealer-button",
                                                                     "template": "RefactoredGroup_AutoFflCore/cart/select-dealer-button",
-                                                                    "config": <?= $block->getSelectDealerConfig($_item, $_index) ?>
+                                                                    "config": <?= /* @noEscape */ $block->getSelectDealerConfig($_item, $_index) ?>
                                                                 }
                                                             }
                                                          }
                                                       }
                                                 '
-                                            id="dealer_button_<?= $_index . '_' . $_item->getQuoteItemId() ?>" class="action update select-dealer" data-bind="scope:'selectDealerButton-<?php echo $_index ?>'">
+                                            id="dealer_button_<?= /* @noEscape */ $_index . '_' . $_item->getQuoteItemId() ?>"
+                                                 class="action update select-dealer" data-bind="scope:'selectDealerButton-<?= /* @noEscape */ $_index ?>'">
                                                 <!-- ko template: getTemplate() --><!-- /ko -->
                                             </div>
                                         <?php else: ?>
@@ -115,9 +122,9 @@
                             <a href="#"
                                title="<?= $block->escapeHtml(__('Remove Item')) ?>"
                                data-post='<?= /* @noEscape */
-                               $this->helper(\Magento\Framework\Data\Helper\PostHelper::class)
+                                $this->helper(\Magento\Framework\Data\Helper\PostHelper::class)
                                    ->getPostData($block->getItemDeleteUrl($_item))
-                               ?>'
+                                ?>'
                                class="action delete"
                                data-multiship-item-remove="">
                                 <span><?= $block->escapeHtml(__('Remove item')) ?></span>
