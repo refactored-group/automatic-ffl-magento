@@ -15,6 +15,10 @@
         <plugin name="before_multishipping_checkout_addresses"
                 type="RefactoredGroup\AutoFflCheckoutMultiShipping\Plugin\Multishipping\Controller\Checkout\Addresses"/>
     </type>
+    <type name="Magento\Multishipping\Controller\Checkout\Address\EditShipping">
+        <plugin name="around_multishipping_checkout_edit_address"
+                type="RefactoredGroup\AutoFflCheckoutMultiShipping\Plugin\Multishipping\Controller\Checkout\Address\EditShipping"/>
+    </type>
     <type name="Magento\Multishipping\Controller\Checkout\AddressesPost">
         <plugin name="before_multishipping_checkout_addresses_post"
                 type="RefactoredGroup\AutoFflCheckoutMultiShipping\Plugin\Multishipping\Controller\Checkout\AddressesPost"/>
