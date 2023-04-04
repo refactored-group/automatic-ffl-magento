@@ -49,8 +49,5 @@
       "type": "composer",
       "url": "https://repo.magento.com/"
     }
-  ],
-  "require-dev": {
-    "magento/magento-coding-standard": "^31.0"
-  }
+  ]
 }
