@@ -71,8 +71,8 @@ class ModelOrderPlugin
 
             $this->messageManager->addErrorMessage($message);
             $this->responseFactory->create()->setRedirect($this->url->getUrl('checkout/cart/index'))->sendResponse();
-            // phpcs:ignore Magento2.Security.LanguageConstruct.ExitUsage
-            exit;
+
+            return;
         }
     }
 }
