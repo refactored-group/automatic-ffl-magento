@@ -105,8 +105,7 @@ class Index implements ObserverInterface
                     ->getResponse()
                     ->setRedirect($this->url->getUrl('checkout/cart/index'));
 
-                // phpcs:ignore Magento2.Security.LanguageConstruct.ExitUsage
-                exit;
+                return;
             }
         }
     }
