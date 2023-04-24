@@ -20,7 +20,7 @@ use Magento\Framework\Data\Form\FormKey\Validator as FormKeyValidator;
 class Index extends \Magento\Framework\App\Action\Action implements \Magento\Framework\App\CsrfAwareActionInterface
 {
     const DEFAULT_COUNTRY_CODE = 'US';
-    const DEFAULT_LAST_NAME = '.';
+    const DEFAULT_LAST_NAME = '(FFL Dealer)';
 
     /**
      * @var RawFactory
