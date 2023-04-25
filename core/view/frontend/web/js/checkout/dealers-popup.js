@@ -65,7 +65,7 @@ define([
                 company: "",
                 country_id: "US",
                 firstname: dealer.business_name,
-                lastname: ".",
+                lastname: this.default_lastname,
                 postcode: dealer.premise_zip,
                 region: region.name,
                 region_id: region.id,

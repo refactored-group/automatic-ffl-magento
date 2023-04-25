@@ -50,6 +50,7 @@
                                                                         <item name="store_hash" xsi:type="helper" helper="RefactoredGroup\AutoFflCore\Helper\Data::getStoreHash" />
                                                                         <item name="regionJson" xsi:type="helper" helper="Magento\Directory\Helper\Data::getRegionJson" />
                                                                         <item name="is_ffl" xsi:type="helper" helper="RefactoredGroup\AutoFflCore\Helper\Data::isFflCart" />
+                                                                        <item name="default_lastname" xsi:type="helper" helper="RefactoredGroup\AutoFflCore\Helper\Data::getDefaultLastName" />
                                                                         <item name="mode" xsi:type="string">checkout</item>
                                                                     </item>
                                                                 </item>
