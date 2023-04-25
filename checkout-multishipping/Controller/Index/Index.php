@@ -16,11 +16,11 @@ use Magento\Framework\App\Request\InvalidRequestException;
 use Magento\Directory\Model\ResourceModel\Region\CollectionFactory as RegionCollectionFactory;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Data\Form\FormKey\Validator as FormKeyValidator;
+use RefactoredGroup\AutoFflCore\Helper\Data as Helper;
 
 class Index extends \Magento\Framework\App\Action\Action implements \Magento\Framework\App\CsrfAwareActionInterface
 {
     const DEFAULT_COUNTRY_CODE = 'US';
-    const DEFAULT_LAST_NAME = '(FFL Dealer)';
 
     /**
      * @var RawFactory
@@ -120,7 +120,7 @@ class Index extends \Magento\Framework\App\Action\Action implements \Magento\Fra
 
         $address = $this->addressDataFactory->create();
         $address->setFirstname($data['business_name'])
-            ->setLastname(self::DEFAULT_LAST_NAME)
+            ->setLastname(Helper::DEFAULT_LASTNAME)
             ->setCountryId(self::DEFAULT_COUNTRY_CODE)
             ->setRegionId($state->getDataByKey('region_id'))
             ->setRegion(null)

@@ -28,6 +28,8 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
     const API_PRODUCTION_URL = 'https://app.automaticffl.com/store-front/api';
     const API_SANDBOX_URL = 'https://app-dev.automaticffl.com/store-front/api';
 
+    const DEFAULT_LASTNAME = '(FFL Dealer)';
+
     /**
      * Checkout session
      *
@@ -317,5 +319,14 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
     public function getFormKey()
     {
         return $this->formKey->getFormKey();
+    }
+
+    /**
+     * Get the default last name for all dealers
+     * @return string
+     */
+    public function getDefaultLastName()
+    {
+        return self::DEFAULT_LASTNAME;
     }
 }
