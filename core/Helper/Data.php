@@ -28,7 +28,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
     const API_PRODUCTION_URL = 'https://app.automaticffl.com/store-front/api';
     const API_SANDBOX_URL = 'https://app-dev.automaticffl.com/store-front/api';
 
-    const DEFAULT_LASTNAME = '(FFL Dealer)';
+    const DEFAULT_LASTNAME = 'FFL Dealer';
 
     /**
      * Checkout session
