@@ -100,7 +100,7 @@ define([
                 $('#shipping-new-address-form input[name=lastname]').val(addressData['lastname']).trigger('change');
                 $('#shipping-new-address-form input[name=\'street[0]\']').val(addressData['street'][0]).trigger('change');
                 $('#shipping-new-address-form select[name=country_id] option[value=US]').attr('selected', 'selected').trigger('change');
-                $('#shipping-new-address-form select[name=region_id] option[value=' + addressData['region_id'] + ']').attr('selected', 'selected').trigger('change');
+                $('#shipping-new-address-form select[name=region_id] option[value=' + addressData['region_id'] + ']').prop('selected', true).trigger('change');
                 $('#shipping-new-address-form input[name=city]').val(addressData['city']).trigger('change');
                 $('#shipping-new-address-form input[name=postcode]').val(addressData['postcode']).trigger('change');
                 $('#shipping-new-address-form input[name=telephone]').val(addressData['telephone']).trigger('change');
