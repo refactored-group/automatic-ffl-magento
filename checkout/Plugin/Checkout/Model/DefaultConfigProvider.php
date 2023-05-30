@@ -45,11 +45,11 @@ class DefaultConfigProvider
          * If FFL is enabled and all items in the cart are FFL, we can not display
          * any of the Customer Address Book addresses during the checkout.
          */
-        if ($this->helper->isFflCart()) {
+        if ($this->helper->isFfl()) {
             $result['customerData']['billingAddresses'] = !empty($result['customerData']['addresses']) ?: [] ;
             $result['customerData']['addresses'] = [];
         }
-        $result['customerData']['is_ffl'] = (int) $this->helper->isFflCart();
+        $result['customerData']['is_ffl'] = (int) $this->helper->isFfl();
 
         return $result;
     }

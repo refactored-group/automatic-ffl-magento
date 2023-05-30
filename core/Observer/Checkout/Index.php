@@ -69,43 +69,45 @@ class Index implements ObserverInterface
     {
         if ($this->helper->isEnabled() && $this->helper->isMixedCart()) {
             if ($observer->getEvent()->getName() === 'controller_action_predispatch_checkout_index_index') {
-                if (!$this->helper->isMultishippingCheckoutAvailable()) {
+                if ($this->helper->isMultishippingCheckoutAvailable()) {
                     return $observer->getControllerAction()
                         ->getResponse()
                         ->setRedirect($this->url->getUrl('multishipping/checkout'));
-                } else {
+                } else if (!$this->helper->shipNonGunItems()) {
                     return $observer->getControllerAction()
                         ->getResponse()
                         ->setRedirect($this->url->getUrl('checkout/cart/index'));
                 }
             } elseif ($observer->getEvent()->getName() === 'controller_action_predispatch_checkout_cart_index') {
-                if (!$this->helper->isMultishippingCheckoutAvailable()) {
+                if ($this->helper->isMultishippingCheckoutAvailable() ) {
+                    // @TODO: This message seems a little confusing, we need to work on a better one
+                    $message  = __('Your cart has items that need to be shipped to a Dealer. '
+                        . 'You can not perform a regular checkout with a mixed cart,'
+                        . ' so we will redirect you to the Multi-Shipping Checkout.');
+                } else if (!$this->helper->shipNonGunItems()) {
                     // @TODO: This message seems a little confusing, we need to work on a better one
                     $message  = __('Your cart has items that need to be shipped to a Dealer. '
                         . 'You can not checkout with a mixed cart. '
                         . 'Please remove all items from your cart that need to be shipped'
                         . 'to a Dealer or the items that do not.');
-
-                    $this->messageManager->addErrorMessage($message);
-                } else {
-                    // @TODO: This message seems a little confusing, we need to work on a better one
+                } else if ($this->helper->shipNonGunItems()) {
                     $message  = __('Your cart has items that need to be shipped to a Dealer. '
-                        . 'You can not perform a regular checkout with a mixed cart,'
-                        . ' so we will redirect you to the Multi-Shipping Checkout.');
-
-                    $this->messageManager->addErrorMessage($message);
+                        . "All items will be shipped together. You'll be requested to select a Dealer on the next step.");
                 }
-            } elseif ($observer->getEvent()->getName() === 'sales_order_place_before') {
+            } else if ($observer->getEvent()->getName() === 'sales_order_place_before' && !$this->helper->shipNonGunItems()) {
                 $message  = __('Your cart has items that need to be shipped to a Dealer. '
                     . 'You can not perform a regular checkout with a mixed cart. '
                     . 'Please, use the Multi-Shipping Checkout option.');
                 $this->messageManager->addErrorMessage($message);
-
                 $observer->getControllerAction()
                     ->getResponse()
                     ->setRedirect($this->url->getUrl('checkout/cart/index'));
 
                 return;
+            }
+
+            if (!empty($message)) {
+                $this->messageManager->addErrorMessage($message);
             }
         }
     }

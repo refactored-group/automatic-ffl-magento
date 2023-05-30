@@ -19,7 +19,7 @@
                                     <item name="component" xsi:type="string">RefactoredGroup_AutoFflCore/js/checkout/ffl-title</item>
                                     <item name="config" xsi:type="array">
                                         <item name="template" xsi:type="string">RefactoredGroup_AutoFflCore/checkout/ffl-title</item>
-                                        <item name="is_ffl" xsi:type="helper" helper="RefactoredGroup\AutoFflCore\Helper\Data::isFflCart" />
+                                        <item name="is_ffl" xsi:type="helper" helper="RefactoredGroup\AutoFflCore\Helper\Data::isFfl" />
                                     </item>
                                 </item>
                                 <item name="steps" xsi:type="array">
@@ -36,7 +36,7 @@
                                                                         <item name="dealerButtonId" xsi:type="string">1</item>
                                                                         <item name="template" xsi:type="string">RefactoredGroup_AutoFflCore/checkout/select-dealer-button</item>
                                                                         <item name="addressFieldName" xsi:type="string">2</item>
-                                                                        <item name="is_ffl" xsi:type="helper" helper="RefactoredGroup\AutoFflCore\Helper\Data::isFflCart" />
+                                                                        <item name="is_ffl" xsi:type="helper" helper="RefactoredGroup\AutoFflCore\Helper\Data::isFfl" />
                                                                         <item name="mode" xsi:type="string">checkout</item>
                                                                     </item>
                                                                 </item>
@@ -49,7 +49,7 @@
                                                                         <item name="stores_endpoint" xsi:type="helper" helper="RefactoredGroup\AutoFflCore\Helper\Data::getStoresEndpoint" />
                                                                         <item name="store_hash" xsi:type="helper" helper="RefactoredGroup\AutoFflCore\Helper\Data::getStoreHash" />
                                                                         <item name="regionJson" xsi:type="helper" helper="Magento\Directory\Helper\Data::getRegionJson" />
-                                                                        <item name="is_ffl" xsi:type="helper" helper="RefactoredGroup\AutoFflCore\Helper\Data::isFflCart" />
+                                                                        <item name="is_ffl" xsi:type="helper" helper="RefactoredGroup\AutoFflCore\Helper\Data::isFfl" />
                                                                         <item name="default_lastname" xsi:type="helper" helper="RefactoredGroup\AutoFflCore\Helper\Data::getDefaultLastName" />
                                                                         <item name="mode" xsi:type="string">checkout</item>
                                                                     </item>
