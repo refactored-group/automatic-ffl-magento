@@ -45,7 +45,7 @@
                         <div data-bind="{click: function(data, event) { return $parent.selectDealer($index()) }, attr: {class: $data.class}}">
                             <p class="ffl-dealer-name"><!-- ko text: $data.business_name_formatted --><!-- /ko --></p>
                             <p class="ffl-dealer-address"><!-- ko text: $data.formatted_address --><!-- /ko --></p>
-                            <p class="ffl-dealer-phone"><!-- ko text: $data.phone_number --><!-- /ko --></p>
+                            <p class="ffl-dealer-phone"><a data-bind="attr: {'href': 'tel:+1' + $data.phone_number}, text: $data.phone_number"></a></p>
                         </div>
                     </div>
                 </div>

@@ -122,7 +122,6 @@ define([
 
                     // Save new address into the local storage
                     self.saveToLocalStorage(parsedResult);
-
                 }
             });
         },
@@ -206,6 +205,7 @@ define([
                 dealers[i].index = i.toString();
                 dealers[i].formatted_address = dealer.premise_street + ', ' + dealer.premise_city + ', ' + dealer.premise_state + ' ' + dealer.premise_zip;
                 dealers[i].business_name_formatted = dealers[i].id + '. ' + dealers[i].business_name;
+                dealers[i].phone_number = self.formatPhoneNumber(dealers[i].phone_number);
 
                 if (dealers[i].preferred) {
                     dealers[i].icon_url = self.blueMarkerUrl;
@@ -236,6 +236,7 @@ define([
                 '<h2 id="firstHeading" class="firstHeading">' + dealer.business_name_formatted + '</h2>' +
                 '<div id="bodyContent">' +
                 "<p>" + dealer.formatted_address + "</p>" +
+                '<p><b>Phone: </b><a href="tel:+1' + dealer.phone_number + '">' + dealer.phone_number + "</a></p>" +
                 "<p><b>License: </b>" + dealer.license + "</p>" +
                 '<p><a href="#" data-bind="{click: function() {selectDealer(' + dealer.index + ')}}">' +
                 "Select this dealer</a> " +
