@@ -8,7 +8,7 @@
 <div class="main-block">
     <!-- Popup content with main div display none -->
     <div id="dealers-popup" style="display:none; height: 100%; min-height: 100%">
-        <div class="ffl-flex-container">
+        <div class="ffl-flex-container ffl-header-container">
             <div class="ffl-heading"><h1 data-bind="i18n: 'Find your dealer'"></h1></div>
             <div class="ffl-search-field"><input type="text" id="ffl-input-search"
                                                  placeholder="Enter your Zip Code, City or FFL"
@@ -45,7 +45,7 @@
                         <div data-bind="{click: function(data, event) { return $parent.selectDealer($index()) }, attr: {class: $data.class}}">
                             <p class="ffl-dealer-name"><!-- ko text: $data.business_name_formatted --><!-- /ko --></p>
                             <p class="ffl-dealer-address"><!-- ko text: $data.formatted_address --><!-- /ko --></p>
-                            <p class="ffl-dealer-phone"><!-- ko text: $data.phone_number --><!-- /ko --></p>
+                            <p class="ffl-dealer-phone"><a data-bind="attr: {'href': 'tel:+1' + $data.phone_number}, text: $data.phone_number"></a></p>
                         </div>
                     </div>
                 </div>
