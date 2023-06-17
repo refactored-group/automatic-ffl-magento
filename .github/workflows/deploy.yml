@@ -10,11 +10,14 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Setup OpenVPN
-        uses: jonashackt/setup-openvpn@v1
-        with:
-          configuration: ${{ secrets.OPENVPN_CONFIG }}
-          credentials: ${{ secrets.OPENVPN_CREDENTIALS }}
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Connect to VPN
+        run: |
+          echo "${{ secrets.OPENVPN_CONFIG }}" | base64 -d > config.ovpn
+          docker run -v $PWD:/vpn -d --cap-add=NET_ADMIN --device /dev/net/tun --name vpn dperson/openvpn-client -f "" -r 192.168.1.0/24
+          sleep 10  # give the VPN some time to establish connection
 
       - name: Execute commands over ssh
         uses: appleboy/ssh-action@master
