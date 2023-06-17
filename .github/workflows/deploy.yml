@@ -1,0 +1,26 @@
+name: Run script on SSH server
+
+on:
+  push:
+    branches:
+      - am/test
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Setup OpenVPN
+        uses: jonashackt/setup-openvpn@v1
+        with:
+          configuration: ${{ secrets.OPENVPN_CONFIG }}
+          credentials: ${{ secrets.OPENVPN_CREDENTIALS }}
+
+      - name: Execute commands over ssh
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.KEY }}
+          script: |
+            touch connected
