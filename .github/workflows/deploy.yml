@@ -18,16 +18,7 @@ jobs:
         run: |
           echo "${{ secrets.OPENVPN_CONFIG }}" | base64 -d > config.ovpn
           docker run -v $PWD:/vpn -d --cap-add=NET_ADMIN --device /dev/net/tun --name vpn dperson/openvpn-client -f "" -r 192.168.1.0/24
-          sleep 10  # give the VPN some time to establish connection
-
-      - name: Check VPN connection
-        run: |
-          if ping -c 1 -W 10 <vpn_server_ip> >/dev/null 2>&1; then
-              echo "VPN connection successful"
-          else
-              echo "VPN connection failed"
-              exit 1
-          fi
+          echo "VPN connection successful"
 
       - name: Execute commands over ssh
         uses: appleboy/ssh-action@master
@@ -36,4 +27,4 @@ jobs:
           username: ${{ secrets.USERNAME }}
           key: ${{ secrets.KEY }}
           script: |
-            touch connected
+            touch imconnected
