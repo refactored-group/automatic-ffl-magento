@@ -22,7 +22,7 @@ jobs:
 
       - name: Check VPN connection
         run: |
-          if ping -c 1 -W 10 <vpn_server_ip>; then
+          if ping -c 1 -W 10 <vpn_server_ip> &> /dev/null; then
               echo "VPN connection successful"
           else
               echo "VPN connection failed"
