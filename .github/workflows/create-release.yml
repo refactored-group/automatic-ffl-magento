@@ -1,0 +1,102 @@
+name: Create Pre-Release or Release after push to develop or master
+
+on:
+  push:
+    branches:
+      - dev
+      - master
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    environment: 'Proxy Server'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '7.4'
+
+      - name: Install Dependencies
+        run: composer install --prefer-dist --no-progress --no-suggest
+
+      - name: Get version
+        id: get_version
+        run: |
+          VERSION=$(cat composer.json | jq -r .version)
+          echo "Version is: $VERSION"
+          echo "::set-output name=version::$VERSION"
+
+      - name: Setup GitHub CLI
+        run: |
+          curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo gpg --dearmor -o /usr/share/keyrings/githubcli-archive-keyring.gpg
+          echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null
+          sudo apt update
+          sudo apt install gh
+          sudo chown -R $USER:$USER /home/runner/.config
+
+      - name: Verify if release or tag already exist
+        run: |
+          mkdir -p /tmp/.config/gh
+          VERSION=${{ steps.get_version.outputs.version }}
+          BRANCH=${GITHUB_REF##*/}
+          RELEASE_NAME="${VERSION}"
+
+          echo "Currently using branch: $BRANCH"
+
+          if [ "$BRANCH" != "master" ]; then
+            RELEASE_NAME="${VERSION}-dev"
+
+            # Try to delete tag if it already exists
+
+            git fetch --tags
+            if git show-ref --tags | grep -q "refs/tags/$RELEASE_NAME"
+            then
+              echo "Tag ${RELEASE_NAME} exists, deleting..."
+              git tag -d $RELEASE_NAME
+              gh release delete "$RELEASE_NAME" -y
+              git push origin :refs/tags/$RELEASE_NAME
+            fi
+          fi
+
+          # Create tag name. It shouldn't exist at this point. If it does, show an error as
+          # this may be a production deployment where we forgot to update the version
+          # on composer.json
+
+          if git show-ref --tags | grep -q "refs/tags/$RELEASE_NAME"
+            then
+              echo "Tag ${RELEASE_NAME} exists. Please, update composer.json with a new version number."
+              exit 1
+          fi
+
+          # We will do the same with the release
+          if gh release view "$RELEASE_NAME"; then
+              echo "Release $RELEASE_NAME exists. Please, update composer.json with a new version number."
+              exit 1
+          fi
+        env:
+          GH_CONFIG_DIR: /tmp/.config/gh
+          GITHUB_TOKEN: ${{ secrets.TOKEN_GITHUB }}
+      - name: Create new tag and release
+        run: |
+          mkdir -p /tmp/.config/gh
+          VERSION=${{ steps.get_version.outputs.version }}
+          BRANCH=${GITHUB_REF##*/}
+          RELEASE_NAME="$VERSION"
+
+          if [ "$BRANCH" != "master" ]; then
+           RELEASE_NAME="${VERSION}-dev"
+          fi
+
+          git checkout "$BRANCH"
+          git tag "$RELEASE_NAME"
+          git push origin "$RELEASE_NAME"
+          gh release create "$RELEASE_NAME" --title "$RELEASE_NAME" --notes "Automated build" --draft=false
+
+          echo "Release ${RELEASE_NAME} sucessfully created!"
+        env:
+          GH_CONFIG_DIR: /tmp/.config/gh
+          GITHUB_TOKEN: ${{ secrets.TOKEN_GITHUB }}
