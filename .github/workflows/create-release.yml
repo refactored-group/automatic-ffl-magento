@@ -39,7 +39,7 @@ jobs:
           sudo chown -R $USER:$USER /home/runner/.config
       - name: Auth GitHub CLI
         run: |
-          gh auth login --with-token "${{ secrets.TOKEN_GITHUB }}"
+          gh auth login --with-token <<<"${{ secrets.TOKEN_GITHUB }}"
         env:
           GH_CONFIG_DIR: /tmp/.config/gh
           TOKEN_GITHUB: ${{ secrets.TOKEN_GITHUB }}
