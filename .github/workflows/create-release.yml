@@ -101,7 +101,7 @@ jobs:
 
           git checkout "$BRANCH"
           git tag "$RELEASE_NAME"
-          git push origin "$RELEASE_NAME" --target
+          git push origin "$RELEASE_NAME"
           gh release create "$RELEASE_NAME" --title "$RELEASE_NAME" --notes "Automated build" --draft=false
 
           echo "Release ${RELEASE_NAME} sucessfully created!"
