@@ -42,7 +42,6 @@ jobs:
           gh auth login
         env:
           GH_CONFIG_DIR: /tmp/.config/gh
-          GITHUB_TOKEN: ${{ secrets.TOKEN_GITHUB }}
       - name: Verify if release or tag already exist
         run: |
           mkdir -p /tmp/.config/gh
