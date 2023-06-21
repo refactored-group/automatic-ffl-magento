@@ -60,11 +60,13 @@ jobs:
             git fetch --tags
             if git show-ref --tags | grep -q "refs/tags/$RELEASE_NAME"
             then
-              echo "Tag ${RELEASE_NAME} exists, deleting..."
-              git push --delete origin $RELEASE_NAME
+              echo "Release ${RELEASE_NAME} exists, deleting..."
 
               gh release delete "$RELEASE_NAME" -y
               git push origin :refs/tags/$RELEASE_NAME
+
+              echo "Tag ${RELEASE_NAME} exists, deleting..."
+              git push --delete origin $RELEASE_NAME
             fi
           fi
 
