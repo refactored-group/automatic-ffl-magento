@@ -246,7 +246,9 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
             $this->isMultiShipping = $this->multishippingHelper->isMultishippingCheckoutAvailable();
         }
 
-        return $this->isMultiShipping && $this->hasFflItem();
+        return $this->isMultiShipping && (($this->hasFflItem() && !$this->shipNonGunItems()) ||
+                ($this->shipNonGunItems() && !$this->hasFflItem())
+            );
     }
 
     /**

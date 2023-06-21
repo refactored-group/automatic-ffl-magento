@@ -70,6 +70,7 @@ jobs:
         uses: 8398a7/action-slack@v3
         with:
           status: ${{ job.status }}
+          fields: repo,message,commit,author,workflow,took
           text: 'A Magento deployment has failed! Release `${{ github.event.release.name }} to environment `${{ steps.setEnv.outputs.deployedenv }}`. See Github Actions for more details.'
           author_name: GitHub Actions
         env:

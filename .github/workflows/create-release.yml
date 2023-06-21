@@ -37,7 +37,12 @@ jobs:
           sudo apt update
           sudo apt install gh
           sudo chown -R $USER:$USER /home/runner/.config
-
+      - name: Auth GitHub CLI
+        run: |
+          gh auth login --with-token ${GITHUB_TOKEN}
+        env:
+          GH_CONFIG_DIR: /tmp/.config/gh
+          GITHUB_TOKEN: ${{ secrets.TOKEN_GITHUB }}
       - name: Verify if release or tag already exist
         run: |
           mkdir -p /tmp/.config/gh
@@ -56,7 +61,8 @@ jobs:
             if git show-ref --tags | grep -q "refs/tags/$RELEASE_NAME"
             then
               echo "Tag ${RELEASE_NAME} exists, deleting..."
-              git tag -d $RELEASE_NAME
+              git push --delete origin $RELEASE_NAME
+
               gh release delete "$RELEASE_NAME" -y
               git push origin :refs/tags/$RELEASE_NAME
             fi
@@ -93,10 +99,11 @@ jobs:
 
           git checkout "$BRANCH"
           git tag "$RELEASE_NAME"
-          git push origin "$RELEASE_NAME"
+          git push origin "$RELEASE_NAME" --target
           gh release create "$RELEASE_NAME" --title "$RELEASE_NAME" --notes "Automated build" --draft=false
 
           echo "Release ${RELEASE_NAME} sucessfully created!"
         env:
           GH_CONFIG_DIR: /tmp/.config/gh
           GITHUB_TOKEN: ${{ secrets.TOKEN_GITHUB }}
+

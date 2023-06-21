@@ -7,6 +7,7 @@
 namespace RefactoredGroup\AutoFflCheckoutMultiShipping\Plugin\Multishipping\Controller\Checkout;
 
 use Closure;
+use Magento\Framework\Controller\Result\RedirectFactory;
 use RefactoredGroup\AutoFflCore\Helper\Data as Helper;
 use Magento\Framework\App\Action\Context;
 
@@ -27,14 +28,21 @@ class Addresses
     private $context;
 
     /**
+     * @var RedirectFactory
+     */
+    private $resultRedirectFactory;
+
+    /**
      * @param Helper $helper
      */
     public function __construct(
         Helper $helper,
-        Context $context
+        Context $context,
+        RedirectFactory $resultRedirectFactory
     ) {
         $this->helper = $helper;
         $this->context = $context;
+        $this->resultRedirectFactory = $resultRedirectFactory;
     }
 
     /**
@@ -47,11 +55,16 @@ class Addresses
      */
     public function aroundExecute(\Magento\Multishipping\Controller\Checkout\Addresses $subject, Closure $proceed)
     {
-        if ($this->helper->hasFflItem()) {
-            $this->context->getMessageManager()->addNoticeMessage(
-                __('You have a firearm in your cart and must choose a '
-                    . 'Licensed Firearm Dealer (FFL) for the shipping address(es).')
-            );
+        if (!$this->helper->isMultishippingCheckoutAvailable()) {
+            // Redirect to the normal cart
+            return $this->resultRedirectFactory->create()->setPath('checkout/index');
+        } else {
+            if ($this->helper->hasFflItem()) {
+                $this->context->getMessageManager()->addNoticeMessage(
+                    __('You have a firearm in your cart and must choose a '
+                        . 'Licensed Firearm Dealer (FFL) for the shipping address(es).')
+                );
+            }
         }
 
         return $proceed();
