@@ -42,7 +42,6 @@ jobs:
           gh auth login --with-token <<<"${{ secrets.TOKEN_GITHUB }}"
         env:
           GH_CONFIG_DIR: /tmp/.config/gh
-          TOKEN_GITHUB: ${{ secrets.TOKEN_GITHUB }}
       - name: Verify if release or tag already exist
         run: |
           mkdir -p /tmp/.config/gh
@@ -61,8 +60,11 @@ jobs:
             if git show-ref --tags | grep -q "refs/tags/$RELEASE_NAME"
             then
               echo "Release ${RELEASE_NAME} exists, deleting..."
-
               gh release delete "$RELEASE_NAME" -y
+
+              echo "Tag ${RELEASE_NAME} exists, deleting..."
+              git tag --delete "$RELEASE_NAME"
+              git push --delete origin "$RELEASE_NAME"
             fi
           fi
 
