@@ -62,7 +62,7 @@ define([
             const cleaned = ('' + phoneNumberString).replace(/\D/g, '');
             const match = cleaned.match(/^(\d{3})(\d{3})(\d{4})$/);
             if (match) {
-                return '(' + match[1] + ')-' + match[2] + '-' + match[3];
+                return '(' + match[1] + ')' + match[2] + '-' + match[3];
             }
             return null;
         },
@@ -87,7 +87,7 @@ define([
                 street: {
                     0: dealer.premise_street,
                 },
-                telephone: dealer.phone_number,
+                telephone: self.formatPhoneNumber(dealer.phone_number),
                 telephone_link: 'tel:+1' + dealer.phone_number,
                 save_in_address_book: 0
             };
