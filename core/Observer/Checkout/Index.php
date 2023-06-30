@@ -88,7 +88,7 @@ class Index implements ObserverInterface
                     // @TODO: This message seems a little confusing, we need to work on a better one
                     $message  = __('Your cart has items that need to be shipped to a Dealer. '
                         . 'You can not checkout with a mixed cart. '
-                        . 'Please remove all items from your cart that need to be shipped'
+                        . 'Please remove all items from your cart that need to be shipped '
                         . 'to a Dealer or the items that do not.');
                 } else if ($this->helper->shipNonGunItems()) {
                     $message  = __('Your cart has items that need to be shipped to a Dealer. '
