@@ -122,6 +122,11 @@ define([
 
                     // Save new address into the local storage
                     self.saveToLocalStorage(parsedResult);
+
+                    // If we are on the multi-shipping checkout shipping page, reload
+                    if (window.location.href.includes('multishipping/checkout/shipping')) {
+                        location.reload();
+                    }
                 }
             });
         },

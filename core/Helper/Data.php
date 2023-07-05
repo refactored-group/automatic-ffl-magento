@@ -27,7 +27,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
     const XML_PATH_SHIP_NON_GUN_ITEMS = 'autoffl/configuration/ship_non_gun_items';
 
     const API_PRODUCTION_URL = 'https://app.automaticffl.com/store-front/api';
-    const API_SANDBOX_URL = 'https://app-dev.automaticffl.com/store-front/api';
+    const API_SANDBOX_URL = 'https://app-stage.automaticffl.com/store-front/api';
 
     const DEFAULT_LASTNAME = 'FFL Dealer';
 
