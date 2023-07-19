@@ -239,7 +239,7 @@ define([
 
             $(dealers).each(function (i, dealer) {
                 // Add marker to the map
-                self.addMarker(dealers[i]);
+                self.addMarker(dealers[i], i);
             });
         },
         /**
@@ -288,10 +288,11 @@ define([
          * Add marker to the map
          * @param location
          */
-        addMarker: function (dealer) {
+        addMarker: function (dealer, zIndex) {
             var self = this;
             var marker = new google.maps.Marker({
                 position: {lat: dealer.lat, lng: dealer.lng},
+                zIndex,
                 map: self.googleMap,
                 label: dealer.id,
                 icon: {
