@@ -30,6 +30,7 @@ define([
         googleMap: null,
         mapPositionsList: [],
         mapMarkersList: [],
+        currentInfowindow: false,
         localStorageKey: 'multishipping-addresses',
         blueMarkerUrl: 'http://maps.google.com/mapfiles/kml/paddle/blu-blank.png',
         redMarkerUrl: 'http://maps.google.com/mapfiles/kml/paddle/red-blank.png',
@@ -270,12 +271,17 @@ define([
             const infowindow = new google.maps.InfoWindow({
                 content: domElement,
             });
+
             marker.addListener("click", () => {
+                if (self.currentInfowindow) {
+                    self.currentInfowindow.close();
+                }
                 infowindow.open({
                     anchor: marker,
                     map: self.googleMap,
                     shouldFocus: false,
                 });
+                self.currentInfowindow = infowindow;
             });
         },
         /**
