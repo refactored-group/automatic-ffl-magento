@@ -11,6 +11,7 @@
         <autoffl>
             <configuration>
                 <enabled>1</enabled>
+                <ship_non_gun_items>0</ship_non_gun_items>
                 <store_hash>demo_store_hash</store_hash>
                 <google_maps_api_url>https://maps.googleapis.com/maps/api/js</google_maps_api_url>
                 <sandbox_mode>0</sandbox_mode>

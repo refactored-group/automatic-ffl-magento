@@ -62,7 +62,7 @@ class ModelOrderPlugin
     public function beforePlace(\Magento\Sales\Model\Order $subject)
     {
         if ($this->helper->isEnabled() && $this->helper->hasFflItem() && !$this->helper->isFflCart()
-            && $this->request->getModuleName() != 'multishipping') {
+            && $this->request->getModuleName() != 'multishipping' && !$this->helper->shipNonGunItems()) {
             // @TODO: This message seems a little confusing, we need to work on a better one
             $message  = __('Your cart has items that need to be shipped to a Dealer. '
                 . 'You can not checkout with a mixed cart. '

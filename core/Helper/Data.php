@@ -24,9 +24,10 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
     const XML_PATH_GOOGLE_MAPS_API_KEY = 'autoffl/google_maps/api_key';
     const XML_PATH_GOOGLE_MAPS_API_URL = 'autoffl/configuration/google_maps_api_url';
     const XML_PATH_SANDBOX_MODE = 'autoffl/configuration/sandbox_mode';
+    const XML_PATH_SHIP_NON_GUN_ITEMS = 'autoffl/configuration/ship_non_gun_items';
 
     const API_PRODUCTION_URL = 'https://app.automaticffl.com/store-front/api';
-    const API_SANDBOX_URL = 'https://app-dev.automaticffl.com/store-front/api';
+    const API_SANDBOX_URL = 'https://app-stage.automaticffl.com/store-front/api';
 
     const DEFAULT_LASTNAME = 'FFL Dealer';
 
@@ -190,6 +191,18 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
     }
 
     /**
+     * Verify if non-gun items should be shipped together with FFL
+     * @return mixed
+     */
+    public function shipNonGunItems()
+    {
+        return $this->getConfig(
+            self::XML_PATH_SHIP_NON_GUN_ITEMS,
+            \Magento\Store\Model\ScopeInterface::SCOPE_STORE
+        );
+    }
+
+    /**
      * Returns a bool of whether there is a FFL item in the cart
      * @param \Magento\Quote\Model\Quote $quote
      * @return bool
@@ -233,12 +246,15 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
             $this->isMultiShipping = $this->multishippingHelper->isMultishippingCheckoutAvailable();
         }
 
-        return $this->isMultiShipping && $this->hasFflItem();
+        return $this->isMultiShipping && ((!$this->shipNonGunItems()) ||
+                ($this->shipNonGunItems() && !$this->hasFflItem())
+            );
     }
 
     /**
      * Verify if the current shopping cart is a FFL Cart.
      * A FFl cart is a shopping cart with FFL products only.
+     *
      * @return bool|null
      */
     public function isFflCart()
@@ -258,6 +274,19 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
         }
 
         return $this->cartIsFfl;
+    }
+
+    /**
+     * Decides whether the FFL components should be loaded on the checkout
+     *
+     * @return bool
+     */
+    public function isFfl()
+    {
+        if ($this->isFflCart() || $this->hasFflItem() && $this->shipNonGunItems()) {
+            return true;
+        }
+        return false;
     }
 
     /**

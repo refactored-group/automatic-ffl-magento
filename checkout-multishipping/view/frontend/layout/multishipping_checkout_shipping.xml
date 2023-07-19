@@ -9,9 +9,22 @@
       xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
     <body>
         <referenceContainer name="content">
-            <block class="RefactoredGroup\AutoFflCheckoutMultiShipping\Block\Checkout\Ffl" name="checkout_ffl"
-                   template="RefactoredGroup_AutoFflCheckoutMultiShipping::checkout/ffl.phtml" cacheable="false">
+            <block class="RefactoredGroup\AutoFflCheckoutMultiShipping\Block\Checkout\Shipping" name="checkout_shipping" template="RefactoredGroup_AutoFflCheckoutMultiShipping::checkout/shipping.phtml" cacheable="false">
+                <arguments>
+                    <argument name="renderer_template" xsi:type="string">Magento_Multishipping::checkout/item/default.phtml</argument>
+                </arguments>
+                <block class="Magento\Framework\View\Element\RendererList" name="checkout.cart.item.renderers" as="renderer.list"/>
+                <block class="Magento\Multishipping\Block\Checkout\Billing\Items" name="checkout_billing_items" template="Magento_Multishipping::checkout/billing/items.phtml" cacheable="false">
+                    <arguments>
+                        <argument name="renderer_template" xsi:type="string">Magento_Multishipping::checkout/item/default.phtml</argument>
+                        <argument name="renderer_list_name" xsi:type="string">checkout.cart.item.renderers</argument>
+                    </arguments>
+                </block>
             </block>
+        </referenceContainer>
+        <referenceContainer name="content">
+            <block class="RefactoredGroup\AutoFflCheckoutMultiShipping\Block\Checkout\Dealers" name="checkout_dealers_popup"
+                   template="RefactoredGroup_AutoFflCheckoutMultiShipping::checkout/dealers.phtml" cacheable="false" />
         </referenceContainer>
     </body>
 </page>
