@@ -1,0 +1,14 @@
+<!--
+/**
+ * Copyright © Refactored Group (https://www.refactored.group)
+ * @copyright Copyright © 2023. All rights reserved.
+ */
+ -->
+<div class="ffl-address" data-bind="html: dealerAddress[dealerButtonId]" style="display: none"></div>
+<input type="text" class="ffl-cart-input-address" data-validate="{number: true, required:true, 'validate-greater-than-zero':true}" data-bind="attr: {
+            name: addressFieldName,
+            id: addressFieldName,
+            value: dealerAddressId[dealerButtonId]
+    }">
+
+<a href="#" data-bind="click: openSelectDealerModal, html: fflButtonLabel"></a>

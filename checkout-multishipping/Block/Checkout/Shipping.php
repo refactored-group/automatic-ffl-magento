@@ -5,7 +5,7 @@
  */
 namespace RefactoredGroup\AutoFflCheckoutMultiShipping\Block\Checkout;
 
-class Addresses extends \Magento\Multishipping\Block\Checkout\Addresses
+class Shipping extends \Magento\Multishipping\Block\Checkout\Shipping
 {
     /**
      * Generate the address field name for the current cart item
@@ -15,7 +15,7 @@ class Addresses extends \Magento\Multishipping\Block\Checkout\Addresses
      */
     private function getFflAddressFieldName($item, $index)
     {
-        return 'ship[' . $index . '][' . $item->getQuoteItemId() . '][address]';
+        return 'ship[' . $index . '][' . $item . '][address]';
     }
 
     /**
@@ -30,5 +30,19 @@ class Addresses extends \Magento\Multishipping\Block\Checkout\Addresses
             'dealerButtonId' => $index,
             'addressFieldName' => $this->getFflAddressFieldName($item, $index)
         ]);
+    }
+
+    /**
+     * Verify if current shipping entry has any FFL products
+     * @param $items
+     * @return bool
+     */
+    public function hasFflItem($items) {
+        foreach ($items as $item) {
+            if ($item->getProduct()->getRequiredFfl()) {
+                return true;
+            }
+        }
+        return false;
     }
 }

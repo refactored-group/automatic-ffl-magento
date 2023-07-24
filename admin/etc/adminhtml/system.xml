@@ -26,6 +26,14 @@
                     <source_model>Magento\Config\Model\Config\Source\Enabledisable</source_model>
                     <config_path>autoffl/configuration/enabled</config_path>
                 </field>
+                <field id="ship_non_gun_items" translate="label,tooltip" type="select" sortOrder="1" showInDefault="1"
+                       showInWebsite="0" showInStore="0">
+                    <label>Ship Non-gun items to FFL</label>
+                    <tooltip>When the customer has a mixed cart with guns and non-gun items, all items will be shipped together to the FFL dealer.</tooltip>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <config_path>autoffl/configuration/ship_non_gun_items</config_path>
+                    <comment>If enabled, customers can only use the Multi-Shipping Checkout when there are no FFL items in the cart.</comment>
+                </field>
                 <field id="store_hash" translate="label" type="text" sortOrder="2" showInDefault="1" showInWebsite="0"
                        showInStore="0">
                     <label>Store Hash</label>
