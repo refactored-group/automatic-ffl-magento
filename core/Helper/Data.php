@@ -362,9 +362,8 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
         $customer = $quote->getCustomer();
 
         if ($customer && $customer->getId()) {
-            $firstName = $customer->getFirstname();
             
-            return $firstName;
+            return $customer->getFirstname();
         }
         return self::DEFAULT_FIRSTNAME;
     }
@@ -379,9 +378,8 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
         $customer = $quote->getCustomer();
 
         if ($customer && $customer->getId()) {
-            $lastname = $customer->getLastname();
             
-            return $lastname;
+            return $customer->getLastname();
         }
         return self::DEFAULT_LASTNAME;
     }

@@ -37,7 +37,8 @@ class Shipping extends \Magento\Multishipping\Block\Checkout\Shipping
      * @param $items
      * @return bool
      */
-    public function hasFflItem($items) {
+    public function hasFflItem($items)
+    {
         foreach ($items as $item) {
             if ($item->getProduct()->getRequiredFfl()) {
                 return true;

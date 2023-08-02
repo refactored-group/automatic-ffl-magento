@@ -70,6 +70,10 @@ class ModelOrderPlugin
      * @param UrlInterface $url
      * @param ResponseFactory $responseFactory
      * @param Request $request
+     * @param HistoryFactory $orderHistoryFactory
+     * @param CookieManagerInterface $cookieManager
+     * @param CookieMetadataFactory $cookieMetadataFactory
+     * @param LoggerInterface $logger
      */
     public function __construct(
         Helper $helper,
@@ -114,43 +118,42 @@ class ModelOrderPlugin
         }
     }
 
-
-    public function afterPlace(Order $subject, Order $result) {
+    /**
+     *
+     * @param Order $subject
+     * @param Order $result
+     * @return void
+     */
+    public function afterPlace(Order $subject, Order $result)
+    {
 
         if ($this->helper->isEnabled() && $this->helper->hasFflItem() && $this->helper->isFflCart()
             && $this->request->getModuleName() != 'multishipping' && !$this->helper->shipNonGunItems()) {
-                
                 $address = $result->getShippingAddress();
-                
-                if ($address) {
+            if ($address) {
+                $cookieName = 'FFL_Dealer_Id';
+                $dealerId = $this->cookieManager->getCookie($cookieName);
+                try {
+                    $history = $this->orderHistoryFactory->create()
+                        ->setEntityName(\Magento\Sales\Model\Order::ENTITY) // Set the entity name for order
+                        ->setComment(
+                            __('FFL: %1', $dealerId)
+                        );
 
-                    $cookieName = 'FFL_Dealer_Id';
+                    $history->setIsCustomerNotified(false)
+                    ->setIsVisibleOnFront(true);
+                    $result->addStatusHistory($history);
+                    
+                    $cookieMetadata = $this->cookieMetadataFactory
+                    ->createPublicCookieMetadata()
+                    ->setDuration(0)->setPath('/');
+                    
+                    $this->cookieManager->deleteCookie($cookieName, $cookieMetadata);
 
-                    $dealerId = $this->cookieManager->getCookie($cookieName);
-
-                    try {
-
-                        $history = $this->orderHistoryFactory->create()
-                            ->setEntityName(\Magento\Sales\Model\Order::ENTITY) // Set the entity name for order
-                            ->setComment(
-                                __('FFL: %1', $dealerId)
-                            );
-
-                        $history->setIsCustomerNotified(false)
-                        ->setIsVisibleOnFront(true);
-
-                        $result->addStatusHistory($history);
-                        
-                        $cookieMetadata = $this->cookieMetadataFactory
-                        ->createPublicCookieMetadata()
-                        ->setDuration(0)->setPath('/');
-                        
-                        $this->cookieManager->deleteCookie($cookieName, $cookieMetadata);
-
-                    } catch (NoSuchEntityException $exception) {
-                        $this->logger->error($exception->getMessage());
-                    }
-                    return $result;
+                } catch (NoSuchEntityException $exception) {
+                    $this->logger->error($exception->getMessage());
+                }
+                return $result;
             }
         }
         return;
