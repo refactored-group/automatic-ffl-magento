@@ -29,7 +29,9 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
     const API_PRODUCTION_URL = 'https://app.automaticffl.com/store-front/api';
     const API_SANDBOX_URL = 'https://app-stage.automaticffl.com/store-front/api';
 
-    const DEFAULT_LASTNAME = 'FFL Dealer';
+    const DEFAULT_FIRSTNAME = 'FFL';
+    const DEFAULT_LASTNAME = 'Dealer';
+    const DEFAULT_FULLNAME = self::DEFAULT_FIRSTNAME . ' ' . self::DEFAULT_LASTNAME;
 
     /**
      * Checkout session
@@ -351,11 +353,36 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
     }
 
     /**
+     * Get the default first name for all dealers
+     * @return string
+     */
+    public function getDefaultFirstName()
+    {
+        $quote = $this->checkoutSession->getQuote();
+        $customer = $quote->getCustomer();
+
+        if ($customer && $customer->getId()) {
+            $firstName = $customer->getFirstname();
+            
+            return $firstName;
+        }
+        return self::DEFAULT_FIRSTNAME;
+    }
+
+    /**
      * Get the default last name for all dealers
      * @return string
      */
     public function getDefaultLastName()
     {
+        $quote = $this->checkoutSession->getQuote();
+        $customer = $quote->getCustomer();
+
+        if ($customer && $customer->getId()) {
+            $lastname = $customer->getLastname();
+            
+            return $lastname;
+        }
         return self::DEFAULT_LASTNAME;
     }
 }
