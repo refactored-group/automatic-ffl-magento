@@ -76,10 +76,11 @@ define([
             var region = this.getRegionData(dealer.premise_state);
             var addressData = {
                 city: dealer.premise_city,
-                company: "",
+                company: dealer.business_name,
                 country_id: "US",
-                firstname: dealer.business_name,
+                firstname: this.default_firstname,
                 lastname: this.default_lastname,
+                dealer_license: dealer.license,
                 postcode: dealer.premise_zip,
                 region: region.name,
                 region_id: region.id,
@@ -91,6 +92,12 @@ define([
                 telephone_link: 'tel:+1' + dealer.phone_number,
                 save_in_address_book: 0
             };
+
+            let date = new Date();
+
+            date.setDate(date.getDate() + 1);
+            
+            document.cookie = 'FFL_Dealer_Id=' + addressData.dealer_license + '; expires=' + date.toGMTString() + '; path=/';
 
             checkoutData.setShippingAddressFromData(addressData);
 
@@ -113,6 +120,7 @@ define([
             if ($('#shipping-new-address-form')) {
                 $('#shipping-new-address-form input[name=firstname]').val(addressData['firstname']).trigger('change');
                 $('#shipping-new-address-form input[name=lastname]').val(addressData['lastname']).trigger('change');
+                $('#shipping-new-address-form input[name=company]').val(addressData['company']).trigger('change');
                 $('#shipping-new-address-form input[name=\'street[0]\']').val(addressData['street'][0]).trigger('change');
                 $('#shipping-new-address-form select[name=country_id] option[value=US]').attr('selected', 'selected').trigger('change');
                 $('#shipping-new-address-form select[name=region_id] option[value=' + addressData['region_id'] + ']').prop('selected', true).trigger('change');

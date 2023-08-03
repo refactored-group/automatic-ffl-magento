@@ -226,6 +226,7 @@ define([
                 dealers[i].formatted_address = dealer.premise_street + ', ' + dealer.premise_city + ', ' + dealer.premise_state + ' ' + dealer.premise_zip;
                 dealers[i].business_name_formatted = dealers[i].id + '. ' + dealers[i].business_name;
                 dealers[i].phone_number = self.formatPhoneNumber(dealers[i].phone_number);
+                dealers[i].license = dealer.license;
 
                 if (dealers[i].preferred) {
                     dealers[i].icon_url = self.blueMarkerUrl;

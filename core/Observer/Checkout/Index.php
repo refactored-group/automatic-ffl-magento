@@ -73,28 +73,28 @@ class Index implements ObserverInterface
                     return $observer->getControllerAction()
                         ->getResponse()
                         ->setRedirect($this->url->getUrl('multishipping/checkout'));
-                } else if (!$this->helper->shipNonGunItems()) {
+                } elseif (!$this->helper->shipNonGunItems()) {
                     return $observer->getControllerAction()
                         ->getResponse()
                         ->setRedirect($this->url->getUrl('checkout/cart/index'));
                 }
             } elseif ($observer->getEvent()->getName() === 'controller_action_predispatch_checkout_cart_index') {
-                if ($this->helper->isMultishippingCheckoutAvailable() ) {
+                if ($this->helper->isMultishippingCheckoutAvailable()) {
                     // @TODO: This message seems a little confusing, we need to work on a better one
                     $message  = __('Your cart has items that need to be shipped to a Dealer. '
                         . 'You can not perform a regular checkout with a mixed cart,'
                         . ' so we will redirect you to the Multi-Shipping Checkout.');
-                } else if (!$this->helper->shipNonGunItems()) {
+                } elseif (!$this->helper->shipNonGunItems()) {
                     // @TODO: This message seems a little confusing, we need to work on a better one
                     $message  = __('Your cart has items that need to be shipped to a Dealer. '
                         . 'You can not checkout with a mixed cart. '
                         . 'Please remove all items from your cart that need to be shipped '
                         . 'to a Dealer or the items that do not.');
-                } else if ($this->helper->shipNonGunItems()) {
+                } elseif ($this->helper->shipNonGunItems()) {
                     $message  = __('Your cart has items that need to be shipped to a Dealer. '
                         . "All items will be shipped together. You'll be requested to select a Dealer on the next step.");
                 }
-            } else if ($observer->getEvent()->getName() === 'sales_order_place_before' && !$this->helper->shipNonGunItems()) {
+            } elseif ($observer->getEvent()->getName() === 'sales_order_place_before' && !$this->helper->shipNonGunItems()) {
                 $message  = __('Your cart has items that need to be shipped to a Dealer. '
                     . 'You can not perform a regular checkout with a mixed cart. '
                     . 'Please, use the Multi-Shipping Checkout option.');
