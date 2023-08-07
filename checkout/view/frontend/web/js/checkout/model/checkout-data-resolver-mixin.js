@@ -30,68 +30,16 @@ define(['mage/utils/wrapper',
 ) {
     'use strict';
 
-    var mixin = {
-        /**
-         * Get shipping address from address list. This method is required for Magento 2.3.x
-         *
-         * @return {Object|null}
-         */
-        getShippingAddressFromCustomerAddressList: function () {
-            var shippingAddress = _.find(
-                addressList(),
-                function (address) {
-                    return checkoutData.getSelectedShippingAddress() == address.getKey() //eslint-disable-line
-                }
-            );
 
-            if (!shippingAddress) {
-                shippingAddress = _.find(
-                    addressList(),
-                    function (address) {
-                        return address.isDefaultShipping();
-                    }
-                );
-            }
+    return function (checkoutDataResolver) {
+        checkoutDataResolver.applyShippingAddress = wrapper.wrap(
+            checkoutDataResolver.applyShippingAddress, function (originalAction) {
 
-            if (!shippingAddress && addressList().length === 1) {
-                shippingAddress = addressList()[0];
-            }
+                var data = storage.get('checkout-data')();
+              
+                originalAction();
+            });
 
-            return shippingAddress;
-        },
-
-        applyShippingAddress: function (isEstimatedAddress) {
-            var address,
-                shippingAddress,
-                isConvertAddress;
-
-            var data = storage.get('checkout-data')();
-
-            if (addressList().length === 0) {
-                address = addressConverter.formAddressDataToQuoteAddress(
-                    checkoutData.getShippingAddressFromData()
-                );
-                selectShippingAddress(address);
-            }
-
-            shippingAddress = quote.shippingAddress();
-            isConvertAddress = isEstimatedAddress || false;
-
-            if (!shippingAddress) {
-                shippingAddress = this.getShippingAddressFromCustomerAddressList();
-
-                if (shippingAddress) {
-                    selectShippingAddress(
-                        isConvertAddress ?
-                            addressConverter.addressToEstimationAddress(shippingAddress)
-                            : shippingAddress
-                    );
-                }
-            }
-        }
-    };
-
-    return function (target) {
-        return wrapper.extend(target, mixin);
+        return checkoutDataResolver;
     };
 });

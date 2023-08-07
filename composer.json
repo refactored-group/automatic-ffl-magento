@@ -2,7 +2,7 @@
   "name": "refactored_group/automatic-ffl-magento",
   "description": "Automatic FFL Magento 2 Extension",
   "type": "magento2-module",
-  "version": "1.0.12",
+  "version": "1.0.13",
   "minimum-stability": "stable",
   "replace": {
     "refactored_group/autoffl-core": "self.version",
