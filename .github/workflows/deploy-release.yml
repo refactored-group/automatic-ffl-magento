@@ -24,17 +24,21 @@ jobs:
         run: |
           PROD_ENV="${{ vars.PROD_ENV }}"
           TEST_ENV="${{ vars.TEST_ENV }}"
+          GITHUB_REF="${{ github.ref }}"
+          GITHUB_RELEASE_NAME="${{ github.event.release.name }}"
 
-          # Set default deployment values
-          RELEASE_NAME="dev-dev"
-          DEPLOYED_ENV="Stage Environment(s): ${TEST_ENV}"
-          DEPLOY_TO="${TEST_ENV}"
 
-          if [[ "${{ github.ref }}" == "refs/heads/master" ]]; then
+
+          if [[ ! $GITHUB_RELEASE_NAME == *"-dev" ]]; then
             # deploy to the Prod environment if the release tag is from Master
             DEPLOYED_ENV="Production ${PROD_ENV}"
             RELEASE_NAME=${{ github.event.release.name }}
             DEPLOY_TO="${PROD_ENV}"
+          else
+            # Set default deployment values
+            RELEASE_NAME="dev-dev"
+            DEPLOYED_ENV="Stage Environment(s): ${TEST_ENV}"
+            DEPLOY_TO="${TEST_ENV}"
           fi
 
           echo "::set-output name=deployedenv::$(echo $DEPLOYED_ENV)"
