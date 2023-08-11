@@ -251,7 +251,7 @@ define([
         addPopupToMarker: function (marker, dealer) {
             var self = this;
             const contentString =
-                '<div style="display: none"><div id="popupcontent' + dealer.index + '">' +
+                '<div style="display: none"><div id="popupcontent' + dealer.index + '" class="popupContent">' +
                 '<div id="siteNotice' + dealer.index + '">' +
                 "</div>" +
                 '<h2 id="firstHeading" class="firstHeading">' + dealer.business_name_formatted + '</h2>' +
