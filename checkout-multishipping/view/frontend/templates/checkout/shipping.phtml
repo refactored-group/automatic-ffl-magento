@@ -13,7 +13,7 @@
  */
 ?>
 <form action="<?= $block->escapeUrl($block->getPostActionUrl()) ?>" method="post" id="shipping_method_form" class="form multicheckout shipping">
-    <?php foreach ($block->getAddresses() as $_index => $_address) : ?>
+    <?php foreach ($block->getAddresses() as $_index => $_address): ?>
         <div class="block block-shipping">
             <div class="block-title"><strong><?= $block->escapeHtml(__('Address %1 <span>of %2</span>', ($_index+1), $block->getAddressCount()), ['span']) ?></strong></div>
             <div class="block-content">
@@ -21,11 +21,11 @@
                     <strong class="box-title box-title-float-left">
                         <span><?= $block->escapeHtml(__('Shipping To')) ?></span>
                     </strong>
-                        <?php if (!$block->hasFflItem($block->getAddressItems($_address))) :?>
+                        <?php if (!$block->hasFflItem($block->getAddressItems($_address))):?>
                         <a href="<?= $block->escapeUrl($block->getAddressEditUrl($_address)) ?>" class="action edit">
                             <span><?= $block->escapeHtml(__('Change')) ?></span>
                         </a>
-                        <?php else : ?>
+                        <?php else: ?>
                             <div data-mage-init='
                             { "Magento_Ui/js/core/app":
                                 {
@@ -54,26 +54,26 @@
                         <span><?= $block->escapeHtml(__('Shipping Method')) ?></span>
                     </strong>
                     <div class="box-content">
-                        <?php if (!($_shippingRateGroups = $block->getShippingRates($_address))) : ?>
+                        <?php if (!($_shippingRateGroups = $block->getShippingRates($_address))): ?>
                             <p><?= $block->escapeHtml(__('Sorry, no quotes are available for this order right now.')) ?></p>
-                        <?php else : ?>
+                        <?php else: ?>
                             <dl class="items methods-shipping">
-                                <?php $_sole = count($_shippingRateGroups) == 1; foreach ($_shippingRateGroups as $code => $_rates) : ?>
+                                <?php $_sole = count($_shippingRateGroups) == 1; foreach ($_shippingRateGroups as $code => $_rates): ?>
                                     <dt class="item-title"><?= $block->escapeHtml($block->getCarrierName($code)) ?></dt>
                                     <dd class="item-content">
                                         <fieldset class="fieldset">
                                             <legend class="legend">
                                                 <span><?= $block->escapeHtml($block->getCarrierName($code)) ?></span>
                                             </legend><br>
-                                            <?php $_sole = $_sole && count($_rates) == 1; foreach ($_rates as $_rate) : ?>
+                                            <?php $_sole = $_sole && count($_rates) == 1; foreach ($_rates as $_rate): ?>
                                                 <div class="field choice">
-                                                    <?php if ($_rate->getErrorMessage()) : ?>
+                                                    <?php if ($_rate->getErrorMessage()): ?>
                                                         <strong><?= $block->escapeHtml($_rate->getCarrierTitle()) ?>: <?= $block->escapeHtml($_rate->getErrorMessage()) ?></strong>
-                                                    <?php else : ?>
+                                                    <?php else: ?>
                                                         <div class="control">
-                                                            <?php if ($_sole) : ?>
+                                                            <?php if ($_sole): ?>
                                                                 <input type="radio" name="shipping_method[<?= (int) $_address->getId() ?>]" value="<?= $block->escapeHtmlAttr($_rate->getCode()) ?>" id="s_method_<?= (int) $_address->getId() ?>_<?= $block->escapeHtmlAttr($_rate->getCode()) ?>" class="radio solo method" checked="checked"/>
-                                                            <?php else : ?>
+                                                            <?php else: ?>
                                                                 <input type="radio" name="shipping_method[<?= (int) $_address->getId() ?>]" value="<?= $block->escapeHtmlAttr($_rate->getCode()) ?>" id="s_method_<?= (int) $_address->getId() ?>_<?= $block->escapeHtmlAttr($_rate->getCode()) ?>" <?= ($_rate->getCode()===$block->getAddressShippingMethod($_address)) ? ' checked="checked"' : '' ?> class="radio" />
                                                             <?php endif; ?>
                                                         </div>
@@ -81,16 +81,16 @@
                                                             <?= $block->escapeHtml($_rate->getMethodTitle()) ?>
                                                             <?php $_excl = $block->getShippingPrice($_address, $_rate->getPrice(), $this->helper(Magento\Tax\Helper\Data::class)->displayShippingPriceIncludingTax()); ?>
                                                             <?php $_incl = $block->getShippingPrice($_address, $_rate->getPrice(), true); ?>
-                                                            <?php if ($this->helper(Magento\Tax\Helper\Data::class)->displayShippingBothPrices() && $_incl != $_excl) : ?>
+                                                            <?php if ($this->helper(Magento\Tax\Helper\Data::class)->displayShippingBothPrices() && $_incl != $_excl): ?>
                                                             <span class="price-including-tax" data-label="<?= $block->escapeHtml(__('Incl. Tax')) ?>">
                                             <?php endif; ?>
-                                            <?= $block->escapeHtml($_incl, ['span']) ?>
-                                            <?php if ($this->helper(Magento\Tax\Helper\Data::class)->displayShippingBothPrices() && $_incl != $_excl) : ?>
+                                                        <?= $block->escapeHtml($_incl, ['span']) ?>
+                                                        <?php if ($this->helper(Magento\Tax\Helper\Data::class)->displayShippingBothPrices() && $_incl != $_excl): ?>
                                             </span>
                                                         <?php endif; ?>
-                                                            <?php if ($this->helper(Magento\Tax\Helper\Data::class)->displayShippingBothPrices() && $_incl != $_excl) : ?>
+                                                            <?php if ($this->helper(Magento\Tax\Helper\Data::class)->displayShippingBothPrices() && $_incl != $_excl): ?>
                                                                 <span class="price-excluding-tax" data-label="<?= $block->escapeHtml(__('Excl. Tax')) ?>">
-                                                <?= $block->escapeHtml($_excl, ['span']) ?>
+                                                                <?= $block->escapeHtml($_excl, ['span']) ?>
                                             </span>
                                                             <?php endif; ?>
                                                         </label>
@@ -121,7 +121,7 @@
                                 </tr>
                                 </thead>
                                 <tbody>
-                                <?php foreach ($block->getAddressItems($_address) as $_item) : ?>
+                                <?php foreach ($block->getAddressItems($_address) as $_item): ?>
                                     <tr>
                                         <td class="col item" data-th="<?= $block->escapeHtmlAttr(__('Product Name')) ?>"><?= $block->getItemHtml($_item->getQuoteItem()) ?></td>
                                         <td class="col qty" data-th="<?= $block->escapeHtmlAttr(__('Qty')) ?>"><?= $block->escapeHtml($_item->getQty()) ?></td>
