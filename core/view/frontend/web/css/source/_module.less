@@ -98,16 +98,17 @@ select.dealers-modal-button {
     vertical-align: middle;
     height: 40px;
 }
-@media screen and (max-width: 800px) {
+@media screen and (max-width: 801px) {
     #ffl-input-search {
+        width: 95% !important;
         text-align: center !important;
-        font-size: 30px !important;
+        font-size: 20px !important;
         padding: 0 0 5px!important;
         font-weight: bold;
     }
     #ffl-input-search::placeholder {
         text-align: center !important;
-        font-size: 16px;
+        font-size: 12px;
         padding: 0 !important;
         font-weight: normal;
         max-height: 40px !important;
@@ -147,10 +148,35 @@ select.dealers-modal-button {
     }
     .ffl-map {
         flex: 0 1 100%;
+        .firstHeading {
+            font-size: 1.5rem;
+            margin-top: 0.5rem;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+        .popupContent {
+            width: 90%;
+            p {
+                margin-bottom: 0.5rem;
+                &:last-child {
+                    margin-top: 1rem;
+                    margin-bottom: 0;
+                }
+            }
+        }        
     }
     .flex-container-results {
         flex-direction: column-reverse !important;
         flex-wrap: nowrap !important;
+        .gm-style-iw  {
+            min-height: 180px;
+            min-width: 190px !important;
+        }
+        .gm-style-iw-d {
+            min-height: inherit;
+            min-width: inherit;
+
+        }
     }
     select.dealers-modal-button, .ffl-input-search {
         width: 95% !important;
