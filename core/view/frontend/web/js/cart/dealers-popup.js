@@ -31,7 +31,6 @@ define([
         mapPositionsList: [],
         mapMarkersList: [],
         currentInfowindow: false,
-        localStorageKey: 'multishipping-addresses',
         blueMarkerUrl: 'http://maps.google.com/mapfiles/kml/paddle/blu-blank.png',
         redMarkerUrl: 'http://maps.google.com/mapfiles/kml/paddle/red-blank.png',
 
@@ -50,23 +49,11 @@ define([
             self.isNoDealersMessageVisible(false);
             self.isResultsVisible(false);
 
-            // Initialize local storage
-            this.initLocalStorage();
-
             return this;
         },
         onEnter: function(data, event){
             event.keyCode === 13 && this.getFflResults();
             return true;
-        },
-        /**
-         * Initialize local storage
-         */
-        initLocalStorage: function () {
-            var addresses = window.localStorage.getItem(self.localStorageKey);
-            if (!addresses || typeof window.checkoutConfig === 'undefined' || checkoutConfig.customerData.is_ffl != 1) {
-                window.localStorage.setItem(self.localStorageKey, '{}');
-            }
         },
         /**
          * Render Modal UI and Google Maps
@@ -121,29 +108,12 @@ define([
                     dealerButton().dealerAddress[self.currentFflItemId()](parsedResult.name);
                     dealerButton().dealerAddressId[self.currentFflItemId()](parsedResult.id);
 
-                    // Save new address into the local storage
-                    self.saveToLocalStorage(parsedResult);
-
                     // If we are on the multi-shipping checkout shipping page, reload
                     if (window.location.href.includes('multishipping/checkout/shipping')) {
                         location.reload();
                     }
                 }
             });
-        },
-        /**
-         * Save dealer address to the local storage
-         * @param parsedResult
-         */
-        saveToLocalStorage: function (parsedResult) {
-            var self = this;
-            var addresses = window.localStorage.getItem(self.localStorageKey);
-            addresses = JSON.parse(addresses);
-            addresses[self.currentFflItemId()] = {
-                name: parsedResult.name,
-                id: parsedResult.id
-            };
-            window.localStorage.setItem(self.localStorageKey, JSON.stringify(addresses));
         },
         /**
          * Send API request to FFL and retrieve a list of dealers

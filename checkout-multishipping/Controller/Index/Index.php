@@ -101,6 +101,7 @@ class Index extends \Magento\Framework\App\Action\Action implements \Magento\Fra
     public function execute()
     {
         $data = $this->request->getParams();
+
         $result = $this->_rawFactory->create();
 
         // Look for State ID
@@ -119,8 +120,9 @@ class Index extends \Magento\Framework\App\Action\Action implements \Magento\Fra
         $customerId = $this->customerSession->getCustomerId();
 
         $address = $this->addressDataFactory->create();
-        $address->setFirstname($data['business_name'])
+        $address->setFirstname(Helper::DEFAULT_FIRSTNAME)
             ->setLastname(Helper::DEFAULT_LASTNAME)
+            ->setCompany($data['business_name'])
             ->setCountryId(self::DEFAULT_COUNTRY_CODE)
             ->setRegionId($state->getDataByKey('region_id'))
             ->setRegion(null)
@@ -131,11 +133,26 @@ class Index extends \Magento\Framework\App\Action\Action implements \Magento\Fra
             ->setTelephone($data['phone_number'])
             ->setCustomAttribute('is_deleted', 1);
 
+        $customer = $this->customerSession->getCustomer();
+        if($customerId && $customer) {
+            $firstname = $customer->getFirstname();
+            $lastname = $customer->getLastname();
+            $address->setFirstname($firstname)
+                ->setLastname($lastname);
+            $fullname = $firstname . ' ' . $lastname;
+        } else {
+            $fullname = Helper::DEFAULT_FULLNAME;
+        }
+
         /** @var  \Magento\Customer\Api\Data\AddressInterface $address */
         $address = $this->addressRepository->save($address);
 
+        /* This is used to set the license to the order */
+        $this->customerSession->setData('ffl_license_'.$address->getId(), $data['license']);
+
         $stringAddress = sprintf(
-            '%s, %s, %s, %s %s',
+            '%s, %s, %s, %s, %s %s',
+            $fullname,
             $data['business_name'],
             $data['premise_street'],
             $data['premise_city'],

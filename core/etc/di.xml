@@ -13,4 +13,14 @@
     <type name="Magento\Sales\Model\Order">
         <plugin name="refactoredgroup_autoffl_model_order_plugin" type="RefactoredGroup\AutoFflCore\Plugin\ModelOrderPlugin" sortOrder="200" disabled="false"/>
     </type>
+    <type name="Magento\Checkout\Block\Checkout\LayoutProcessor">
+        <plugin name="refactoredgroup_add_ffl_license"
+            type="RefactoredGroup\AutoFflCore\Plugin\Checkout\LayoutProcessorPlugin" sortOrder="10"/>
+    </type>
+    <type name="Magento\Checkout\Model\ShippingInformationManagement">
+        <plugin name="save_ffl_license" type="RefactoredGroup\AutoFflCore\Model\Checkout\ShippingInformationManagement" sortOrder="10"/>
+    </type>
+    <type name="Magento\Sales\Block\Adminhtml\Order\View\Info">
+        <plugin name="display_ffl_license" type="RefactoredGroup\AutoFflCore\Plugin\Block\Adminhtml\View\InfoPlugin" sortOrder="10"/>
+    </type>
 </config>

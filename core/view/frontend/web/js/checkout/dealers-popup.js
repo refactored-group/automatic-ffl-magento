@@ -92,13 +92,7 @@ define([
                 telephone_link: 'tel:+1' + dealer.phone_number,
                 save_in_address_book: 0
             };
-
-            let date = new Date();
-
-            date.setDate(date.getDate() + 1);
             
-            document.cookie = 'FFL_Dealer_Id=' + addressData.dealer_license + '; expires=' + date.toGMTString() + '; path=/';
-
             checkoutData.setShippingAddressFromData(addressData);
 
             // New address must be selected as a shipping address
@@ -108,6 +102,7 @@ define([
 
             // Set new shipping address as the selected address
             var storageData = storage.get('checkout-data')();
+            var customerData = storage.get('customer')();
             storageData['selectedShippingAddress'] = newShippingAddress.getKey();
             window.localStorage.setItem('checkout-data', JSON.stringify(storageData));
 
@@ -127,6 +122,7 @@ define([
                 $('#shipping-new-address-form input[name=city]').val(addressData['city']).trigger('change');
                 $('#shipping-new-address-form input[name=postcode]').val(addressData['postcode']).trigger('change');
                 $('#shipping-new-address-form input[name=telephone]').val(addressData['telephone']).trigger('change');
+                $('#shipping-new-address-form input[name=custom_attributes\\[ffl_license\\]]').val(addressData['dealer_license']).trigger('change');
             }
         }
     });

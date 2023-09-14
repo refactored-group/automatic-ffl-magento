@@ -19,7 +19,6 @@ define([
         dealerAddress: ko.observableArray(),
         dealerAddressId: ko.observableArray(),
         fflButtonLabel: null,
-        localStorageKey: 'multishipping-addresses',
         /** @inheritdoc */
         initialize: function () {
             this._super();
@@ -31,40 +30,12 @@ define([
             this.dealerAddress[this.dealerButtonId] = ko.observable();
             this.dealerAddressId[this.dealerButtonId] = ko.observable();
 
-            // Initialize local storage
-            this.initLocalStorage();
-
             // Update "Select Dealer" button label when a dealer is selected
             this.dealerAddressId[this.dealerButtonId].subscribe(function (value) {
                 self.fflButtonLabel('Change Dealer');
             });
 
-            //Verify if dealer address exists on local storage
-            this.initAddresses()
-
             return this;
-        },
-        /**
-         * Initialize addresses from local storage
-         */
-        initAddresses: function () {
-            var self = this;
-            var addresses = window.localStorage.getItem(self.localStorageKey);
-            addresses = JSON.parse(addresses);
-            if (typeof addresses[this.dealerButtonId] !== 'undefined') {
-                this.dealerAddress[this.dealerButtonId](addresses[this.dealerButtonId].name);
-                this.dealerAddressId[this.dealerButtonId](addresses[this.dealerButtonId].id);
-            }
-        },
-        /**
-         * Init local storage
-         */
-        initLocalStorage: function () {
-            var self = this;
-            var addresses = window.localStorage.getItem(self.localStorageKey);
-            if (!addresses) {
-                window.localStorage.setItem(self.localStorageKey, '{}');
-            }
         },
         /**
          * Open modal and set current selected item

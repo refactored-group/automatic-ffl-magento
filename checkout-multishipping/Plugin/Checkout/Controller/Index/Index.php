@@ -11,6 +11,7 @@ use Magento\Checkout\Controller\Index\Index as ParentControllor;
 use Magento\Framework\Controller\Result\RedirectFactory;
 use Magento\Framework\Controller\ResultInterface;
 use RefactoredGroup\AutoFflCore\Helper\Data as Helper;
+use RefactoredGroup\AutoFflCheckoutMultiShipping\Helper\Data as MsHelper;
 
 class Index
 {
@@ -23,15 +24,23 @@ class Index
     private $helper;
 
     /**
+     * @var MsHelper
+     */
+    private $msHelper;
+
+    /**
      * @param RedirectFactory $resultRedirectFactory
      * @param Helper $helper
+     * @param MsHelper $msHelper
      */
     public function __construct(
         RedirectFactory $resultRedirectFactory,
-        Helper $helper
+        Helper $helper,
+        MsHelper $msHelper
     ) {
         $this->resultRedirectFactory = $resultRedirectFactory;
         $this->helper = $helper;
+        $this->msHelper = $msHelper;
     }
 
     /**
@@ -44,8 +53,11 @@ class Index
      */
     public function aroundExecute(ParentControllor $subject, Closure $proceed)
     {
-        if ($this->helper->isMultishippingCheckoutAvailable() && $this->helper->isMixedCart()) {
-            return $this->resultRedirectFactory->create()->setPath('multishipping/checkout');
+        if ($this->helper->isMultishippingCheckoutAvailable()) {
+            $this->msHelper->clearCustomerSession();
+            if($this->helper->isMixedCart()) {
+                return $this->resultRedirectFactory->create()->setPath('multishipping/checkout');
+            }
         }
 
         return $proceed();

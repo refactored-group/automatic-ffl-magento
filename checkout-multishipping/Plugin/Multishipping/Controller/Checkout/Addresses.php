@@ -10,6 +10,7 @@ use Closure;
 use Magento\Framework\Controller\Result\RedirectFactory;
 use RefactoredGroup\AutoFflCore\Helper\Data as Helper;
 use Magento\Framework\App\Action\Context;
+use RefactoredGroup\AutoFflCheckoutMultiShipping\Helper\Data as MsHelper;
 
 /**
  * Class Addresses
@@ -23,6 +24,11 @@ class Addresses
     private $helper;
 
     /**
+     * @var MsHelper
+     */
+    private $msHelper;
+
+    /**
      * @var Context
      */
     private $context;
@@ -34,15 +40,20 @@ class Addresses
 
     /**
      * @param Helper $helper
+     * @param Context $context
+     * @param RedirectFactory $resultRedirectFactory
+     * @param MsHelper $msHelper
      */
     public function __construct(
         Helper $helper,
         Context $context,
-        RedirectFactory $resultRedirectFactory
+        RedirectFactory $resultRedirectFactory,
+        MsHelper $msHelper
     ) {
         $this->helper = $helper;
         $this->context = $context;
         $this->resultRedirectFactory = $resultRedirectFactory;
+        $this->msHelper = $msHelper;
     }
 
     /**
@@ -59,6 +70,7 @@ class Addresses
             // Redirect to the normal cart
             return $this->resultRedirectFactory->create()->setPath('checkout/index');
         } else {
+            $this->msHelper->clearCustomerSession();
             if ($this->helper->hasFflItem()) {
                 $this->context->getMessageManager()->addNoticeMessage(
                     __('You have a firearm in your cart and must choose a '

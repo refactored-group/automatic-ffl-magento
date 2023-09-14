@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:Event/etc/events.xsd">
+    <event name="checkout_type_multishipping_create_orders_single">
+        <observer name="refactored_group_checkout_type_multishipping_create_orders_single" 
+            instance="RefactoredGroup\AutoFflCheckoutMultiShipping\Observer\Model\MultishippingCreateOrdersSingle" />
+    </event>
+    <event name="multishipping_checkout_controller_success_action">
+        <observer name="refactored_group_multishipping_checkout_controller_success_action" 
+            instance="RefactoredGroup\AutoFflCheckoutMultiShipping\Observer\ClearCustomerSession" />
+    </event>
+    <event name="checkout_onepage_controller_success_action">
+        <observer name="refactored_group_checkout_onepage_controller_success_action" 
+            instance="RefactoredGroup\AutoFflCheckoutMultiShipping\Observer\ClearCustomerSession" />
+    </event>
+</config>
+

@@ -7,6 +7,8 @@
 -->
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+
+    <!-- Plugins -->
     <type name="Magento\Checkout\Controller\Index\Index">
         <plugin name="before_guest_proceed_to_checkout"
                 type="RefactoredGroup\AutoFflCheckoutMultiShipping\Plugin\Checkout\Controller\Index\Index"/>
@@ -23,6 +25,8 @@
         <plugin name="before_multishipping_checkout_addresses_post"
                 type="RefactoredGroup\AutoFflCheckoutMultiShipping\Plugin\Multishipping\Controller\Checkout\AddressesPost"/>
     </type>
+
+    <!-- Preferences -->
     <preference for="Magento\Multishipping\Model\Checkout\Type\Multishipping"
                 type="RefactoredGroup\AutoFflCheckoutMultiShipping\Model\Checkout\Type\Multishipping"/>
 </config>
