@@ -4,4 +4,7 @@
     <table name="sales_order">
         <column name="ffl_license" xsi:type="varchar" nullable="true" comment="FFL License" />
     </table>
+    <table name="quote">
+        <column name="ffl_license" xsi:type="varchar" nullable="true" comment="FFL License" />
+    </table>
 </schema>
