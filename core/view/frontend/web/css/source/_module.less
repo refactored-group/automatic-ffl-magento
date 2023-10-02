@@ -298,3 +298,40 @@ select.dealers-modal-button {
     display: block;
     position: relative;
 }
+
+/**
+ * Style the .ffl-grid table
+ * 
+ * This initially sets the border of td element to none
+ * and the div containing the address input field display to none.
+ * 
+ * Then selects the first .ffl-item and .non-ffl-item elements
+ * and resets the above styles.
+ */
+@media all and (min-width: @screen__s) {
+    table.ffl-grid {
+        tbody {
+            tr {
+                td {
+                    border-top: none;
+                    &.address {
+                        div.field.address {
+                            display: none;
+                        }
+                    }
+                }
+                &:nth-child(1 of .ffl-item),
+                &:nth-child(1 of .non-ffl-item) {
+                    td {
+                        border-top: 1px solid #cccccc;
+                        &.address {
+                            div.field.address {
+                                display: block;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

@@ -5,8 +5,9 @@
 define([
     'jquery',
     'uiComponent',
-    'ko'
-], function ($, Component, ko) {
+    'ko',
+    'Magento_Checkout/js/checkout-data'
+], function ($, Component, ko, checkoutData) {
     'use strict';
 
     return Component.extend({
@@ -35,7 +36,31 @@ define([
                 self.fflButtonLabel('Change Dealer');
             });
 
+            /**
+             * Checks if the "Proceed To Checkout" button is clicked.
+             * 
+             * If true, this will call the function to store the row index
+             * of all FFL items to localStorage.
+             */
+            if (checkoutData.isFflProceedToCheckoutButtonPressed()) {
+                self.addDealerIdToStorage(this.dealerButtonId);
+            }
+
             return this;
+        },
+        addDealerIdToStorage: function (id) {
+            if (id === undefined) return;
+
+            let fflQuoteLineItemId = new Array();
+            if (checkoutData.getFflQuoteLineItemId()) {
+                fflQuoteLineItemId = checkoutData.getFflQuoteLineItemId();
+            }
+
+            if (!fflQuoteLineItemId.includes(id)) {
+                fflQuoteLineItemId.push(id);
+            }
+
+            checkoutData.setFflQuoteLineItemId(fflQuoteLineItemId);
         },
         /**
          * Open modal and set current selected item

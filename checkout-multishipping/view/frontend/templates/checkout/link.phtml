@@ -1,0 +1,15 @@
+<?php
+/**
+ * Copyright © Magento, Inc. All rights reserved.
+ * See COPYING.txt for license details.
+ */
+
+?>
+<a class="action multicheckout1"
+    href="<?= $block->escapeUrl($block->getCheckoutUrl()) ?>"
+    data-mage-init='{
+        "RefactoredGroup_AutoFflCheckoutMultiShipping/js/checkout/handle-checkout-multiple-address-button": {}
+    }'
+>
+    <span><?= $block->escapeHtml(__('Check Out with Multiple Addresses')) ?></span>
+</a>

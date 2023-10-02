@@ -29,7 +29,9 @@
     <input type="hidden" name="new_address" value="0" id="add_new_address_flag"/>
     <input type="hidden" name="ffl_current_address" value="" id="ffl_current_address"/>
     <div class="table-wrapper">
-        <table class="items data table" id="multiship-addresses-table">
+        <table class="items data table" id="multiship-addresses-table" data-mage-init='{
+            "RefactoredGroup_AutoFflCheckoutMultiShipping/js/checkout/setup-ffl-grid": {}
+        }'>
             <caption class="table-caption">
                 <?= $block->escapeHtml(__('Please select a shipping address for applicable items.')) ?>
             </caption>
@@ -45,7 +47,7 @@
             <?php foreach ($block->getItems() as $_index => $_item): ?>
                 <?php if ($_item->getQuoteItem()): ?>
                     <?php $isRequiredFfl = $_item->getQuoteItem()->getProduct()->getRequiredFfl(); ?>
-                    <tr>
+                    <tr class="<?= ($isRequiredFfl) ? 'ffl-item' : 'non-ffl-item' ?>">
                         <td class="col product" data-th="<?= $block->escapeHtml(__('Product')) ?>">
                             <?= $block->getItemHtml($_item->getQuoteItem()) ?>
                             <?php if ($isRequiredFfl): ?>
@@ -104,8 +106,8 @@
                                                                     "config": <?= /* @noEscape */ $block->getSelectDealerConfig($_item, $_index) ?>
                                                                 }
                                                             }
-                                                         }
-                                                      }
+                                                        }
+                                                    }
                                                 '
                                             id="dealer_button_<?= /* @noEscape */ $_index . '_' . $_item->getQuoteItemId() ?>"
                                                  class="action update select-dealer" data-bind="scope:'selectDealerButton-<?= /* @noEscape */ $_index ?>'">

@@ -7,6 +7,9 @@ var config = {
             'Magento_Checkout/js/view/shipping-information/address-renderer/default': {
                 'RefactoredGroup_AutoFflCore/js/action/hide-ffl-license': true
             },
+            'Magento_Checkout/js/checkout-data': {
+                'RefactoredGroup_AutoFflCore/js/checkout-data-mixin': true
+            }
         }
     }
 };

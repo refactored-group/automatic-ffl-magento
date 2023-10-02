@@ -8,8 +8,8 @@ define([
     'ko',
     'Magento_Ui/js/modal/modal',
     'RefactoredGroup_AutoFflCore/js/cart/select-dealer-button',
-    'uiRegistry',
-], function ($, Component, ko, modal, dealerButton, checkoutData, createShippingAddress, selectShippingAddress, uiRegistry) {
+    'Magento_Checkout/js/checkout-data'
+], function ($, Component, ko, modal, dealerButton, checkoutData) {
 
     //@TODO: Move the address handling to a model
     return Component.extend({
@@ -104,9 +104,30 @@ define([
                 type: 'post',
                 success: function (result) {
                     var parsedResult = JSON.parse(result);
-                    // Assign the address to the elements on the Cart page
-                    dealerButton().dealerAddress[self.currentFflItemId()](parsedResult.name);
-                    dealerButton().dealerAddressId[self.currentFflItemId()](parsedResult.id);
+                    /**
+                     * Assign the address to the elements on the Cart page.
+                     * 
+                     * First, it checks if the "Proceed to Checkout" button is clicked.
+                     */
+                    if (checkoutData.isFflProceedToCheckoutButtonPressed()) {
+                        /**
+                         * If true, fetch the row index of FFL items from localStorage.
+                         * Then iterate through these items and assign the value of the ID
+                         * of the dealer address.
+                         */
+                        if (checkoutData.getFflQuoteLineItemId().length) {
+                            checkoutData.getFflQuoteLineItemId().forEach(element => {
+                                dealerButton().dealerAddress[element](parsedResult.name);
+                                dealerButton().dealerAddressId[element](parsedResult.id);
+                            });
+                        }
+                    } else {
+                        /**
+                         * Otherwise, default to setting the dealer address to individual text input.
+                         */
+                        dealerButton().dealerAddress[self.currentFflItemId()](parsedResult.name);
+                        dealerButton().dealerAddressId[self.currentFflItemId()](parsedResult.id);
+                    }
 
                     // If we are on the multi-shipping checkout shipping page, reload
                     if (window.location.href.includes('multishipping/checkout/shipping')) {
