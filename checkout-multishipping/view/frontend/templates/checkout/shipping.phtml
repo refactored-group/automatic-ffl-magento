@@ -25,25 +25,6 @@
                         <a href="<?= $block->escapeUrl($block->getAddressEditUrl($_address)) ?>" class="action edit">
                             <span><?= $block->escapeHtml(__('Change')) ?></span>
                         </a>
-                        <?php else: ?>
-                            <div data-mage-init='
-                            { "Magento_Ui/js/core/app":
-                                {
-                                "components":
-                                    { "selectDealerButton-<?= /* @noEscape */ $_index?>":
-                                        {
-                                            "component": "RefactoredGroup_AutoFflCore/js/cart/select-dealer-button",
-                                            "template": "RefactoredGroup_AutoFflCheckoutMultiShipping/checkout/change-dealer-link",
-                                            "config": <?= /* @noEscape */ $block->getSelectDealerConfig($_address->getId(), $_index) ?>
-                                        }
-                                    }
-                                 }
-                              }
-                        '
-                         id="dealer_button_<?= /* @noEscape */ $_index . '_' . $_address->getId() ?>"
-                         class="action update select-dealer-multishipping" data-bind="scope:'selectDealerButton-<?= /* @noEscape */ $_index ?>'">
-                        <!-- ko template: getTemplate() --><!-- /ko -->
-                            </div>
                         <?php endif; ?>
                     <div class="box-content box-content-clear-both">
                         <address><?= /* @noEscape */ $_address->format('html') ?></address>
