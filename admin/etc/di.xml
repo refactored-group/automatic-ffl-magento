@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Copyright © Refactored Group (https://www.refactored.group)
+ * @copyright Copyright © 2022. All rights reserved.
+ */
+-->
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+        <preference for="RefactoredGroup\AutoFflAdmin\Model\Api\Response\ApiResponseInterface" type="RefactoredGroup\AutoFflAdmin\Model\Api\Response\ApiResponse"/>
+</config>
