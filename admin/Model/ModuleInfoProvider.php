@@ -6,9 +6,6 @@
 namespace RefactoredGroup\AutoFflAdmin\Model;
 
 use Magento\Framework\Exception\FileSystemException;
-use Magento\Framework\Filesystem\Driver\File;
-use Magento\Framework\Module\Dir\Reader;
-use Magento\Framework\Serialize\SerializerInterface;
 
 class ModuleInfoProvider
 {
@@ -33,16 +30,21 @@ class ModuleInfoProvider
     private $serializer;
 
     public function __construct(
-        Reader $moduleReader,
-        File $filesystem,
-        SerializerInterface $serializer,
+        \Magento\Framework\Module\Dir\Reader $moduleReader,
+        \Magento\Framework\Filesystem\Driver\File $filesystem,
+        \Magento\Framework\Serialize\SerializerInterface $serializer,
     ) {
         $this->moduleReader = $moduleReader;
         $this->filesystem = $filesystem;
         $this->serializer = $serializer;
     }
 
-    public function getModuleInfo(string $moduleCode)
+    /**
+     * @param string $moduleCode
+     * 
+     * @return array
+     */
+    public function getModuleInfo(string $moduleCode): array
     {
         if (!isset($this->moduleDataStorage[$moduleCode])) {
             $this->moduleDataStorage[$moduleCode] = [];

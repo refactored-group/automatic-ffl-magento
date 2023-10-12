@@ -15,7 +15,6 @@ class ExtensionsProvider
 {
     public const USER_AGENT = 'automatic-ffl-magento';
     public const ACCEPT_TYPE = 'application/vnd.github+json';
-    public const AUTHORIZATION_BEARER = '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';
     public const X_API_VERSION = '2022-11-28';
     public const GITHUB_API_URN = 'api.github.com/repos/refactored-group/automatic-ffl-magento/releases/latest';
 
@@ -95,7 +94,6 @@ class ExtensionsProvider
         $headers = [
             'User-Agent: ' . self::USER_AGENT,
             'Accept: ' . self::ACCEPT_TYPE,
-            'Authorization: Bearer ' . self::AUTHORIZATION_BEARER,
             'X-GitHub-Api-Version: ' . self::X_API_VERSION,
         ];
 
