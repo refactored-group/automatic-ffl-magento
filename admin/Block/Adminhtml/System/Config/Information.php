@@ -15,16 +15,31 @@ class Information extends \Magento\Config\Block\System\Config\Form\Fieldset
     private $content;
 
     /**
+     * @var AutomaticFflInformationTab
+     */
+    private $fflInformationTab;
+
+    public function __construct(
+        \RefactoredGroup\AutoFflAdmin\Observer\AutomaticFflInformationTab $fflInformationTab,
+        \Magento\Backend\Block\Context $context,
+        \Magento\Backend\Model\Auth\Session $authSession,
+        \Magento\Framework\View\Helper\Js $jsHelper,
+        array $data = []
+    ) {
+        parent::__construct($context, $authSession, $jsHelper, $data);
+        $this->fflInformationTab = $fflInformationTab;
+    }
+
+    /**
      * @param AbstractElement $element
+     * 
      * @return string
      */
-    public function render(AbstractElement $element)
+    public function render(AbstractElement $element): string
     {
         $html = $this->_getHeaderHtml($element);
-        $this->setContent(__('Automatic FFL'));
-        $this->_eventManager->dispatch(
-            'refactored_group_add_information_content',
-            ['block' => $this]
+        $this->setContent(
+            $this->fflInformationTab->generateHtml()
         );
         $html .= $this->getContent();
         $html .= $this->_getFooterHtml($element);
@@ -33,14 +48,13 @@ class Information extends \Magento\Config\Block\System\Config\Form\Fieldset
             'refactored_group_information]" type="hidden" value="1"',
             $html
         );
-        $html = preg_replace('(onclick=\"Fieldset.toggleCollapse.*?\")', '', $html);
         return $html;
     }
 
     /**
      * @return string
      */
-    public function getContent()
+    public function getContent(): string
     {
         return $this->content;
     }
@@ -48,7 +62,7 @@ class Information extends \Magento\Config\Block\System\Config\Form\Fieldset
     /**
      * @param string $content
      */
-    public function setContent($content)
+    public function setContent($content): void
     {
         $this->content = $content;
     }

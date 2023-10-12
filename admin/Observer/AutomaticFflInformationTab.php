@@ -5,21 +5,15 @@
  */
 namespace RefactoredGroup\AutoFflAdmin\Observer;
 
-use RefactoredGroup\AutoFflAdmin\Model\Api\ExtensionsProvider;
-use RefactoredGroup\AutoFflAdmin\Model\ModuleInfoProvider;
-use Magento\Framework\Event\ObserverInterface;
-use Magento\Framework\View\Element\AbstractBlock;
-
-class AutomaticFflInformationTab implements ObserverInterface
+class AutomaticFflInformationTab
 {
     public const TAB_NAME = 'Automatic FFL';
     public const MODULE_CODE ='RefactoredGroup_AutoFflMagento';
     public const FFL_REPOSITORY_URN = 'https://github.com/refactored-group/automatic-ffl-magento/releases';
 
-    /**
-     * @var AbstractBlock
-     */
-    private $block;
+    public const MATCH_CSS_LABEL = 'match-version';
+    public const DEV_CSS_LABEL = 'dev-version';
+    public const LAST_CSS_LABEL = 'last-version';
 
     /**
      * @var ExtensionsProvider
@@ -32,46 +26,29 @@ class AutomaticFflInformationTab implements ObserverInterface
     private $moduleInfoProvider;
 
     public function __construct(
-        ExtensionsProvider $extensionsProvider,
-        ModuleInfoProvider $moduleInfoProvider
+        \RefactoredGroup\AutoFflAdmin\Model\Api\ExtensionsProvider $extensionsProvider,
+        \RefactoredGroup\AutoFflAdmin\Model\ModuleInfoProvider $moduleInfoProvider
     ) {
         $this->extensionsProvider = $extensionsProvider;
         $this->moduleInfoProvider = $moduleInfoProvider;
     }
 
     /**
-     * @param \Magento\Framework\Event\Observer $observer
+     * @return string
      */
-    public function execute(\Magento\Framework\Event\Observer $observer)
+    public function generateHtml(): string
     {
-        $block = $observer->getBlock();
-        if ($block) {
-            $this->setBlock($block);
-            $html = $this->generateHtml();
-            $block->setContent($html);
-        }
-    }
+        $html = '<div class="refactored-group-info-block">'
+            . $this->showVersionInfo();
+        $html .= '</div>';
 
-    /**
-     * @return mixed
-     */
-    public function getBlock()
-    {
-        return $this->block;
-    }
-
-    /**
-     * @param mixed $block
-     */
-    public function setBlock($block)
-    {
-        $this->block = $block;
+        return $html;
     }
 
     /**
      * @return string|null
      */
-    protected function getCurrentVersion()
+    protected function getCurrentVersion(): string|null
     {
         $data = $this->moduleInfoProvider->getModuleInfo($this->getModuleCode());
 
@@ -81,7 +58,7 @@ class AutomaticFflInformationTab implements ObserverInterface
     /**
      * @return string|null
      */
-    protected function getRepositoryVersion()
+    protected function getRepositoryVersion(): string|null
     {
         $repository = $this->extensionsProvider->getApiModuleData();
 
@@ -105,24 +82,12 @@ class AutomaticFflInformationTab implements ObserverInterface
     }
 
     /**
-     * @return string
-     */
-    private function generateHtml()
-    {
-        $html = '<div class="refactored-group-info-block">'
-            . $this->showVersionInfo();
-        $html .= '</div>';
-
-        return $html;
-    }
-
-    /**
      * @param string $currentVersion
      * @param string $repositoryVersion
      * 
-     * @return int
+     * @return int|bool
      */
-    private function matchVersionNumbers($currentVersion, $repositoryVersion)
+    private function matchVersionNumbers($currentVersion, $repositoryVersion): int|bool
     {
         return version_compare($currentVersion, $repositoryVersion);
     }
@@ -137,7 +102,7 @@ class AutomaticFflInformationTab implements ObserverInterface
     {
         if ($currentVersion !== null &&
             $repositoryVersion === null) {
-            return 'dev-version';
+            return self::DEV_CSS_LABEL;
         }
 
         switch ($this->matchVersionNumbers(
@@ -145,13 +110,13 @@ class AutomaticFflInformationTab implements ObserverInterface
             $repositoryVersion
         )) {
             case -1:
-                $cssClassName = 'last-version';
+                $cssClassName = self::LAST_CSS_LABEL;
                 break;
             case 1:
-                $cssClassName = 'dev-version';
+                $cssClassName = self::DEV_CSS_LABEL;
                 break;
             default:
-                $cssClassName = 'match-version';
+                $cssClassName = self::MATCH_CSS_LABEL;
                 break;
         }
         return $cssClassName;
@@ -167,7 +132,7 @@ class AutomaticFflInformationTab implements ObserverInterface
         return '<a href="'
             . self::FFL_REPOSITORY_URN
             .'" target="_blank"'
-            . ' class="match-version">'
+            . ' class="' . self::MATCH_CSS_LABEL . '">'
             . $repositoryVersion
             . '</a>';
     }
@@ -210,7 +175,7 @@ class AutomaticFflInformationTab implements ObserverInterface
         }
 
         if ($showBanner) {
-            $html .= '<div><span class="upgrade-error message message-warning">'
+            $html .= '<div><span class="ffl-version-warning message message-warning">'
                 . $content
                 . '</span>'
                 . '</div>';
