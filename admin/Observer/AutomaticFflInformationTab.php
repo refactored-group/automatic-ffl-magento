@@ -87,7 +87,7 @@ class AutomaticFflInformationTab
      * 
      * @return int|bool
      */
-    private function matchVersionNumbers($currentVersion, $repositoryVersion): int|bool
+    private function matchVersionNumbers(string $currentVersion, string $repositoryVersion): int|bool
     {
         return version_compare($currentVersion, $repositoryVersion);
     }
@@ -98,7 +98,7 @@ class AutomaticFflInformationTab
      * 
      * @return string
      */
-    private function getVersionClassName($currentVersion, $repositoryVersion)
+    private function getVersionClassName(string $currentVersion, string $repositoryVersion)
     {
         if ($currentVersion !== null &&
             $repositoryVersion === null) {
@@ -127,7 +127,7 @@ class AutomaticFflInformationTab
      * 
      * @return string
      */
-    private function getRepositoryUrl($repositoryVersion)
+    private function getRepositoryUrl(string $repositoryVersion): string
     {
         return '<a href="'
             . self::FFL_REPOSITORY_URN
@@ -144,7 +144,7 @@ class AutomaticFflInformationTab
      * 
      * @return string
      */
-    private function showBannerInfo($currentVersion, $repositoryVersion)
+    private function showBannerInfo(string $currentVersion, string $repositoryVersion): string
     {
         $showBanner = false;
         $html = '';
@@ -186,7 +186,7 @@ class AutomaticFflInformationTab
     /**
      * @return string
      */
-    private function showVersionInfo()
+    private function showVersionInfo(): string
     {
         $html = '<div class="refactored-group-module-version">';
         $currentVersion = $this->getCurrentVersion();
