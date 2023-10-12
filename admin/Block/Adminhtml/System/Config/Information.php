@@ -62,7 +62,7 @@ class Information extends \Magento\Config\Block\System\Config\Form\Fieldset
     /**
      * @param string $content
      */
-    public function setContent($content): void
+    public function setContent(string $content): void
     {
         $this->content = $content;
     }
