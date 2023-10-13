@@ -1,3 +1,5 @@
+const { result } = require("underscore");
+
 /**
  * Copyright © Refactored Group (https://www.refactored.group)
  * @copyright Copyright © 2022. All rights reserved.
@@ -317,6 +319,7 @@ define([
                 mapTypeId: 'roadmap',
             });
 
+            this.initMapByCustomerLocation();
             this.getToastMessage();
 
             var controlDiv = document.getElementById('ffl-floating-toast');
@@ -341,5 +344,73 @@ define([
                 }
             });
         },
+        /**
+         * This function centers the Google map
+         * based on the user's current location.
+         * 
+         * First, it detects the location using browser Geolocation API.
+         * If the browser is denied to get the user's location,
+         * the script will use the customer's shipping address.
+         */
+        initMapByCustomerLocation: function () {
+            const self = this;
+
+            // Check if navigator.geolocation is supported by the browser
+            if (navigator.geolocation) {
+                // Check if accessing the customer's location through browser has been granted
+                navigator.permissions
+                    .query({ name: "geolocation" })
+                    .then((result) => {
+                        if (result.state === 'granted') {
+                            navigator.geolocation.getCurrentPosition(
+                                (position) =>  {
+                                    self.fetchMapByCoordinates({
+                                        lat: position.coords.latitude,
+                                        lng: position.coords.longitude
+                                    });
+                                }
+                            );
+                        } else {
+                            // If the status is any of denied, prompt, etc., try to get
+                            // customer's location using saved shipping address.
+                            self.fetchMapByGeocoder();
+                        }
+                    });
+            } else {
+                self.fetchMapByGeocoder();
+            }
+        },
+        // Load map using longitude and latitude coordinates
+        fetchMapByCoordinates: function (position) {
+            const self = this,
+                map = self.googleMap;
+
+            map.setZoom(7);
+            map.setCenter(position);            
+
+            new google.maps.InfoWindow().open(map);
+            new google.maps.Marker({
+                position: position,
+                map
+            });
+        },
+        // Load map using customer default shipping address
+        fetchMapByGeocoder: function () {
+            const self = this,
+                address = self.customer_address_city;
+            if (!address) {
+                console.warn('Unable to get customer location using default shipping address.');
+            }
+            const geocoder =  new google.maps.Geocoder();
+            geocoder
+                .geocode({ address: address })
+                .then((result) => {
+                    const { results } = result;
+                    self.fetchMapByCoordinates(results[0].geometry.location);
+                })
+                .catch((e) => {
+                    console.warn('Unable to get customer location using default shipping address.');
+                });
+        }
     });
 });
