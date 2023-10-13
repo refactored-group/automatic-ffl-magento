@@ -7,6 +7,10 @@
 namespace RefactoredGroup\AutoFflCore\Helper;
 
 use Magento\Checkout\Model\Session;
+use Magento\Customer\Api\CustomerRepositoryInterface;
+use Magento\Customer\Model\Session as CustomerSession;
+use Magento\Directory\Model\RegionFactory;
+use Magento\Directory\Model\CountryFactory;
 use Magento\Framework\App\Helper\Context;
 use Magento\Framework\Data\Form\FormKey;
 use Magento\Multishipping\Helper\Data as MultishippingHelper;
@@ -39,6 +43,13 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
      * @var Session
      */
     protected $checkoutSession;
+
+    /**
+     * Customer session
+     * 
+     * @var CustomerSession
+     */
+    protected $customerSession;
 
     /**
      * @var bool|null
@@ -75,6 +86,21 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
     private $isMultiShipping = null;
 
     /**
+     * @var CustomerRepositoryInterface
+     */
+    private $customerRepository;
+
+    /**
+     * @var RegionFactory
+     */
+    private $regionFactory;
+
+    /**
+     * @var CountryFactory
+     */
+    private $countryFactory;
+
+    /**
      * Construct
      *
      * @param Context $context
@@ -83,13 +109,21 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
     public function __construct(
         Context $context,
         Session $checkoutSession,
+        CustomerSession $customerSession,
         FormKey $formKey,
-        MultishippingHelper $multishippingHelper
+        MultishippingHelper $multishippingHelper,
+        CustomerRepositoryInterface $customerRepository,
+        RegionFactory $regionFactory,
+        CountryFactory $countryFactory
     ) {
         $this->checkoutSession = $checkoutSession;
+        $this->customerSession = $customerSession;
         $this->quote = $this->getQuote();
         $this->formKey = $formKey;
         $this->multishippingHelper = $multishippingHelper;
+        $this->customerRepository = $customerRepository;
+        $this->regionFactory = $regionFactory;
+        $this->countryFactory = $countryFactory;
 
         parent::__construct($context);
     }
@@ -382,5 +416,34 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
             return $customer->getLastname();
         }
         return self::DEFAULT_LASTNAME;
+    }
+
+    /**
+     * Get customer default shipping address
+     * 
+     * @return string|null
+     */
+    public function getCustomerAddress(): string|null
+    {
+        $customer = $this->customerRepository->getById(
+            $this->customerSession->getId()
+        );
+
+        foreach ($customer->getAddresses() as $address) {
+            if ($address->getId() == $customer->getDefaultShipping()) {
+                return sprintf(
+                    '%s, %s, %s',
+                    $address->getCity(),
+                    $address->getRegion()->getRegion(),
+                    $this->countryFactory
+                        ->create()
+                        ->loadByCode(
+                            $address->getCountryId()
+                    )->getName()
+                );
+            }
+        }
+
+        return null;
     }
 }
