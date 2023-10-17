@@ -12,6 +12,7 @@ use Magento\Framework\Api\DataObjectHelper;
 use Magento\Framework\Api\FilterBuilder;
 use Magento\Framework\Api\SearchCriteriaBuilder;
 use Magento\Framework\App\Config\ScopeConfigInterface;
+use Magento\Framework\App\ObjectManager;
 use Magento\Framework\Event\ManagerInterface;
 use Magento\Framework\Pricing\PriceCurrencyInterface;
 use Magento\Framework\Session\Generic;
@@ -41,6 +42,40 @@ class Multishipping extends \Magento\Multishipping\Model\Checkout\Type\Multiship
      * @var array|bool
      */
     private $customerAddresses = false;
+
+    /**
+     * Core event manager proxy
+     *
+     * @var \Magento\Framework\Event\ManagerInterface
+     */
+    protected $_eventManager = null;
+
+    /**
+     * Initialize dependencies.
+     *
+     * @var \Magento\Multishipping\Helper\Data
+     */
+    protected $helper;
+
+    /**
+     * @var AddressRepositoryInterface
+     */
+    protected $addressRepository;
+
+    /**
+     * @var \Magento\Quote\Api\Data\CartExtensionFactory
+     */
+    private $cartExtensionFactory;
+
+    /**
+     * @var \Magento\Quote\Model\Quote\ShippingAssignment\ShippingAssignmentProcessor
+     */
+    private $shippingAssignmentProcessor;
+
+    /**
+     * @var \Magento\Framework\App\RequestInterface
+     */
+    private $request;
 
     /**
      * @param AddressCollectionFactory $addressCollectionFactory
@@ -74,6 +109,7 @@ class Multishipping extends \Magento\Multishipping\Model\Checkout\Type\Multiship
      */
     public function __construct(
         AddressCollectionFactory $addressCollectionFactory,
+        \Magento\Framework\App\RequestInterface $request,
         \Magento\Checkout\Model\Session $checkoutSession,
         Session $customerSession,
         OrderFactory $orderFactory,
@@ -103,6 +139,11 @@ class Multishipping extends \Magento\Multishipping\Model\Checkout\Type\Multiship
         DataObjectHelper $dataObjectHelper = null
     ) {
         $this->addressCollectionFactory = $addressCollectionFactory;
+        $this->request = $request;
+        $this->_eventManager = $eventManager;
+        $this->helper = $helper;
+        $this->addressRepository = $addressRepository;
+        $this->cartExtensionFactory = $cartExtensionFactory;
 
         \Magento\Multishipping\Model\Checkout\Type\Multishipping::__construct(
             $checkoutSession,
@@ -156,5 +197,185 @@ class Multishipping extends \Magento\Multishipping\Model\Checkout\Type\Multiship
         }
 
         return in_array($addressId, $this->customerAddresses);
+    }
+
+    /**
+     * Assign quote items to addresses and specify items qty
+     *
+     * Array structure:
+     * array(
+     *      $quoteItemId => array(
+     *          'qty'       => $qty,
+     *          'address'   => $customerAddressId
+     *      )
+     * )
+     *
+     * @param array $info
+     * @return \Magento\Multishipping\Model\Checkout\Type\Multishipping
+     * @throws \Magento\Framework\Exception\LocalizedException
+     * @SuppressWarnings(PHPMD.CyclomaticComplexity)
+     * @SuppressWarnings(PHPMD.NPathComplexity)
+     */
+    public function setShippingItemsInformation($info)
+    {
+        if (is_array($info)) {
+            $allQty = 0;
+            $itemsInfo = [];
+            foreach ($info as $itemData) {
+                foreach ($itemData as $quoteItemId => $data) {
+                    $allQty += $data['qty'];
+                    $itemsInfo[$quoteItemId] = $data;
+                }
+            }
+
+            $maxQty = $this->helper->getMaximumQty();
+            if ($allQty > $maxQty) {
+                throw new \Magento\Framework\Exception\LocalizedException(
+                    __(
+                        "The maximum quantity can't be more than %1 when shipping to multiple addresses. "
+                        . "Change the quantity and try again.",
+                        $maxQty
+                    )
+                );
+            }
+            $quote = $this->getQuote();
+            $addresses = $quote->getAllShippingAddresses();
+            $newAddress = (bool)$this->request->getParam('new_address');
+            /**
+             * CONTEXT:
+             * We enabled adding a new shipping address and disabled the
+             * validation check on FFL item/s with empty address field
+             * on shipping page.
+             * 
+             * When you try to enter a new address and then go back
+             * to the shipping page, all FFL items get deleted
+             * because of empty address ID.
+             * 
+             * So we check if the request parameters has new_address flag enabled.
+             * This will skip "resetting" the customer shipping address.
+             */
+            if (!$newAddress) {
+                foreach ($addresses as $address) {
+                    /**
+                     * This line deletes all associated customer
+                     * shipping address from the quote_address_item table.
+                     * 
+                     * The effect after deleting the address/es, when the customer
+                     * goes back to the shipping page, all related FFL item/s
+                     * will not be displayed on the page but when you check the items
+                     * in the quote_item table, the record/s are still there.
+                     */
+                    $quote->removeAddress($address->getId());
+                }
+            }
+            
+            if (!$newAddress) {
+                foreach ($info as $itemData) {
+                    foreach ($itemData as $quoteItemId => $data) {
+                        /**
+                         * This line inserts a new address in the
+                         * quote_address_item table.
+                         * 
+                         * It will only insert a record if the $addressId
+                         * is present from the request. So for FFL item/s
+                         * that doesn't have an address set, it will not
+                         * be added back to the table.
+                         */
+                        $this->_addShippingItem($quoteItemId, $data);
+                    }
+                }
+            }
+
+            $this->prepareShippingAssignment($quote);
+
+            /**
+             * Delete all not virtual quote items which are not added to shipping address
+             * MultishippingQty should be defined for each quote item when it processed with _addShippingItem
+             */
+            if (!$newAddress) {
+                foreach ($quote->getAllItems() as $_item) {
+                    if (!$_item->getProduct()->getIsVirtual() && !$_item->getParentItem() && !$_item->getMultishippingQty()
+                    ) {
+                        /**
+                         * This line removes associated records
+                         * from the quote_item table.
+                         * 
+                         * It automatically deletes FFL item/s that
+                         * doesn't have a shipping address.
+                         */
+                        $quote->removeItem($_item->getId());
+                    }
+                }
+            }
+
+            $billingAddress = $quote->getBillingAddress();
+            if ($billingAddress) {
+                $quote->removeAddress($billingAddress->getId());
+            }
+
+            $customerDefaultBillingId = $this->getCustomerDefaultBillingAddress();
+            if ($customerDefaultBillingId) {
+                $quote->getBillingAddress()->importCustomerAddressData(
+                    $this->addressRepository->getById($customerDefaultBillingId)
+                );
+            }
+
+            foreach ($quote->getAllItems() as $_item) {
+                if (!$_item->getProduct()->getIsVirtual()) {
+                    continue;
+                }
+
+                if (isset($itemsInfo[$_item->getId()]['qty'])) {
+                    $qty = (int)$itemsInfo[$_item->getId()]['qty'];
+                    if ($qty) {
+                        $_item->setQty($qty);
+                        $quote->getBillingAddress()->addItem($_item);
+                    } else {
+                        $_item->setQty(0);
+                        $quote->removeItem($_item->getId());
+                    }
+                }
+            }
+
+            $this->save();
+            $this->_eventManager->dispatch('checkout_type_multishipping_set_shipping_items', ['quote' => $quote]);
+        }
+        return $this;
+    }
+
+    /**
+     * Prepare shipping assignment.
+     *
+     * @param \Magento\Quote\Model\Quote $quote
+     * @return \Magento\Quote\Model\Quote
+     */
+    private function prepareShippingAssignment($quote)
+    {
+        $cartExtension = $quote->getExtensionAttributes();
+        if ($cartExtension === null) {
+            $cartExtension = $this->cartExtensionFactory->create();
+        }
+        /** @var \Magento\Quote\Api\Data\ShippingAssignmentInterface $shippingAssignment */
+        $shippingAssignment = $this->getShippingAssignmentProcessor()->create($quote);
+        $shipping = $shippingAssignment->getShipping();
+
+        $shipping->setMethod(null);
+        $shippingAssignment->setShipping($shipping);
+        $cartExtension->setShippingAssignments([$shippingAssignment]);
+        return $quote->setExtensionAttributes($cartExtension);
+    }
+
+    /**
+     * Get shipping assignment processor.
+     *
+     * @return \Magento\Quote\Model\Quote\ShippingAssignment\ShippingAssignmentProcessor
+     */
+    private function getShippingAssignmentProcessor()
+    {
+        if (!$this->shippingAssignmentProcessor) {
+            $this->shippingAssignmentProcessor = ObjectManager::getInstance()
+                ->get(\Magento\Quote\Model\Quote\ShippingAssignment\ShippingAssignmentProcessor::class);
+        }
+        return $this->shippingAssignmentProcessor;
     }
 }
