@@ -13,6 +13,8 @@
 ?>
 <form id="checkout_multishipping_form"
       data-mage-init='{
+          "fflLoginRedirect":
+          {"hasFflItem": <?= (int)$block->hasFflItem() ?>},
           "multiShipping":
           {"itemsQty": <?= /* @noEscape */ (int)$block->getCheckout()->getQuote()->getItemsSummaryQty() ?>},
           "cartUpdate": {

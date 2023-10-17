@@ -42,7 +42,9 @@ define([
              * If true, this will call the function to store the row index
              * of all FFL items to localStorage.
              */
-            if (checkoutData.isFflProceedToCheckoutButtonPressed()) {
+            if (checkoutData.isFromCheckoutPage() &&
+                checkoutData.isFflProceedToCheckoutButtonPressed()
+            ) {
                 self.addDealerIdToStorage(this.dealerButtonId);
             }
 

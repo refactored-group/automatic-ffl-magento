@@ -20,6 +20,7 @@ define([
              * dealer's address ID to false.
              */
             $(element).on('click', function () {
+                checkoutData.setFromCheckoutPage(true);
                 checkoutData.setFflQuoteLineItemId(false);
                 checkoutData.setFflProceedToCheckoutButtonPressed(true);
             });

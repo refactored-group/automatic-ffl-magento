@@ -5,8 +5,49 @@
  */
 namespace RefactoredGroup\AutoFflCheckoutMultiShipping\Block\Checkout;
 
+use Magento\Customer\Model\Address\Config as AddressConfig;
+use RefactoredGroup\AutoFflCore\Helper\Data as Helper;
+
 class Addresses extends \Magento\Multishipping\Block\Checkout\Addresses
 {
+    /**
+     * @var Helper
+     */
+    private $helper;
+
+    /**
+     * Constructor
+     *
+     * @param \Magento\Framework\View\Element\Template\Context $context
+     * @param \Magento\Framework\Filter\DataObject\GridFactory $filterGridFactory
+     * @param \Magento\Multishipping\Model\Checkout\Type\Multishipping $multishipping
+     * @param \Magento\Customer\Api\CustomerRepositoryInterface $customerRepository
+     * @param AddressConfig $addressConfig
+     * @param \Magento\Customer\Model\Address\Mapper $addressMapper
+     * @param array $data
+     */
+    public function __construct(
+        \Magento\Framework\View\Element\Template\Context $context,
+        \Magento\Framework\Filter\DataObject\GridFactory $filterGridFactory,
+        \Magento\Multishipping\Model\Checkout\Type\Multishipping $multishipping,
+        \Magento\Customer\Api\CustomerRepositoryInterface $customerRepository,
+        AddressConfig $addressConfig,
+        \Magento\Customer\Model\Address\Mapper $addressMapper,
+        Helper $helper,
+        array $data = []
+    ) {
+        parent::__construct(
+            $context,
+            $filterGridFactory,
+            $multishipping,
+            $customerRepository,
+            $addressConfig,
+            $addressMapper,
+            $data
+        );
+        $this->helper = $helper;
+    }
+
     /**
      * Generate the address field name for the current cart item
      * @param $item
@@ -66,6 +107,14 @@ class Addresses extends \Magento\Multishipping\Block\Checkout\Addresses
             ->setExtraParams('data-mage-init=\'{ "RefactoredGroup_AutoFflCore/js/cart/handle-addresses-html-select": {} }\'');
 
         return $select->getHtml();
+    }
+
+    /**
+     * @return bool
+     */
+    public function hasFflItem(): bool
+    {
+        return $this->helper->hasFflItem() ? true : false;
     }
 
     /**

@@ -72,6 +72,25 @@ define([
             return getData().fflQuoteLineItemId || false;
         };
 
+        /**
+         * Added this check to let Magento know that the button
+         * has been clicked from the main shopping cart page.
+         */
+        checkoutData.setFromCheckoutPage = function (data) {
+            var obj = getData();
+
+            obj.fromCheckoutPage = data;
+            saveData(obj);
+        };
+
+        /**
+         * 
+         * Getter function
+         */
+        checkoutData.isFromCheckoutPage = function () {
+            return getData().fromCheckoutPage || false;
+        };
+
         return checkoutData;
     };
 });

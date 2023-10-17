@@ -109,7 +109,9 @@ define([
                      * 
                      * First, it checks if the "Proceed to Checkout" button is clicked.
                      */
-                    if (checkoutData.isFflProceedToCheckoutButtonPressed()) {
+                    if (checkoutData.isFromCheckoutPage() &&
+                        checkoutData.isFflProceedToCheckoutButtonPressed()
+                    ) {
                         /**
                          * If true, fetch the row index of FFL items from localStorage.
                          * Then iterate through these items and assign the value of the ID

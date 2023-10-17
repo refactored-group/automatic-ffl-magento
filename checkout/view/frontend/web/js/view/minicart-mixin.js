@@ -25,6 +25,7 @@ define([
              */
             proceedToCheckoutListener: function () {
                 this.proceedToCheckoutButton.on('click', function () {
+                    checkoutData.setFromCheckoutPage(true);
                     checkoutData.setFflQuoteLineItemId(false);
                     checkoutData.setFflProceedToCheckoutButtonPressed(true);
                 });

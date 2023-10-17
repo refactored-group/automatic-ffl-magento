@@ -9,7 +9,9 @@ define([
     'use strict';
 
     return function (config, element) {
-        if (!checkoutData.isFflProceedToCheckoutButtonPressed()) return;
+        if (checkoutData.isFromCheckoutPage() &&
+            !checkoutData.isFflProceedToCheckoutButtonPressed()
+        ) return;
 
         /**
          * If the "Proceed To Checkout" button is clicked,
