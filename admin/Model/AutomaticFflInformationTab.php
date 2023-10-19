@@ -3,7 +3,7 @@
  * Copyright © Refactored Group (https://www.refactored.group)
  * @copyright Copyright © 2022. All rights reserved.
  */
-namespace RefactoredGroup\AutoFflAdmin\Observer;
+namespace RefactoredGroup\AutoFflAdmin\Model;
 
 class AutomaticFflInformationTab
 {
@@ -27,7 +27,7 @@ class AutomaticFflInformationTab
 
     public function __construct(
         \RefactoredGroup\AutoFflAdmin\Model\Api\ExtensionsProvider $extensionsProvider,
-        \RefactoredGroup\AutoFflAdmin\Model\ModuleInfoProvider $moduleInfoProvider
+        ModuleInfoProvider $moduleInfoProvider
     ) {
         $this->extensionsProvider = $extensionsProvider;
         $this->moduleInfoProvider = $moduleInfoProvider;

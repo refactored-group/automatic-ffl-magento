@@ -20,7 +20,7 @@ class Information extends \Magento\Config\Block\System\Config\Form\Fieldset
     private $fflInformationTab;
 
     public function __construct(
-        \RefactoredGroup\AutoFflAdmin\Observer\AutomaticFflInformationTab $fflInformationTab,
+        \RefactoredGroup\AutoFflAdmin\Model\AutomaticFflInformationTab $fflInformationTab,
         \Magento\Backend\Block\Context $context,
         \Magento\Backend\Model\Auth\Session $authSession,
         \Magento\Framework\View\Helper\Js $jsHelper,
