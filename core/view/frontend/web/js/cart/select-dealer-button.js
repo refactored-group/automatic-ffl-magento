@@ -36,33 +36,30 @@ define([
                 self.fflButtonLabel('Change Dealer');
             });
 
-            /**
-             * Checks if the "Proceed To Checkout" button is clicked.
-             * 
-             * If true, this will call the function to store the row index
-             * of all FFL items to localStorage.
-             */
-            if (checkoutData.isFromCheckoutPage() &&
-                checkoutData.isFflProceedToCheckoutButtonPressed()
-            ) {
-                self.addDealerIdToStorage(this.dealerButtonId);
-            }
+            self.addDealerIdToStorage(this.dealerButtonId);
 
             return this;
         },
+        /**
+         * Adds the dealer ID to the localStorage
+         */
         addDealerIdToStorage: function (id) {
             if (id === undefined) return;
 
-            let fflQuoteLineItemId = new Array();
-            if (checkoutData.getFflQuoteLineItemId()) {
-                fflQuoteLineItemId = checkoutData.getFflQuoteLineItemId();
-            }
+            if (checkoutData.isProceedToCheckoutWithMultipleAddresses()) {
+                checkoutData.setFflQuoteLineItemId(false);
+            } else {
+                let fflQuoteLineItemId = new Array();
+                if (checkoutData.getFflQuoteLineItemId().length) {
+                    fflQuoteLineItemId = checkoutData.getFflQuoteLineItemId();
+                }
 
-            if (!fflQuoteLineItemId.includes(id)) {
-                fflQuoteLineItemId.push(id);
-            }
+                if (!fflQuoteLineItemId.includes(id)) {
+                    fflQuoteLineItemId.push(id);
+                }
 
-            checkoutData.setFflQuoteLineItemId(fflQuoteLineItemId);
+                checkoutData.setFflQuoteLineItemId(fflQuoteLineItemId);
+            }
         },
         /**
          * Open modal and set current selected item

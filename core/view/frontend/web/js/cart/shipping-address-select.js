@@ -14,12 +14,10 @@ define([
          * The value of all other select.ship_address elements will be based from this.
          */
         $(element).on('change', function (event) {
-            if (checkoutData.isFromCheckoutPage() &&
-                !checkoutData.isFflProceedToCheckoutButtonPressed()
-            ) return;
-
-            const id = $(this).val();
-            $('body').find('select.ship_address').val(id);
+            if (!checkoutData.isProceedToCheckoutWithMultipleAddresses()) {
+                const id = $(this).val();
+                $('body').find('select.ship_address').val(id);
+            }
         });
 
     };

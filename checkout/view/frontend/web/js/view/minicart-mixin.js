@@ -19,15 +19,12 @@ define([
                 return this;
             },
             /**
-             * Add an onClick event listener to the
-             * "Proceed To Checkout" button found in
-             * the minicart dropdown menu.
+             * Set the property stored in localStorage
+             * to false (proceedToCheckoutWithMultipleAddresses)
              */
             proceedToCheckoutListener: function () {
                 this.proceedToCheckoutButton.on('click', function () {
-                    checkoutData.setFromCheckoutPage(true);
-                    checkoutData.setFflQuoteLineItemId(false);
-                    checkoutData.setFflProceedToCheckoutButtonPressed(true);
+                    checkoutData.setProceedToCheckoutWithMultipleAddresses(false);
                 });
             }
         });

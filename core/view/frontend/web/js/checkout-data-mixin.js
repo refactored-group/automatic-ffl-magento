@@ -28,29 +28,6 @@ define([
             };
 
         /**
-         * 
-         * When on the /checkout/cart/ page, this function assigns
-         * the true value when the "Proceed To Checkout" button is clicked.
-         * 
-         * Otherwise, if the "Check Out with Multiple Addresses" is clicked,
-         * sets the value to false.
-         */
-        checkoutData.setFflProceedToCheckoutButtonPressed = function (data) {
-            var obj = getData();
-
-            obj.fflProceedToCheckoutButtonPressed = data;
-            saveData(obj);
-        };
-        
-        /**
-         * 
-         * Getter function
-         */
-        checkoutData.isFflProceedToCheckoutButtonPressed = function () {
-            return getData().fflProceedToCheckoutButtonPressed || false;
-        };
-
-        /**
          * This function stores the table row index value of FFL items.
          * 
          * When the "Select Dealer" button is clicked and after the customer selects
@@ -73,13 +50,12 @@ define([
         };
 
         /**
-         * Added this check to let Magento know that the button
-         * has been clicked from the main shopping cart page.
+         * Set if "Check Out with Multiple Addresses" link is clicked
          */
-        checkoutData.setFromCheckoutPage = function (data) {
+        checkoutData.setProceedToCheckoutWithMultipleAddresses = function (data) {
             var obj = getData();
 
-            obj.fromCheckoutPage = data;
+            obj.proceedToCheckoutWithMultipleAddresses = data;
             saveData(obj);
         };
 
@@ -87,8 +63,8 @@ define([
          * 
          * Getter function
          */
-        checkoutData.isFromCheckoutPage = function () {
-            return getData().fromCheckoutPage || false;
+        checkoutData.isProceedToCheckoutWithMultipleAddresses = function () {
+            return getData().proceedToCheckoutWithMultipleAddresses || false;
         };
 
         return checkoutData;
