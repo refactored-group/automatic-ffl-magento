@@ -1,9 +1,8 @@
 var config = {
     map: {
         '*': {
-            handleCheckoutMultipleAddressButton: 'RefactoredGroup_AutoFflCheckoutMultiShipping/js/checkout/handle-checkout-multiple-address-button',
-            setupFflGrid: 'RefactoredGroup_AutoFflCheckoutMultiShipping/js/checkout/setup-ffl-grid',
-            fflLoginRedirect: 'RefactoredGroup_AutoFflCheckoutMultiShipping/js/ffl-login-redirect',
+            proceedToCheckoutMultipleAddresses: 'RefactoredGroup_AutoFflCheckoutMultiShipping/js/checkout/proceed-to-checkout-multiple-addresses',
+            styleShippingAddressTable: 'RefactoredGroup_AutoFflCheckoutMultiShipping/js/checkout/style-shipping-address-table'
         }
     },
     config: {

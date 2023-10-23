@@ -13,8 +13,6 @@
 ?>
 <form id="checkout_multishipping_form"
       data-mage-init='{
-          "fflLoginRedirect":
-          {"hasFflItem": <?= (int)$block->hasFflItem() ?>},
           "multiShipping":
           {"itemsQty": <?= /* @noEscape */ (int)$block->getCheckout()->getQuote()->getItemsSummaryQty() ?>},
           "cartUpdate": {
@@ -32,7 +30,7 @@
     <input type="hidden" name="ffl_current_address" value="" id="ffl_current_address"/>
     <div class="table-wrapper">
         <table class="items data table" id="multiship-addresses-table" data-mage-init='{
-            "RefactoredGroup_AutoFflCheckoutMultiShipping/js/checkout/setup-ffl-grid": {}
+            "RefactoredGroup_AutoFflCheckoutMultiShipping/js/checkout/style-shipping-address-table": {}
         }'>
             <caption class="table-caption">
                 <?= $block->escapeHtml(__('Please select a shipping address for applicable items.')) ?>

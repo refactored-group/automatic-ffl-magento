@@ -13,16 +13,11 @@ define([
         return wrapper.wrap(proceedToCheckout, function (originalAction, config, element) {
             originalAction(config, element)
             /**
-             * If the "Proceed To Checkout" button is clicked,
-             * set the fflProceedToCheckoutButtonPressed value to true.
-             * 
-             * Reset the value of the array holding the row indices containing the
-             * dealer's address ID to false.
+             * Set the property stored in localStorage
+             * to false (proceedToCheckoutWithMultipleAddresses)
              */
             $(element).on('click', function () {
-                checkoutData.setFromCheckoutPage(true);
-                checkoutData.setFflQuoteLineItemId(false);
-                checkoutData.setFflProceedToCheckoutButtonPressed(true);
+                checkoutData.setProceedToCheckoutWithMultipleAddresses(false);
             });
         });
     };

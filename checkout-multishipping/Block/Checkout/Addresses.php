@@ -6,15 +6,9 @@
 namespace RefactoredGroup\AutoFflCheckoutMultiShipping\Block\Checkout;
 
 use Magento\Customer\Model\Address\Config as AddressConfig;
-use RefactoredGroup\AutoFflCore\Helper\Data as Helper;
 
 class Addresses extends \Magento\Multishipping\Block\Checkout\Addresses
 {
-    /**
-     * @var Helper
-     */
-    private $helper;
-
     /**
      * Constructor
      *
@@ -33,7 +27,6 @@ class Addresses extends \Magento\Multishipping\Block\Checkout\Addresses
         \Magento\Customer\Api\CustomerRepositoryInterface $customerRepository,
         AddressConfig $addressConfig,
         \Magento\Customer\Model\Address\Mapper $addressMapper,
-        Helper $helper,
         array $data = []
     ) {
         parent::__construct(
@@ -45,7 +38,6 @@ class Addresses extends \Magento\Multishipping\Block\Checkout\Addresses
             $addressMapper,
             $data
         );
-        $this->helper = $helper;
     }
 
     /**
@@ -104,17 +96,9 @@ class Addresses extends \Magento\Multishipping\Block\Checkout\Addresses
             ->setClass('ship_address')
             ->setValue($item->getCustomerAddressId())
             ->setOptions($this->getAddressOptions())
-            ->setExtraParams('data-mage-init=\'{ "RefactoredGroup_AutoFflCore/js/cart/handle-addresses-html-select": {} }\'');
+            ->setExtraParams('data-mage-init=\'{ "RefactoredGroup_AutoFflCore/js/cart/shipping-address-select": {} }\'');
 
         return $select->getHtml();
-    }
-
-    /**
-     * @return bool
-     */
-    public function hasFflItem(): bool
-    {
-        return $this->helper->hasFflItem() ? true : false;
     }
 
     /**
