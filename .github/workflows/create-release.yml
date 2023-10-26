@@ -94,16 +94,18 @@ jobs:
           RELEASE_NAME="$VERSION"
 
           if [ "$BRANCH" != "master" ]; then
-           RELEASE_NAME="${VERSION}-dev"
+            RELEASE_NAME="${VERSION}-dev"
+            PRERELEASE_FLAG="--prerelease"
+          else
+            PRERELEASE_FLAG=""
           fi
 
           git checkout "$BRANCH"
           git tag "$RELEASE_NAME"
           git push origin "$RELEASE_NAME"
-          gh release create "$RELEASE_NAME" --title "$RELEASE_NAME" --notes "Automated build" --draft=false
+          gh release create "$RELEASE_NAME" --title "$RELEASE_NAME" --notes "Automated build" --draft=false $PRERELEASE_FLAG
 
           echo "Release ${RELEASE_NAME} sucessfully created!"
         env:
           GH_CONFIG_DIR: /tmp/.config/gh
           GITHUB_TOKEN: ${{ secrets.TOKEN_GITHUB }}
-
