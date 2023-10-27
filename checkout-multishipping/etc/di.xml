@@ -13,6 +13,10 @@
         <plugin name="before_guest_proceed_to_checkout"
                 type="RefactoredGroup\AutoFflCheckoutMultiShipping\Plugin\Checkout\Controller\Index\Index"/>
     </type>
+    <type name="Magento\Checkout\Controller\Cart\Index">
+        <plugin name="before_guest_proceed_to_checkout_with_multiple_addresses"
+                type="RefactoredGroup\AutoFflCheckoutMultiShipping\Plugin\Checkout\Controller\Cart\Index"/>
+    </type>
     <type name="Magento\Multishipping\Controller\Checkout\Addresses">
         <plugin name="before_multishipping_checkout_addresses"
                 type="RefactoredGroup\AutoFflCheckoutMultiShipping\Plugin\Multishipping\Controller\Checkout\Addresses"/>
@@ -29,4 +33,6 @@
     <!-- Preferences -->
     <preference for="Magento\Multishipping\Model\Checkout\Type\Multishipping"
                 type="RefactoredGroup\AutoFflCheckoutMultiShipping\Model\Checkout\Type\Multishipping"/>
+    <preference for="Magento\Quote\Model\Quote"
+                type="RefactoredGroup\AutoFflCheckoutMultiShipping\Model\Quote"/>
 </config>
