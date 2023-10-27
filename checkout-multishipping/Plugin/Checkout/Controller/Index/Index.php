@@ -8,6 +8,7 @@ namespace RefactoredGroup\AutoFflCheckoutMultiShipping\Plugin\Checkout\Controlle
 
 use Closure;
 use Magento\Checkout\Controller\Index\Index as ParentControllor;
+use Magento\Customer\Model\Session;
 use Magento\Framework\Controller\Result\RedirectFactory;
 use Magento\Framework\Controller\ResultInterface;
 use RefactoredGroup\AutoFflCore\Helper\Data as Helper;
@@ -15,6 +16,8 @@ use RefactoredGroup\AutoFflCheckoutMultiShipping\Helper\Data as MsHelper;
 
 class Index
 {
+    private const FFL_CHECKOUT_BUTTON_KEY = 'ffl_checkout_button_clicked';
+
     /** @var RedirectFactory */
     private $resultRedirectFactory;
 
@@ -29,18 +32,26 @@ class Index
     private $msHelper;
 
     /**
+     * @var Session
+     */
+    private $customerSession;
+
+    /**
      * @param RedirectFactory $resultRedirectFactory
      * @param Helper $helper
      * @param MsHelper $msHelper
+     * @param Session $customerSession
      */
     public function __construct(
         RedirectFactory $resultRedirectFactory,
         Helper $helper,
-        MsHelper $msHelper
+        MsHelper $msHelper,
+        Session $customerSession,
     ) {
         $this->resultRedirectFactory = $resultRedirectFactory;
         $this->helper = $helper;
         $this->msHelper = $msHelper;
+        $this->customerSession = $customerSession;
     }
 
     /**
@@ -53,6 +64,16 @@ class Index
      */
     public function aroundExecute(ParentControllor $subject, Closure $proceed)
     {
+        /**
+         * This is to track which button was pressed on the Shopping Cart page.
+         * If the "Proceed to Checkout" button is pressed from the sidebar or minicart,
+         * set the following data to customerSession.
+         */
+        $this->customerSession->setData(
+            self::FFL_CHECKOUT_BUTTON_KEY,
+            'proceed_to_checkout'
+        );
+
         if ($this->helper->isMultishippingCheckoutAvailable()) {
             $this->msHelper->clearCustomerSession();
             if($this->helper->isMixedCart()) {
