@@ -11,9 +11,18 @@ class AutomaticFflInformationTab
     public const MODULE_CODE ='RefactoredGroup_AutoFflMagento';
     public const FFL_REPOSITORY_URN = 'https://github.com/refactored-group/automatic-ffl-magento/releases';
 
-    public const MATCH_CSS_LABEL = 'match-version';
-    public const DEV_CSS_LABEL = 'dev-version';
-    public const LAST_CSS_LABEL = 'last-version';
+    public const SAME_VERSION_CSS_LABEL = 'same-version';
+    public const DEVELOPER_VERSION_CSS_LABEL = 'developer-version';
+    public const LOWER_VERSION_CSS_LABEL = 'lower-version';
+
+    public const CURRENT_IS_LOWER_VERSION = 5;
+    public const CURRENT_IS_SAME_WITH_RELEASE_VERSION = 10;
+    public const CURRENT_IS_DEVELOPER_VERSION = 15;
+    public const RELEASE_IS_DEVELOPER_VERSION = 20;
+    public const UNABLE_TO_FETCH_CURRENT_VERSION = 40;
+    public const UNABLE_TO_FETCH_RELEASE_VERSION = 50;
+
+    private const RELEASE_DEVELOPER_SUFFIX = '-dev';
 
     /**
      * @var ExtensionsProvider
@@ -82,41 +91,59 @@ class AutomaticFflInformationTab
     }
 
     /**
-     * @param string $currentVersion
-     * @param string $repositoryVersion
+     * @param string|null $currentVersion
+     * @param string|null $repositoryVersion
      * 
      * @return int|bool
      */
-    private function matchVersionNumbers(string $currentVersion, string $repositoryVersion): int|bool
+    private function matchVersionNumbers(string|null $currentVersion, string|null $repositoryVersion): int|bool
     {
-        return version_compare($currentVersion, $repositoryVersion);
+        if (!$currentVersion) {
+            return self::UNABLE_TO_FETCH_CURRENT_VERSION;
+        } else if (!$repositoryVersion) {
+            return self::UNABLE_TO_FETCH_RELEASE_VERSION;
+        } else if (str_ends_with($currentVersion, self::RELEASE_DEVELOPER_SUFFIX)) {
+            return self::CURRENT_IS_DEVELOPER_VERSION;
+        } else if (str_ends_with($repositoryVersion, self::RELEASE_DEVELOPER_SUFFIX)) {
+            return self::RELEASE_IS_DEVELOPER_VERSION;
+        } else {
+            switch (version_compare(
+                $currentVersion,
+                $repositoryVersion
+            )) {
+                case -1:
+                    return self::CURRENT_IS_LOWER_VERSION;
+                case 1:
+                    return self::CURRENT_IS_DEVELOPER_VERSION;
+                default:
+                    return self::CURRENT_IS_SAME_WITH_RELEASE_VERSION;
+            }
+        }
     }
 
     /**
-     * @param string $currentVersion
-     * @param string $repositoryVersion
+     * @param string|null $currentVersion
+     * @param string|null $repositoryVersion
      * 
      * @return string
      */
-    private function getVersionClassName(string $currentVersion, string $repositoryVersion)
+    private function getVersionClassName(string|null $currentVersion, string|null $repositoryVersion)
     {
-        if ($currentVersion !== null &&
-            $repositoryVersion === null) {
-            return self::DEV_CSS_LABEL;
-        }
-
         switch ($this->matchVersionNumbers(
             $currentVersion,
             $repositoryVersion
         )) {
-            case -1:
-                $cssClassName = self::LAST_CSS_LABEL;
+            case self::CURRENT_IS_LOWER_VERSION:
+                $cssClassName = self::LOWER_VERSION_CSS_LABEL;
                 break;
-            case 1:
-                $cssClassName = self::DEV_CSS_LABEL;
+            case self::CURRENT_IS_DEVELOPER_VERSION:
+            case self::RELEASE_IS_DEVELOPER_VERSION:
+            case self::UNABLE_TO_FETCH_CURRENT_VERSION:
+            case self::UNABLE_TO_FETCH_RELEASE_VERSION:
+                $cssClassName = self::DEVELOPER_VERSION_CSS_LABEL;
                 break;
             default:
-                $cssClassName = self::MATCH_CSS_LABEL;
+                $cssClassName = self::SAME_VERSION_CSS_LABEL;
                 break;
         }
         return $cssClassName;
@@ -132,46 +159,50 @@ class AutomaticFflInformationTab
         return '<a href="'
             . self::FFL_REPOSITORY_URN
             .'" target="_blank"'
-            . ' class="' . self::MATCH_CSS_LABEL . '">'
+            . ' class="' . self::SAME_VERSION_CSS_LABEL . '">'
             . $repositoryVersion
             . '</a>';
     }
 
 
     /**
-     * @param string $currentVersion
-     * @param string $repositoryVersion
+     * @param string|null $currentVersion
+     * @param string|null $repositoryVersion
      * 
      * @return string
      */
-    private function showBannerInfo(string $currentVersion, string $repositoryVersion): string
+    private function showBannerInfo(string|null $currentVersion, string|null $repositoryVersion): string
     {
         $showBanner = false;
         $html = '';
         $content = '';
 
-        if ($currentVersion === null) {
-            $showBanner = true;
-            $content = __('Unable to retrieve version number.');
-        } elseif ($repositoryVersion === null) {
-            $showBanner = true;
-            $content = __('Unable to retrieve latest version number.');
-        } else {
-            switch ($this->matchVersionNumbers($currentVersion, $repositoryVersion)) {
-                case -1:
-                    $showBanner = true;
-                    $content = __(
-                        sprintf(
-                            'An update to a version %s is available.',
-                            $this->getRepositoryUrl($repositoryVersion)
-                        )
-                    );
-                    break;
-                case 1:
-                    $showBanner = true;
-                    $content = __('You are on a development version.');
-                    break;
-            }
+        switch ($this->matchVersionNumbers($currentVersion, $repositoryVersion)) {
+            case self::CURRENT_IS_LOWER_VERSION:
+                $showBanner = true;
+                $content = __(
+                    sprintf(
+                        'An update to a version %s is available.',
+                        $this->getRepositoryUrl($repositoryVersion)
+                    )
+                );
+                break;
+            case self::CURRENT_IS_DEVELOPER_VERSION:
+                $showBanner = true;
+                $content = __('You are on a development version.');
+                break;
+            case self::RELEASE_IS_DEVELOPER_VERSION:
+                $showBanner = true;
+                $content = __('Unable to retrieve latest version number.');
+                break;
+            case self::UNABLE_TO_FETCH_CURRENT_VERSION:
+                $showBanner = true;
+                $content = __('Unable to retrieve version number.');
+                break;
+            case self::UNABLE_TO_FETCH_RELEASE_VERSION:
+                $showBanner = true;
+                $content = __('Unable to retrieve latest version number.');
+                break;
         }
 
         if ($showBanner) {
@@ -180,6 +211,7 @@ class AutomaticFflInformationTab
                 . '</span>'
                 . '</div>';
         }
+
         return $html;
     }
 
