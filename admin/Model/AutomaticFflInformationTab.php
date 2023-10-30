@@ -57,7 +57,7 @@ class AutomaticFflInformationTab
     /**
      * @return string|null
      */
-    protected function getCurrentVersion(): string|null
+    protected function getCurrentVersion(): ?string
     {
         $data = $this->moduleInfoProvider->getModuleInfo($this->getModuleCode());
 
@@ -67,7 +67,7 @@ class AutomaticFflInformationTab
     /**
      * @return string|null
      */
-    protected function getRepositoryVersion(): string|null
+    protected function getRepositoryVersion(): ?string
     {
         $repository = $this->extensionsProvider->getApiModuleData();
 
