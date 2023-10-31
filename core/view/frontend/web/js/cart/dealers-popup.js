@@ -1,5 +1,3 @@
-const { result, find } = require("underscore");
-
 /**
  * Copyright © Refactored Group (https://www.refactored.group)
  * @copyright Copyright © 2022. All rights reserved.
