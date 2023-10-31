@@ -45,7 +45,7 @@ class Dealers extends Template
             'form_key' => $this->helper->getFormKey(),
             'is_ffl' => true,
             'mode' => 'cart',
-            'customer_address_city' => $this->helper->getCustomerAddress(),
+            'customer_address' => $this->helper->getCustomerAddress(),
         ]);
     }
 }

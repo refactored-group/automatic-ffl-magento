@@ -1,4 +1,4 @@
-const { result } = require("underscore");
+const { result, find } = require("underscore");
 
 /**
  * Copyright © Refactored Group (https://www.refactored.group)
@@ -355,22 +355,18 @@ define([
 
             // Check if navigator.geolocation is supported by the browser
             if (navigator.geolocation) {
-                // Check if accessing the customer's location through browser has been granted
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        self.fetchMapByCoordinates({
+                            lat: position.coords.latitude,
+                            lng: position.coords.longitude
+                        });
+                    }
+                );
                 navigator.permissions
                     .query({ name: "geolocation" })
                     .then((result) => {
-                        if (result.state === 'granted') {
-                            navigator.geolocation.getCurrentPosition(
-                                (position) =>  {
-                                    self.fetchMapByCoordinates({
-                                        lat: position.coords.latitude,
-                                        lng: position.coords.longitude
-                                    });
-                                }
-                            );
-                        } else {
-                            // If the status is any of denied, prompt, etc., try to get
-                            // customer's location using saved shipping address.
+                        if (result.state !== 'granted') {
                             self.fetchMapByGeocoder();
                         }
                     });
@@ -380,35 +376,46 @@ define([
         },
         // Load map using longitude and latitude coordinates
         fetchMapByCoordinates: function (position) {
-            const self = this,
+            const latlng = new google.maps.LatLng(position.lat, position.lng),
+                geocoder = new google.maps.Geocoder();
+            geocoder.geocode({'latLng': latlng}, function (results, status) {
+                console.log(results);
+                if (status == google.maps.GeocoderStatus.OK) {
+                    if (results[0]) {
+                        for (j = 0; j < results[0].address_components.length; j++) {
+                            if (results[0].address_components[j].types[0].includes('postal_code')) {
+                                const address = results[0].address_components[j].long_name;
+                                $('body').find('#ffl-input-search').val(address /** contains name of locality */);
+                                $('body').find('.action.primary.dealers-modal-button').first().trigger('click');
+                            }
+                        }
+                    }
+                } else {
+                    console.warn('Unable to get customer location using default shipping address.');
+                }
+            });
+            /*const self = this,
                 map = self.googleMap;
 
-            map.setZoom(7);
+            map.setZoom(4);
             map.setCenter(position);            
 
             new google.maps.InfoWindow().open(map);
             new google.maps.Marker({
                 position: position,
                 map
-            });
+            });*/
         },
         // Load map using customer default shipping address
         fetchMapByGeocoder: function () {
             const self = this,
-                address = self.customer_address_city;
+                address = self.customer_address;
             if (!address) {
                 console.warn('Unable to get customer location using default shipping address.');
+            } else {
+                $('body').find('#ffl-input-search').val(address /** contains postalCode */);
+                $('body').find('.action.primary.dealers-modal-button').first().trigger('click');
             }
-            const geocoder =  new google.maps.Geocoder();
-            geocoder
-                .geocode({ address: address })
-                .then((result) => {
-                    const { results } = result;
-                    self.fetchMapByCoordinates(results[0].geometry.location);
-                })
-                .catch((e) => {
-                    console.warn('Unable to get customer location using default shipping address.');
-                });
         }
     });
 });

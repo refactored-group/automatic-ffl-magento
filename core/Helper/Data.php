@@ -431,16 +431,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
 
         foreach ($customer->getAddresses() as $address) {
             if ($address->getId() == $customer->getDefaultShipping()) {
-                return sprintf(
-                    '%s, %s, %s',
-                    $address->getCity(),
-                    $address->getRegion()->getRegion(),
-                    $this->countryFactory
-                        ->create()
-                        ->loadByCode(
-                            $address->getCountryId()
-                    )->getName()
-                );
+                return $address->getPostcode();
             }
         }
 
