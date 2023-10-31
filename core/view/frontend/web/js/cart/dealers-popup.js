@@ -365,11 +365,11 @@ define([
                     .query({ name: "geolocation" })
                     .then((result) => {
                         if (result.state !== 'granted') {
-                            self.fetchMapByGeocoder();
+                            self.fetchMapByCustomerShippingAddress();
                         }
                     });
             } else {
-                self.fetchMapByGeocoder();
+                self.fetchMapByCustomerShippingAddress();
             }
         },
         // Load map using longitude and latitude coordinates
@@ -393,7 +393,7 @@ define([
             });
         },
         // Load map using customer default shipping address
-        fetchMapByGeocoder: function () {
+        fetchMapByCustomerShippingAddress: function () {
             const self = this,
                   address = self.customer_address;
             if (!address) {
