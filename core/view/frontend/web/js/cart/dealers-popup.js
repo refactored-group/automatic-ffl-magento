@@ -375,16 +375,20 @@ define([
         // Load map using longitude and latitude coordinates
         fetchMapByCoordinates: function (position) {
             const latlng = new google.maps.LatLng(position.lat, position.lng),
-                  geocoder = new google.maps.Geocoder();
+                  geocoder = new google.maps.Geocoder(),
+                  self = this;
             geocoder.geocode({'latLng': latlng}, function (results, status) {
                 if (status == google.maps.GeocoderStatus.OK) {
                     if (results[0]) {
+                        let address = null;
                         for (j = 0; j < results[0].address_components.length; j++) {
                             if (results[0].address_components[j].types[0].includes('postal_code')) {
-                                const address = results[0].address_components[j].long_name;
+                                address = results[0].address_components[j].short_name;
                                 $('body').find('#ffl-input-search').val(address /** contains postalCode */);
-                                $('body').find('.action.primary.dealers-modal-button').first().trigger('click');
                             }
+                        }
+                        if (address) {
+                            self.getFflResults();
                         }
                     }
                 } else {
@@ -400,7 +404,7 @@ define([
                 console.warn('Unable to get customer location using default shipping address.');
             } else {
                 $('body').find('#ffl-input-search').val(address /** contains postalCode */);
-                $('body').find('.action.primary.dealers-modal-button').first().trigger('click');
+                self.getFflResults();
             }
         }
     });
