@@ -31,8 +31,8 @@ define([
         mapPositionsList: [],
         mapMarkersList: [],
         currentInfowindow: false,
-        blueMarkerUrl: 'http://maps.google.com/mapfiles/kml/paddle/blu-blank.png',
-        redMarkerUrl: 'http://maps.google.com/mapfiles/kml/paddle/red-blank.png',
+        blueMarkerUrl: 'https://maps.google.com/mapfiles/kml/paddle/blu-blank.png',
+        redMarkerUrl: 'https://maps.google.com/mapfiles/kml/paddle/red-blank.png',
 
         /** @inheritdoc */
         initialize: function () {
