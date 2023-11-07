@@ -17,6 +17,7 @@
             <values>
                 <value id="googleapis_image" type="host">*.googleapis.com</value>
                 <value id="gstatic_image" type="host">*.gstatic.com</value>
+                <value id="google_image" type="host">*.google.com</value>
             </values>
         </policy>
         <policy id="font-src">
