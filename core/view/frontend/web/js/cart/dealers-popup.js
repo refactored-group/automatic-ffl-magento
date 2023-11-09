@@ -382,7 +382,9 @@ define([
                     if (results[0]) {
                         let address = null;
                         for (j = 0; j < results[0].address_components.length; j++) {
-                            if (results[0].address_components[j].types[0].includes('postal_code')) {
+                            if (results[0].address_components[j].types.length &&
+                                results[0].address_components[j].types.includes('postal_code')
+                            ) {
                                 address = results[0].address_components[j].short_name;
                                 $('body').find('#ffl-input-search').val(address /** contains postalCode */);
                             }
