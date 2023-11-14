@@ -15,4 +15,8 @@
         <plugin name="after_Customer_order_extractor"
                 type="RefactoredGroup\AutoFflCheckout\Plugin\OrderCustomerExtractorPlugin"/>
     </type>
+    <type name="Magento\Framework\RequireJs\Config\File\Collector\Aggregated">
+        <plugin name="requirejsConfigPlugin"
+                type="RefactoredGroup\AutoFflCheckout\Plugin\RequireJs\AfterFiles"/>
+    </type>
 </config>
