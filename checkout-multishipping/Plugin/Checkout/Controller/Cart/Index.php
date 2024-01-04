@@ -22,7 +22,7 @@ class Index
      * @param Session $customerSession
      */
     public function __construct(
-        Session $customerSession,
+        Session $customerSession
     ) {
         $this->customerSession = $customerSession;
     }

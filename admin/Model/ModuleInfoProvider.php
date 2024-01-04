@@ -32,7 +32,7 @@ class ModuleInfoProvider
     public function __construct(
         \Magento\Framework\Module\Dir\Reader $moduleReader,
         \Magento\Framework\Filesystem\Driver\File $filesystem,
-        \Magento\Framework\Serialize\SerializerInterface $serializer,
+        \Magento\Framework\Serialize\SerializerInterface $serializer
     ) {
         $this->moduleReader = $moduleReader;
         $this->filesystem = $filesystem;
