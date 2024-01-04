@@ -46,7 +46,7 @@ class Index
         RedirectFactory $resultRedirectFactory,
         Helper $helper,
         MsHelper $msHelper,
-        Session $customerSession,
+        Session $customerSession
     ) {
         $this->resultRedirectFactory = $resultRedirectFactory;
         $this->helper = $helper;

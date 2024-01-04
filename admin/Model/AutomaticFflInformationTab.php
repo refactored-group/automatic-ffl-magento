@@ -55,7 +55,7 @@ class AutomaticFflInformationTab
     }
 
     /**
-     * @return string|null
+     * @return ?string
      */
     protected function getCurrentVersion(): ?string
     {
@@ -65,7 +65,7 @@ class AutomaticFflInformationTab
     }
 
     /**
-     * @return string|null
+     * @return ?string
      */
     protected function getRepositoryVersion(): ?string
     {
@@ -91,12 +91,12 @@ class AutomaticFflInformationTab
     }
 
     /**
-     * @param string|null $currentVersion
-     * @param string|null $repositoryVersion
+     * @param ?string $currentVersion
+     * @param ?string $repositoryVersion
      * 
      * @return int|bool
      */
-    private function matchVersionNumbers(string|null $currentVersion, string|null $repositoryVersion): int|bool
+    private function matchVersionNumbers(?string $currentVersion, ?string $repositoryVersion): int
     {
         if (!$currentVersion) {
             return self::UNABLE_TO_FETCH_CURRENT_VERSION;
@@ -122,12 +122,12 @@ class AutomaticFflInformationTab
     }
 
     /**
-     * @param string|null $currentVersion
-     * @param string|null $repositoryVersion
+     * @param ?string $currentVersion
+     * @param ?string $repositoryVersion
      * 
      * @return string
      */
-    private function getVersionClassName(string|null $currentVersion, string|null $repositoryVersion)
+    private function getVersionClassName(?string $currentVersion, ?string $repositoryVersion): string
     {
         switch ($this->matchVersionNumbers(
             $currentVersion,
@@ -166,12 +166,12 @@ class AutomaticFflInformationTab
 
 
     /**
-     * @param string|null $currentVersion
-     * @param string|null $repositoryVersion
+     * @param ?string $currentVersion
+     * @param ?string $repositoryVersion
      * 
      * @return string
      */
-    private function showBannerInfo(string|null $currentVersion, string|null $repositoryVersion): string
+    private function showBannerInfo(?string $currentVersion, ?string $repositoryVersion): string
     {
         $showBanner = false;
         $html = '';
