@@ -44,7 +44,8 @@ class Dealers extends Template
             'stores_endpoint' => $this->helper->getStoresEndpoint(),
             'form_key' => $this->helper->getFormKey(),
             'is_ffl' => true,
-            'mode' => 'cart'
+            'mode' => 'cart',
+            'customer_address' => $this->helper->getCustomerAddress(),
         ]);
     }
 }

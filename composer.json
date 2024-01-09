@@ -2,7 +2,11 @@
   "name": "refactored_group/automatic-ffl-magento",
   "description": "Automatic FFL Magento 2 Extension",
   "type": "magento2-module",
+<<<<<<< HEAD
   "version": "1.0.25",
+=======
+  "version": "1.0.21",
+>>>>>>> 5990def (FFL-176 - Fix how geolocation works and immediately display dealers when the modal pops-up.)
   "minimum-stability": "stable",
   "replace": {
     "refactored_group/autoffl-core": "self.version",
