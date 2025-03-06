@@ -20,6 +20,9 @@ var config = {
             },
             'Magento_Checkout/js/view/minicart': {
                 'RefactoredGroup_AutoFflCheckout/js/view/minicart-mixin': true
+            },
+            'Magento_Checkout/js/view/shipping-address/list': {
+                'RefactoredGroup_AutoFflCheckout/js/view/shipping-address/list-mixin': true
             }
         }
     }

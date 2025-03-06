@@ -10,7 +10,7 @@
     <div data-bind="i18n: 'You have a firearm in your cart and must choose a licensed firearm dealer (FFL) for the shipping address.'"></div>
 </div>
 <!-- /ko -->
-
+<!-- ko if: (checkoutConfig.customerData.is_ffl == 1 && dealerLicense) -->
 <div class="field addresses">
     <div class="control">
         <div class="shipping-address-items">
@@ -20,3 +20,4 @@
         </div>
     </div>
 </div>
+<!-- /ko -->
