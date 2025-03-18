@@ -8,6 +8,8 @@ use Magento\Sales\Api\OrderRepositoryInterface;
 
 class SalesModelServiceQuoteSubmitBeforeObserver implements ObserverInterface
 {
+    private $orderRepository;
+    
     public function __construct(
         OrderRepositoryInterface $orderRepository
     ) {
