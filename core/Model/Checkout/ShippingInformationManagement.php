@@ -38,7 +38,7 @@ class ShippingInformationManagement
         $quote = $this->quoteRepository->getActive($cartId);
 
         if (!$extAttributes->getFflLicense() && $this->autoFflHelper->hasFflItem($quote)) {
-            throw new LocalizedException(__('Please, select a Licensed Firearm Dealer before continue.'));
+            throw new LocalizedException(__('Please select a Licensed Firearm Dealer (FFL) before continuing.'));
         }
 
         $quote->setFflLicense($extAttributes->getFflLicense());
