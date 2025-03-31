@@ -69,11 +69,8 @@ class ModelOrderPlugin
     {
         if ($this->helper->isEnabled() && $this->helper->hasFflItem() && !$this->helper->isFflCart()
             && $this->request->getModuleName() != 'multishipping' && !$this->helper->shipNonGunItems()) {
-            // @TODO: This message seems a little confusing, we need to work on a better one
-            $message  = __('Your cart has items that need to be shipped to a Dealer. '
-                . 'You can not checkout with a mixed cart. '
-                . 'Please remove all items from your cart that need to be shipped '
-                . 'to a Dealer or the items that do not.');
+            $message  = __('Some items in your cart must be shipped to a Licensed Firearm Dealer (FFL). '
+                        . 'To proceed, please remove non-FFL items and place a separate order for them.');
 
             $this->messageManager->addErrorMessage($message);
             $this->responseFactory->create()->setRedirect($this->url->getUrl('checkout/cart/index'))->sendResponse();

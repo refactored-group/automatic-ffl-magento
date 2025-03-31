@@ -85,11 +85,8 @@ class Index implements ObserverInterface
                         . 'You can not perform a regular checkout with a mixed cart,'
                         . ' so we will redirect you to the Multi-Shipping Checkout.');
                 } elseif (!$this->helper->shipNonGunItems()) {
-                    // @TODO: This message seems a little confusing, we need to work on a better one
-                    $message  = __('Your cart has items that need to be shipped to a Dealer. '
-                        . 'You can not checkout with a mixed cart. '
-                        . 'Please remove all items from your cart that need to be shipped '
-                        . 'to a Dealer or the items that do not.');
+                    $message  = __('Some items in your cart must be shipped to a Licensed Firearm Dealer (FFL). '
+                        . 'To proceed, please remove non-FFL items and place a separate order for them.');
                 } elseif ($this->helper->shipNonGunItems()) {
                     $message  = __('Your cart has items that need to be shipped to a Dealer. '
                         . "All items will be shipped together. You'll be requested to select a Dealer on the next step.");
