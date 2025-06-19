@@ -102,7 +102,6 @@ define([
 
             // Set new shipping address as the selected address
             var storageData = storage.get('checkout-data')();
-            var customerData = storage.get('customer')();
             storageData['selectedShippingAddress'] = newShippingAddress.getKey();
             window.localStorage.setItem('checkout-data', JSON.stringify(storageData));
 
