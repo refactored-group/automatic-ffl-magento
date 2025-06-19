@@ -9,17 +9,8 @@ var config = {
     },
     config: {
         mixins: {
-            'Magento_Checkout/js/model/checkout-data-resolver': {
-                'RefactoredGroup_AutoFflCheckout/js/checkout/model/checkout-data-resolver-mixin': true
-            },
             'Magento_Checkout/js/model/new-customer-address': {
                 'RefactoredGroup_AutoFflCheckout/js/checkout/model/new-customer-address-mixin': true
-            },
-            'Magento_Checkout/js/proceed-to-checkout': {
-                'RefactoredGroup_AutoFflCheckout/js/proceed-to-checkout-mixin': true
-            },
-            'Magento_Checkout/js/view/minicart': {
-                'RefactoredGroup_AutoFflCheckout/js/view/minicart-mixin': true
             },
             'Magento_Checkout/js/view/shipping-address/list': {
                 'RefactoredGroup_AutoFflCheckout/js/view/shipping-address/list-mixin': true
