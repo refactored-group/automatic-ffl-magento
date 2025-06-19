@@ -49,24 +49,6 @@ define([
             return getData().fflQuoteLineItemId || false;
         };
 
-        /**
-         * Set if "Check Out with Multiple Addresses" link is clicked
-         */
-        checkoutData.setProceedToCheckoutWithMultipleAddresses = function (data) {
-            var obj = getData();
-
-            obj.proceedToCheckoutWithMultipleAddresses = data;
-            saveData(obj);
-        };
-
-        /**
-         * 
-         * Getter function
-         */
-        checkoutData.isProceedToCheckoutWithMultipleAddresses = function () {
-            return getData().proceedToCheckoutWithMultipleAddresses || false;
-        };
-
         return checkoutData;
     };
 });

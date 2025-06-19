@@ -11,14 +11,22 @@ define([
                 this._super();
 
                 const checkoutData = customerData.get('checkout-data')();
-                this.dealerLicense = ko.observable(checkoutData?.newCustomerShippingAddress?.dealer_license || '');
+                this.dealerLicense = ko.observable('');
+                this.setDealerLicense(checkoutData);
 
                 customerData.get('checkout-data').subscribe(function (updatedCheckoutData) {
-                    this.dealerLicense(updatedCheckoutData?.newCustomerShippingAddress?.dealer_license || '');
+                    this.setDealerLicense(updatedCheckoutData);
                 }, this);
 
                 return this;
-            }
+            },
+            setDealerLicense: function (checkoutData) {
+                this.dealerLicense(
+                    checkoutData?.newCustomerShippingAddress?.dealer_license ||
+                    checkoutData?.newCustomerShippingAddress?.default?.dealer_license ||
+                    ''
+                );
+            },
         });
     };
 });
