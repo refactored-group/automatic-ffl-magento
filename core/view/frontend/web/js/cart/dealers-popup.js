@@ -8,8 +8,9 @@ define([
     'ko',
     'Magento_Ui/js/modal/modal',
     'RefactoredGroup_AutoFflCore/js/cart/select-dealer-button',
-    'Magento_Checkout/js/checkout-data'
-], function ($, Component, ko, modal, dealerButton, checkoutData) {
+    'Magento_Checkout/js/checkout-data',
+    'RefactoredGroup_AutoFflCore/js/checkout/helper/shipping-mode'
+], function ($, Component, ko, modal, dealerButton, checkoutData, shippingMode) {
 
     //@TODO: Move the address handling to a model
     return Component.extend({
@@ -109,7 +110,7 @@ define([
                      * 
                      * First, it checks if the "Check Out with Multiple Addresses" is clicked.
                      */
-                    if (checkoutData.isProceedToCheckoutWithMultipleAddresses()) {
+                    if (shippingMode.isMultishipping()) {
                         /**
                          * Default to setting the dealer address to individual text input.
                          */

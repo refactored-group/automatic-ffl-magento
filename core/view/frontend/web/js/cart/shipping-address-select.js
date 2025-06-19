@@ -4,8 +4,8 @@
  */
 define([
     'jquery',
-    'Magento_Checkout/js/checkout-data'
-], function ($, checkoutData) {
+    'RefactoredGroup_AutoFflCore/js/checkout/helper/shipping-mode'
+], function ($, shippingMode) {
     'use strict';
 
     return function (config, element) {
@@ -14,7 +14,7 @@ define([
          * The value of all other select.ship_address elements will be based from this.
          */
         $(element).on('change', function (event) {
-            if (!checkoutData.isProceedToCheckoutWithMultipleAddresses()) {
+            if (!shippingMode.isMultishipping()) {
                 const id = $(this).val();
                 $('body').find('select.ship_address').val(id);
             }
