@@ -6,8 +6,9 @@ define([
     'jquery',
     'uiComponent',
     'ko',
-    'Magento_Checkout/js/checkout-data'
-], function ($, Component, ko, checkoutData) {
+    'Magento_Checkout/js/checkout-data',
+    'RefactoredGroup_AutoFflCore/js/checkout/helper/shipping-mode'
+], function ($, Component, ko, checkoutData, shippingMode) {
     'use strict';
 
     return Component.extend({
@@ -46,7 +47,7 @@ define([
         addDealerIdToStorage: function (id) {
             if (id === undefined) return;
 
-            if (checkoutData.isProceedToCheckoutWithMultipleAddresses()) {
+            if (shippingMode.isMultishipping()) {
                 checkoutData.setFflQuoteLineItemId(false);
             } else {
                 let fflQuoteLineItemId = new Array();

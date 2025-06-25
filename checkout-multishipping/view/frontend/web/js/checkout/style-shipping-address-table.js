@@ -4,15 +4,15 @@
  */
 define([
     'jquery',
-    'Magento_Checkout/js/checkout-data'
-], function ($, checkoutData) {
+    'RefactoredGroup_AutoFflCore/js/checkout/helper/shipping-mode'
+], function ($, shippingMode) {
     'use strict';
 
     return function (config, element) {
         /**
          * If "Check Out with Multiple Addresses" is clicked, ignore
          */
-        if (checkoutData.isProceedToCheckoutWithMultipleAddresses()) {
+        if (shippingMode.isMultishipping()) {
             return;
         }
 
