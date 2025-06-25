@@ -11,7 +11,7 @@
     "refactored_group/autoffl-checkout-multishipping": "self.version"
   },
   "require": {
-    "php": ">=7.1 <8.4"
+    "php": ">=7.1 <8.5"
   },
   "license": "[]",
   "autoload": {
