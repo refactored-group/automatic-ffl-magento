@@ -15,7 +15,7 @@ Each one of these directories contain a Magento 2 extension:
 ### Composer
 
 ```bash
-composer config repositories.refactored-group git git@github.com:refactored-group/automatic-ffl-magento.git
+composer config repositories.refactored-group git https://github.com/refactored-group/automatic-ffl-magento.git
 composer require refactored_group/automatic-ffl-magento
 ```
 
