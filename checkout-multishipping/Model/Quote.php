@@ -110,11 +110,11 @@ class Quote extends \Magento\Quote\Model\Quote
         \Magento\Quote\Model\ShippingFactory $shippingFactory,
         \Magento\Quote\Model\ShippingAssignmentFactory $shippingAssignmentFactory,
         \Magento\Customer\Model\Session $customerSession,
-        \Magento\Framework\Model\ResourceModel\AbstractResource $resource = null,
-        \Magento\Framework\Data\Collection\AbstractDb $resourceCollection = null,
+        ?\Magento\Framework\Model\ResourceModel\AbstractResource $resource = null,
+        ?\Magento\Framework\Data\Collection\AbstractDb $resourceCollection = null,
         array $data = [],
-        \Magento\Sales\Model\OrderIncrementIdChecker $orderIncrementIdChecker = null,
-        AllowedCountries $allowedCountriesReader = null
+        ?\Magento\Sales\Model\OrderIncrementIdChecker $orderIncrementIdChecker = null,
+        ?AllowedCountries $allowedCountriesReader = null
     ) {
         parent::__construct(
             $context,

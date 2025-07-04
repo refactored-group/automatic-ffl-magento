@@ -132,11 +132,11 @@ class Multishipping extends \Magento\Multishipping\Model\Checkout\Type\Multiship
         FilterBuilder $filterBuilder,
         TotalsCollector $totalsCollector,
         array $data = [],
-        CartExtensionFactory $cartExtensionFactory = null,
-        AllowedCountries $allowedCountryReader = null,
-        \Magento\Multishipping\Model\Checkout\Type\Multishipping $placeOrderFactory = null,
-        LoggerInterface $logger = null,
-        DataObjectHelper $dataObjectHelper = null
+        ?\Magento\Quote\Api\Data\CartExtensionFactory $cartExtensionFactory = null,
+        ?AllowedCountries $allowedCountryReader = null,
+        ?\Magento\Multishipping\Model\Checkout\Type\Multishipping $placeOrderFactory = null,
+        ?LoggerInterface $logger = null,
+        ?DataObjectHelper $dataObjectHelper = null
     ) {
         $this->addressCollectionFactory = $addressCollectionFactory;
         $this->request = $request;
