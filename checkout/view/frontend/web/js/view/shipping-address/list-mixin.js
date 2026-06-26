@@ -12,7 +12,9 @@ define([
 
                 const checkoutData = customerData.get('checkout-data')();
                 this.dealerLicense = ko.observable('');
-                this.setDealerLicense(checkoutData);
+                if (checkoutConfig.customerData.is_ffl != 1) {
+                    this.setDealerLicense(checkoutData);
+                }
 
                 customerData.get('checkout-data').subscribe(function (updatedCheckoutData) {
                     this.setDealerLicense(updatedCheckoutData);

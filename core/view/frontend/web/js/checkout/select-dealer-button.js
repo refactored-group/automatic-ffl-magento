@@ -24,8 +24,10 @@ define([
             // Observables initialized here won't be shared across other instances of this component
             this.fflButtonLabel = ko.observable(null);
 
-            // If an address has already been saved in the local storage, change the button label
-            if (data['selectedShippingAddress']) {
+            // FFL checkout requires a fresh dealer selection on every full page load.
+            if (this.is_ffl) {
+                this.fflButtonLabel('Find a Dealer');
+            } else if (data['selectedShippingAddress']) {
                 this.fflButtonLabel('Change Dealer');
             } else {
                 this.fflButtonLabel('Find a Dealer');

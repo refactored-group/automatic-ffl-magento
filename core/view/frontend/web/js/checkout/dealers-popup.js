@@ -22,6 +22,8 @@ define([
             this.regionJson = JSON.parse(this.regionJson);
 
             if (checkoutConfig.customerData.is_ffl == 1) {
+                this.clearFflCheckoutData();
+
                 // Hide Create New Address form and edit address link from Checkout
                 // @TODO: find a better way of doing this
                 var styleTag = $('<style>#shipping-new-address-form, .edit-address-link { display: none !important; }</style>')
@@ -31,16 +33,40 @@ define([
 
                 if (shippingAddress && shippingAddress.hasOwnProperty('is_ffl') && shippingAddress.is_ffl === 1) {
                     //Clear previous dealer shipping address when no FFL item is detected
-                    var data = storage.get('checkout-data')();
+                    var data = storage.get('checkout-data')() || {};
                     data['shippingAddressFromData'] = null;
                     data['newCustomerShippingAddress'] = null;
                     data['selectedShippingAddress'] = null;
 
-                    window.localStorage.setItem('checkout-data', JSON.stringify(data));
+                    this.saveCheckoutData(data);
                 }
             }
 
             return this;
+        },
+        /**
+         * FFL checkout must start from a fresh dealer choice on every full page load.
+         */
+        clearFflCheckoutData: function () {
+            var data = storage.get('checkout-data')() || {};
+
+            data['shippingAddressFromData'] = null;
+            data['newCustomerShippingAddress'] = null;
+            data['selectedShippingAddress'] = null;
+            data['selectedShippingRate'] = null;
+            data['selectedShippingMethod'] = null;
+            data['fflQuoteLineItemId'] = false;
+            data['dealer_license'] = null;
+            data['ffl_license'] = null;
+
+            this.saveCheckoutData(data);
+        },
+        /**
+         * @param {Object} data
+         */
+        saveCheckoutData: function (data) {
+            storage.set('checkout-data', data);
+            window.localStorage.setItem('checkout-data', JSON.stringify(data));
         },
         /**
          *
@@ -81,6 +107,12 @@ define([
                 firstname: this.default_firstname,
                 lastname: this.default_lastname,
                 dealer_license: dealer.license,
+                custom_attributes: {
+                    ffl_license: dealer.license
+                },
+                extension_attributes: {
+                    ffl_license: dealer.license
+                },
                 postcode: dealer.premise_zip,
                 region: region.name,
                 region_id: region.id,
@@ -101,9 +133,9 @@ define([
             checkoutData.setNewCustomerShippingAddress($.extend(true, {}, addressData));
 
             // Set new shipping address as the selected address
-            var storageData = storage.get('checkout-data')();
+            var storageData = storage.get('checkout-data')() || {};
             storageData['selectedShippingAddress'] = newShippingAddress.getKey();
-            window.localStorage.setItem('checkout-data', JSON.stringify(storageData));
+            this.saveCheckoutData(storageData);
 
             $("#dealers-popup").modal("closeModal");
             dealerButton().dealerAddressId[self.currentFflItemId()]('1');
