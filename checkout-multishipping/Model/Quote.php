@@ -186,6 +186,7 @@ class Quote extends \Magento\Quote\Model\Quote
                     $items[] = $item;
                     continue;
                 }
+                $this->fillMissingAddressItemQty($item);
                 if ($this->customerSession->getData(self::FFL_CHECKOUT_BUTTON_KEY) &&
                     $this->customerSession->getData(self::FFL_CHECKOUT_BUTTON_KEY) === 'proceed_to_checkout') {
                     $item->setCustomerAddressId($address->getCustomerAddressId())->save();
@@ -242,5 +243,30 @@ class Quote extends \Magento\Quote\Model\Quote
         }
 
         return $addressItems;
+    }
+
+    /**
+     * @param \Magento\Quote\Model\Quote\Address\Item $item
+     * @return void
+     */
+    private function fillMissingAddressItemQty($item): void
+    {
+        if ($this->hasPositiveQty($item->getQty())) {
+            return;
+        }
+
+        $quoteItem = $item->getQuoteItem();
+        if ($quoteItem && $this->hasPositiveQty($quoteItem->getQty())) {
+            $item->setQty($quoteItem->getQty());
+        }
+    }
+
+    /**
+     * @param mixed $qty
+     * @return bool
+     */
+    private function hasPositiveQty($qty): bool
+    {
+        return is_numeric($qty) && (float)$qty > 0;
     }
 }

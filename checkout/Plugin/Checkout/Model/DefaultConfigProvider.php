@@ -6,7 +6,6 @@
 
 namespace RefactoredGroup\AutoFflCheckout\Plugin\Checkout\Model;
 
-use Closure;
 use RefactoredGroup\AutoFflCore\Helper\Data as Helper;
 use Magento\Framework\App\Action\Context;
 
@@ -34,21 +33,14 @@ class DefaultConfigProvider
     }
 
     /**
-     * Remove all customer addresses from the config provider when checking out with FFL
+     * Mark FFL checkout without removing customer addresses needed by billing.
+     *
      * @param \Magento\Checkout\Model\DefaultConfigProvider $subject
-     * @param $result
+     * @param array $result
      * @return array
      */
     public function afterGetConfig(\Magento\Checkout\Model\DefaultConfigProvider $subject, $result)
     {
-        /**
-         * If FFL is enabled and all items in the cart are FFL, we can not display
-         * any of the Customer Address Book addresses during the checkout.
-         */
-        if ($this->helper->isFfl()) {
-            $result['customerData']['billingAddresses'] = !empty($result['customerData']['addresses']) ?: [] ;
-            $result['customerData']['addresses'] = [];
-        }
         $result['customerData']['is_ffl'] = (int) $this->helper->isFfl();
 
         return $result;

@@ -35,6 +35,7 @@ class Index implements ObserverInterface
      * @var \Magento\Framework\App\ResponseFactory
      */
     private $responseFactory;
+
     /**
      * @param Helper $helper
      */
@@ -67,8 +68,14 @@ class Index implements ObserverInterface
      */
     public function execute(Observer $observer)
     {
-        if ($this->helper->isEnabled() && $this->helper->isMixedCart()) {
-            if ($observer->getEvent()->getName() === 'controller_action_predispatch_checkout_index_index') {
+        $eventName = $observer->getEvent()->getName();
+
+        if (!$this->helper->isEnabled()) {
+            return;
+        }
+
+        if ($this->helper->isMixedCart()) {
+            if ($eventName === 'controller_action_predispatch_checkout_index_index') {
                 if ($this->helper->isMultishippingCheckoutAvailable()) {
                     return $observer->getControllerAction()
                         ->getResponse()
@@ -78,7 +85,7 @@ class Index implements ObserverInterface
                         ->getResponse()
                         ->setRedirect($this->url->getUrl('checkout/cart/index'));
                 }
-            } elseif ($observer->getEvent()->getName() === 'controller_action_predispatch_checkout_cart_index') {
+            } elseif ($eventName === 'controller_action_predispatch_checkout_cart_index') {
                 if ($this->helper->isMultishippingCheckoutAvailable()) {
                     // @TODO: This message seems a little confusing, we need to work on a better one
                     $message  = __('Your cart has items that need to be shipped to a Dealer. '
@@ -91,7 +98,7 @@ class Index implements ObserverInterface
                     $message  = __('Your cart has items that need to be shipped to a Dealer. '
                         . "All items will be shipped together. You'll be requested to select a Dealer on the next step.");
                 }
-            } elseif ($observer->getEvent()->getName() === 'sales_order_place_before' && !$this->helper->shipNonGunItems()) {
+            } elseif ($eventName === 'sales_order_place_before' && !$this->helper->shipNonGunItems()) {
                 $message  = __('Your cart has items that need to be shipped to a Dealer. '
                     . 'You can not perform a regular checkout with a mixed cart. '
                     . 'Please, use the Multi-Shipping Checkout option.');
@@ -107,5 +114,53 @@ class Index implements ObserverInterface
                 $this->messageManager->addErrorMessage($message);
             }
         }
+
+        if ($eventName === 'controller_action_predispatch_checkout_index_index') {
+            $this->resetFflCheckoutState();
+        }
+    }
+
+    /**
+     * Clear stale FFL shipping state so every regular checkout page load requires
+     * a fresh dealer selection.
+     *
+     * @return void
+     */
+    private function resetFflCheckoutState()
+    {
+        $quote = $this->session->getQuote();
+        if (!$quote || !$quote->getId()) {
+            return;
+        }
+
+        if (!$this->helper->hasFflItem($quote)) {
+            $quote->setFflLicense(null);
+            return;
+        }
+
+        $quote->setFflLicense(null);
+        $quote->setTotalsCollectedFlag(false);
+
+        $shippingAddress = $quote->getShippingAddress();
+        if ($shippingAddress) {
+            $shippingAddress->setFirstname(null);
+            $shippingAddress->setLastname(null);
+            $shippingAddress->setCompany(null);
+            $shippingAddress->setStreet([]);
+            $shippingAddress->setCity(null);
+            $shippingAddress->setCountryId(null);
+            $shippingAddress->setRegion(null);
+            $shippingAddress->setRegionId(null);
+            $shippingAddress->setPostcode(null);
+            $shippingAddress->setTelephone(null);
+            $shippingAddress->setShippingMethod(null);
+            $shippingAddress->setCollectShippingRates(true);
+
+            if (method_exists($shippingAddress, 'removeAllShippingRates')) {
+                $shippingAddress->removeAllShippingRates();
+            }
+        }
+        // Keep this request-local. Saving here can persist an intentionally
+        // incomplete shipping address before the checkout UI collects a dealer.
     }
 }

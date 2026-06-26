@@ -6,9 +6,18 @@
 namespace RefactoredGroup\AutoFflCheckoutMultiShipping\Block\Checkout;
 
 use Magento\Customer\Model\Address\Config as AddressConfig;
+use Magento\Customer\Model\Session as CustomerSession;
 
 class Addresses extends \Magento\Multishipping\Block\Checkout\Addresses
 {
+    private const FFL_CHECKOUT_BUTTON_KEY = 'ffl_checkout_button_clicked';
+    private const FFL_CHECKOUT_BUTTON_VALUE = 'proceed_to_checkout';
+
+    /**
+     * @var CustomerSession
+     */
+    private $customerSession;
+
     /**
      * Constructor
      *
@@ -18,6 +27,7 @@ class Addresses extends \Magento\Multishipping\Block\Checkout\Addresses
      * @param \Magento\Customer\Api\CustomerRepositoryInterface $customerRepository
      * @param AddressConfig $addressConfig
      * @param \Magento\Customer\Model\Address\Mapper $addressMapper
+     * @param CustomerSession $customerSession
      * @param array $data
      */
     public function __construct(
@@ -27,6 +37,7 @@ class Addresses extends \Magento\Multishipping\Block\Checkout\Addresses
         \Magento\Customer\Api\CustomerRepositoryInterface $customerRepository,
         AddressConfig $addressConfig,
         \Magento\Customer\Model\Address\Mapper $addressMapper,
+        CustomerSession $customerSession,
         array $data = []
     ) {
         parent::__construct(
@@ -38,6 +49,8 @@ class Addresses extends \Magento\Multishipping\Block\Checkout\Addresses
             $addressMapper,
             $data
         );
+
+        $this->customerSession = $customerSession;
     }
 
     /**
@@ -61,8 +74,19 @@ class Addresses extends \Magento\Multishipping\Block\Checkout\Addresses
     {
         return json_encode([
             'dealerButtonId' => $index,
-            'addressFieldName' => $this->getFflAddressFieldName($item, $index)
+            'addressFieldName' => $this->getFflAddressFieldName($item, $index),
+            'groupedFflCheckout' => $this->isGroupedFflCheckout()
         ]);
+    }
+
+    /**
+     * Check whether normal checkout redirected a mixed FFL cart into multishipping.
+     *
+     * @return bool
+     */
+    public function isGroupedFflCheckout(): bool
+    {
+        return $this->customerSession->getData(self::FFL_CHECKOUT_BUTTON_KEY) === self::FFL_CHECKOUT_BUTTON_VALUE;
     }
 
     /**
@@ -73,9 +97,47 @@ class Addresses extends \Magento\Multishipping\Block\Checkout\Addresses
         $items = $this->getCheckout()->getQuoteShippingAddressesItems();
         /** @var \Magento\Framework\Filter\DataObject\Grid $itemsFilter */
         $items = $this->sortItemsByFflFirst($items);
+        $items = $this->fillMissingItemQty($items);
         $itemsFilter = $this->_filterGridFactory->create();
         $itemsFilter->addFilter(new \Magento\Framework\Filter\Sprintf('%d'), 'qty');
         return $itemsFilter->filter($items);
+    }
+
+    /**
+     * Quote address items can arrive without a qty before an FFL dealer address
+     * has been selected. Fall back to the owning quote item so the qty input is
+     * not rendered empty.
+     *
+     * @param array $items
+     * @return array
+     */
+    private function fillMissingItemQty($items)
+    {
+        if (!is_array($items)) {
+            return $items;
+        }
+
+        foreach ($items as $item) {
+            if ($this->hasPositiveQty($item->getQty())) {
+                continue;
+            }
+
+            $quoteItem = $item->getQuoteItem();
+            if ($quoteItem && $this->hasPositiveQty($quoteItem->getQty())) {
+                $item->setQty($quoteItem->getQty());
+            }
+        }
+
+        return $items;
+    }
+
+    /**
+     * @param mixed $qty
+     * @return bool
+     */
+    private function hasPositiveQty($qty): bool
+    {
+        return is_numeric($qty) && (float)$qty > 0;
     }
 
     /**
@@ -96,9 +158,22 @@ class Addresses extends \Magento\Multishipping\Block\Checkout\Addresses
             ->setClass('ship_address')
             ->setValue($item->getCustomerAddressId())
             ->setOptions($this->getAddressOptions())
-            ->setExtraParams('data-mage-init=\'{ "RefactoredGroup_AutoFflCore/js/cart/shipping-address-select": {} }\'');
+            ->setExtraParams(
+                'data-mage-init=\'{ "RefactoredGroup_AutoFflCore/js/cart/shipping-address-select": '
+                . $this->getGroupedFflCheckoutConfig() . ' }\''
+            );
 
         return $select->getHtml();
+    }
+
+    /**
+     * @return string
+     */
+    private function getGroupedFflCheckoutConfig(): string
+    {
+        return json_encode([
+            'groupedFflCheckout' => $this->isGroupedFflCheckout()
+        ]);
     }
 
     /**
