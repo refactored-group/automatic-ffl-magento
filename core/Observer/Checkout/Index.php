@@ -12,6 +12,7 @@ use Magento\Framework\Message\ManagerInterface;
 use RefactoredGroup\AutoFflCore\Helper\Data as Helper;
 use Magento\Checkout\Model\Session;
 use Magento\Framework\UrlInterface;
+use Magento\Quote\Api\CartRepositoryInterface;
 
 class Index implements ObserverInterface
 {
@@ -35,6 +36,12 @@ class Index implements ObserverInterface
      * @var \Magento\Framework\App\ResponseFactory
      */
     private $responseFactory;
+
+    /**
+     * @var CartRepositoryInterface
+     */
+    private $quoteRepository;
+
     /**
      * @param Helper $helper
      */
@@ -47,7 +54,8 @@ class Index implements ObserverInterface
         Session $session,
         UrlInterface $url,
         \Magento\Framework\App\ResponseFactory $responseFactory,
-        Request $request
+        Request $request,
+        CartRepositoryInterface $quoteRepository
     ) {
         $this->helper = $helper;
         $this->messageManager = $messageManager;
@@ -55,6 +63,7 @@ class Index implements ObserverInterface
         $this->url = $url;
         $this->responseFactory = $responseFactory;
         $this->request = $request;
+        $this->quoteRepository = $quoteRepository;
     }
 
     /**
@@ -67,8 +76,14 @@ class Index implements ObserverInterface
      */
     public function execute(Observer $observer)
     {
+        $eventName = $observer->getEvent()->getName();
+
+        if ($this->helper->isEnabled() && $eventName === 'controller_action_predispatch_checkout_index_index') {
+            $this->resetFflCheckoutState();
+        }
+
         if ($this->helper->isEnabled() && $this->helper->isMixedCart()) {
-            if ($observer->getEvent()->getName() === 'controller_action_predispatch_checkout_index_index') {
+            if ($eventName === 'controller_action_predispatch_checkout_index_index') {
                 if ($this->helper->isMultishippingCheckoutAvailable()) {
                     return $observer->getControllerAction()
                         ->getResponse()
@@ -78,7 +93,7 @@ class Index implements ObserverInterface
                         ->getResponse()
                         ->setRedirect($this->url->getUrl('checkout/cart/index'));
                 }
-            } elseif ($observer->getEvent()->getName() === 'controller_action_predispatch_checkout_cart_index') {
+            } elseif ($eventName === 'controller_action_predispatch_checkout_cart_index') {
                 if ($this->helper->isMultishippingCheckoutAvailable()) {
                     // @TODO: This message seems a little confusing, we need to work on a better one
                     $message  = __('Your cart has items that need to be shipped to a Dealer. '
@@ -91,7 +106,7 @@ class Index implements ObserverInterface
                     $message  = __('Your cart has items that need to be shipped to a Dealer. '
                         . "All items will be shipped together. You'll be requested to select a Dealer on the next step.");
                 }
-            } elseif ($observer->getEvent()->getName() === 'sales_order_place_before' && !$this->helper->shipNonGunItems()) {
+            } elseif ($eventName === 'sales_order_place_before' && !$this->helper->shipNonGunItems()) {
                 $message  = __('Your cart has items that need to be shipped to a Dealer. '
                     . 'You can not perform a regular checkout with a mixed cart. '
                     . 'Please, use the Multi-Shipping Checkout option.');
@@ -107,5 +122,52 @@ class Index implements ObserverInterface
                 $this->messageManager->addErrorMessage($message);
             }
         }
+    }
+
+    /**
+     * Clear stale FFL shipping state so every regular checkout page load requires
+     * a fresh dealer selection.
+     *
+     * @return void
+     */
+    private function resetFflCheckoutState()
+    {
+        $quote = $this->session->getQuote();
+        if (!$quote || !$quote->getId()) {
+            return;
+        }
+
+        if (!$this->helper->hasFflItem($quote)) {
+            if ($quote->getFflLicense()) {
+                $quote->setFflLicense(null);
+                $this->quoteRepository->save($quote);
+            }
+            return;
+        }
+
+        $quote->setFflLicense(null);
+        $quote->setTotalsCollectedFlag(false);
+
+        $shippingAddress = $quote->getShippingAddress();
+        if ($shippingAddress) {
+            $shippingAddress->setFirstname(null);
+            $shippingAddress->setLastname(null);
+            $shippingAddress->setCompany(null);
+            $shippingAddress->setStreet([]);
+            $shippingAddress->setCity(null);
+            $shippingAddress->setCountryId(null);
+            $shippingAddress->setRegion(null);
+            $shippingAddress->setRegionId(null);
+            $shippingAddress->setPostcode(null);
+            $shippingAddress->setTelephone(null);
+            $shippingAddress->setShippingMethod(null);
+            $shippingAddress->setCollectShippingRates(true);
+
+            if (method_exists($shippingAddress, 'removeAllShippingRates')) {
+                $shippingAddress->removeAllShippingRates();
+            }
+        }
+
+        $this->quoteRepository->save($quote);
     }
 }
