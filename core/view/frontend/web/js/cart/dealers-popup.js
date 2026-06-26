@@ -8,9 +8,8 @@ define([
     'ko',
     'Magento_Ui/js/modal/modal',
     'RefactoredGroup_AutoFflCore/js/cart/select-dealer-button',
-    'Magento_Checkout/js/checkout-data',
-    'RefactoredGroup_AutoFflCore/js/checkout/helper/shipping-mode'
-], function ($, Component, ko, modal, dealerButton, checkoutData, shippingMode) {
+    'Magento_Checkout/js/checkout-data'
+], function ($, Component, ko, modal, dealerButton, checkoutData) {
 
     //@TODO: Move the address handling to a model
     return Component.extend({
@@ -105,29 +104,22 @@ define([
                 type: 'post',
                 success: function (result) {
                     var parsedResult = JSON.parse(result);
-                    /**
-                     * Assign the address to the elements on the Cart page.
-                     * 
-                     * First, it checks if the "Check Out with Multiple Addresses" is clicked.
-                     */
-                    if (shippingMode.isMultishipping()) {
+                    var fflQuoteLineItemIds = checkoutData.getFflQuoteLineItemId();
+
+                    if (fflQuoteLineItemIds && fflQuoteLineItemIds.length) {
                         /**
-                         * Default to setting the dealer address to individual text input.
+                         * Grouped FFL checkout uses one dealer selection for every FFL row.
+                         */
+                        fflQuoteLineItemIds.forEach(element => {
+                            dealerButton().dealerAddress[element](parsedResult.name);
+                            dealerButton().dealerAddressId[element](parsedResult.id);
+                        });
+                    } else {
+                        /**
+                         * Explicit multi-address checkout keeps FFL rows independent.
                          */
                         dealerButton().dealerAddress[self.currentFflItemId()](parsedResult.name);
                         dealerButton().dealerAddressId[self.currentFflItemId()](parsedResult.id);
-                    } else {
-                        /**
-                         * If true, fetch the row index of FFL items from localStorage.
-                         * Then iterate through these items and assign the value of the ID
-                         * of the dealer address.
-                         */
-                        if (checkoutData.getFflQuoteLineItemId().length) {
-                            checkoutData.getFflQuoteLineItemId().forEach(element => {
-                                dealerButton().dealerAddress[element](parsedResult.name);
-                                dealerButton().dealerAddressId[element](parsedResult.id);
-                            });
-                        }
                     }
 
                     // If we are on the multi-shipping checkout shipping page, reload

@@ -20,7 +20,7 @@
                 <button type="button"
                         class="action action-show-popup"
                         click="showFormPopUp"
-                        visible="!isNewAddressAdded()">
+                        visible="checkoutConfig.customerData.is_ffl != 1 && !isNewAddressAdded()">
                     <span translate="'New Address'"></span>
                 </button>
             </div>

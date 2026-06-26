@@ -6,9 +6,8 @@ define([
     'jquery',
     'uiComponent',
     'ko',
-    'Magento_Checkout/js/checkout-data',
-    'RefactoredGroup_AutoFflCore/js/checkout/helper/shipping-mode'
-], function ($, Component, ko, checkoutData, shippingMode) {
+    'Magento_Checkout/js/checkout-data'
+], function ($, Component, ko, checkoutData) {
     'use strict';
 
     return Component.extend({
@@ -47,20 +46,22 @@ define([
         addDealerIdToStorage: function (id) {
             if (id === undefined) return;
 
-            if (shippingMode.isMultishipping()) {
+            if (!this.groupedFflCheckout) {
                 checkoutData.setFflQuoteLineItemId(false);
-            } else {
-                let fflQuoteLineItemId = new Array();
-                if (checkoutData.getFflQuoteLineItemId().length) {
-                    fflQuoteLineItemId = checkoutData.getFflQuoteLineItemId();
-                }
-
-                if (!fflQuoteLineItemId.includes(id)) {
-                    fflQuoteLineItemId.push(id);
-                }
-
-                checkoutData.setFflQuoteLineItemId(fflQuoteLineItemId);
+                return;
             }
+
+            let fflQuoteLineItemId = new Array();
+            let storedLineItemIds = checkoutData.getFflQuoteLineItemId();
+            if (storedLineItemIds && storedLineItemIds.length) {
+                fflQuoteLineItemId = storedLineItemIds;
+            }
+
+            if (!fflQuoteLineItemId.includes(id)) {
+                fflQuoteLineItemId.push(id);
+            }
+
+            checkoutData.setFflQuoteLineItemId(fflQuoteLineItemId);
         },
         /**
          * Open modal and set current selected item

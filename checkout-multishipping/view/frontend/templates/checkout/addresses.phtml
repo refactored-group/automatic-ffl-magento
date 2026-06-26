@@ -10,6 +10,7 @@
  */
 // phpcs:disable Magento2.Files.LineLength, Generic.Files.LineLength
 // phpcs:disable Magento2.Templates.ThisInTemplate.FoundHelper
+$isGroupedFflCheckout = $block->isGroupedFflCheckout() ? 'true' : 'false';
 ?>
 <form id="checkout_multishipping_form"
       data-mage-init='{
@@ -30,7 +31,9 @@
     <input type="hidden" name="ffl_current_address" value="" id="ffl_current_address"/>
     <div class="table-wrapper">
         <table class="items data table" id="multiship-addresses-table" data-mage-init='{
-            "RefactoredGroup_AutoFflCheckoutMultiShipping/js/checkout/style-shipping-address-table": {}
+            "RefactoredGroup_AutoFflCheckoutMultiShipping/js/checkout/style-shipping-address-table": {
+                "groupedFflCheckout": <?= /* @noEscape */ $isGroupedFflCheckout ?>
+            }
         }'>
             <caption class="table-caption">
                 <?= $block->escapeHtml(__('Please select a shipping address for applicable items.')) ?>

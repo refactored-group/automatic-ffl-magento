@@ -64,22 +64,23 @@ class Index
      */
     public function aroundExecute(ParentControllor $subject, Closure $proceed)
     {
-        /**
-         * This is to track which button was pressed on the Shopping Cart page.
-         * If the "Proceed to Checkout" button is pressed from the sidebar or minicart,
-         * set the following data to customerSession.
-         */
-        $this->customerSession->setData(
-            self::FFL_CHECKOUT_BUTTON_KEY,
-            'proceed_to_checkout'
-        );
-
         if ($this->helper->isMultishippingCheckoutAvailable()) {
             $this->msHelper->clearCustomerSession();
-            if($this->helper->isMixedCart()) {
+            if ($this->helper->isMixedCart()) {
+                /**
+                 * Normal checkout redirects mixed FFL carts into multishipping,
+                 * where FFL and non-FFL rows should behave as grouped sections.
+                 */
+                $this->customerSession->setData(
+                    self::FFL_CHECKOUT_BUTTON_KEY,
+                    'proceed_to_checkout'
+                );
+
                 return $this->resultRedirectFactory->create()->setPath('multishipping/checkout');
             }
         }
+
+        $this->customerSession->unsetData(self::FFL_CHECKOUT_BUTTON_KEY);
 
         return $proceed();
     }

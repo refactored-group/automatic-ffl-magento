@@ -3,9 +3,8 @@
  * @copyright Copyright © 2022. All rights reserved.
  */
 define([
-    'jquery',
-    'RefactoredGroup_AutoFflCore/js/checkout/helper/shipping-mode'
-], function ($, shippingMode) {
+    'jquery'
+], function ($) {
     'use strict';
 
     return function (config, element) {
@@ -14,10 +13,12 @@ define([
          * The value of all other select.ship_address elements will be based from this.
          */
         $(element).on('change', function (event) {
-            if (!shippingMode.isMultishipping()) {
-                const id = $(this).val();
-                $('body').find('select.ship_address').val(id);
+            if (!config.groupedFflCheckout) {
+                return;
             }
+
+            const id = $(this).val();
+            $('body').find('select.ship_address').val(id);
         });
 
     };

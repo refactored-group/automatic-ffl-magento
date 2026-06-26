@@ -222,7 +222,6 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
         }
         $hasFfl = false;
 
-        $this->hasFfl = false;
         $items = $quote->getAllVisibleItems();
         foreach ($items as $item) {
             if ($item->getProduct()->getRequiredFfl()) {
