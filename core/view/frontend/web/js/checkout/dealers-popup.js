@@ -35,18 +35,6 @@ define([
                     '</style>'
                 )
                 $('html > head').append(styleTag);
-            } else {
-                var shippingAddress = checkoutData.getNewCustomerShippingAddress();
-
-                if (shippingAddress && shippingAddress.hasOwnProperty('is_ffl') && shippingAddress.is_ffl === 1) {
-                    //Clear previous dealer shipping address when no FFL item is detected
-                    var data = storage.get('checkout-data')() || {};
-                    data['shippingAddressFromData'] = null;
-                    data['newCustomerShippingAddress'] = null;
-                    data['selectedShippingAddress'] = null;
-
-                    this.saveCheckoutData(data);
-                }
             }
 
             return this;

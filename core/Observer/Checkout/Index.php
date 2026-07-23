@@ -121,8 +121,8 @@ class Index implements ObserverInterface
     }
 
     /**
-     * Clear stale FFL shipping state so every regular checkout page load requires
-     * a fresh dealer selection.
+     * Clear stale FFL shipping state when a dealer must be selected again or
+     * when the cart no longer contains an FFL item.
      *
      * @return void
      */
@@ -133,12 +133,15 @@ class Index implements ObserverInterface
             return;
         }
 
-        if (!$this->helper->hasFflItem($quote)) {
-            $quote->setFflLicense(null);
+        $hadFflSelection = trim((string) $quote->getFflLicense()) !== '';
+        $hasFflItem = $this->helper->hasFflItem($quote);
+
+        $quote->setFflLicense(null);
+
+        if (!$hasFflItem && !$hadFflSelection) {
             return;
         }
 
-        $quote->setFflLicense(null);
         $quote->setTotalsCollectedFlag(false);
 
         $shippingAddress = $quote->getShippingAddress();
