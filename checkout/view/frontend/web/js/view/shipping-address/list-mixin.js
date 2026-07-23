@@ -14,6 +14,13 @@ define([
                     return;
                 }
 
+                if ((checkoutConfig.customerData.is_ffl === 0 ||
+                    checkoutConfig.customerData.is_ffl === '0') &&
+                    fflAddress.isDealerAddress(address)
+                ) {
+                    return;
+                }
+
                 // Forward every argument (notably `index`) to the parent. The core
                 // list component uses `index` as the renderer's unique name; dropping
                 // it makes all addresses render under `name: undefined`, so they
