@@ -56,6 +56,45 @@ define([
             return attribute;
         },
 
+        normalizeIdentityValue: function (value) {
+            if (_.isNull(value) || _.isUndefined(value)) {
+                return '';
+            }
+
+            return String(value).toLowerCase().replace(/[^a-z0-9]/g, '');
+        },
+
+        matchesDealerIdentity: function (address, dealerIdentity) {
+            var fields = ['firstname', 'lastname', 'company', 'telephone'],
+                matchedFields = 0,
+                matches = true,
+                self = this;
+
+            if (!address || !dealerIdentity) {
+                return false;
+            }
+
+            fields.forEach(function (field) {
+                var expected = self.normalizeIdentityValue(
+                        self.getAddressValue(dealerIdentity, field)
+                    ),
+                    actual;
+
+                if (!expected) {
+                    return;
+                }
+
+                actual = self.normalizeIdentityValue(self.getAddressValue(address, field));
+                matchedFields += 1;
+
+                if (actual !== expected) {
+                    matches = false;
+                }
+            });
+
+            return matches && matchedFields >= 3;
+        },
+
         isDealerAddress: function (address) {
             var isFfl = this.getAddressValue(address, 'is_ffl');
 
@@ -71,6 +110,11 @@ define([
                 this.getAttributeValue(address && address.extension_attributes, 'ffl_license') ||
                 this.getAttributeValue(address && address.extensionAttributes, 'ffl_license')
             );
+        },
+
+        isDealerDerivedAddress: function (address, dealerIdentity) {
+            return this.isDealerAddress(address) ||
+                this.matchesDealerIdentity(address, dealerIdentity);
         }
     };
 });
