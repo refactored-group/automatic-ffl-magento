@@ -23,8 +23,6 @@ define([
             this.regionJson = JSON.parse(this.regionJson);
 
             if (checkoutConfig.customerData.is_ffl == 1) {
-                this.clearFflCheckoutData();
-
                 // Hide manual shipping-address controls from FFL checkout.
                 // @TODO: find a better way of doing this
                 var styleTag = $(
@@ -39,39 +37,96 @@ define([
 
             return this;
         },
-        /**
-         * FFL checkout must start from a fresh dealer choice on every full page load.
-         */
-        clearFflCheckoutData: function () {
-            var data = storage.get('checkout-data')() || {};
+        getCurrentStoreValue: function (storedValue) {
+            var storeCode = window.checkoutConfig && window.checkoutConfig.storeCode;
 
-            data['shippingAddressFromData'] = null;
-            data['newCustomerShippingAddress'] = null;
-            data['selectedShippingAddress'] = null;
-            data['selectedShippingRate'] = null;
-            data['selectedShippingMethod'] = null;
-            data['fflQuoteLineItemId'] = false;
-            data['dealer_license'] = null;
-            data['ffl_license'] = null;
-            this.clearFflBillingData(data);
+            if (storedValue &&
+                storeCode &&
+                Object.prototype.hasOwnProperty.call(storedValue, storeCode)
+            ) {
+                return storedValue[storeCode];
+            }
 
-            this.saveCheckoutData(data);
+            return this.isAddressLike(storedValue) ? storedValue : null;
         },
-        clearFflBillingData: function (data) {
-            var hasDealerBillingAddress =
-                fflAddress.isDealerAddress(data['billingAddressFromData']) ||
-                fflAddress.isDealerAddress(data['newCustomerBillingAddress']);
+        clearCurrentStoreValue: function (storedValue) {
+            var storeCode = window.checkoutConfig && window.checkoutConfig.storeCode;
 
-            if (fflAddress.isDealerAddress(data['billingAddressFromData'])) {
-                data['billingAddressFromData'] = null;
+            if (storedValue &&
+                storeCode &&
+                Object.prototype.hasOwnProperty.call(storedValue, storeCode)
+            ) {
+                delete storedValue[storeCode];
+
+                return Object.keys(storedValue).length ? storedValue : null;
             }
 
-            if (fflAddress.isDealerAddress(data['newCustomerBillingAddress'])) {
-                data['newCustomerBillingAddress'] = null;
+            if (this.isAddressLike(storedValue)) {
+                return null;
             }
 
-            if (hasDealerBillingAddress && data['selectedBillingAddress'] === 'new-customer-address') {
+            return storedValue && Object.keys(storedValue).length ? storedValue : null;
+        },
+        isAddressLike: function (value) {
+            return Boolean(
+                value &&
+                (
+                    fflAddress.getAddressValue(value, 'firstname') ||
+                    fflAddress.getAddressValue(value, 'lastname') ||
+                    fflAddress.getAddressValue(value, 'company') ||
+                    fflAddress.getAddressValue(value, 'telephone') ||
+                    fflAddress.getAddressValue(value, 'street')
+                )
+            );
+        },
+        setCurrentStoreValue: function (storedValue, value) {
+            var storeCode = window.checkoutConfig && window.checkoutConfig.storeCode;
+
+            if (!storeCode) {
+                return value;
+            }
+
+            if (!storedValue || this.isAddressLike(storedValue)) {
+                storedValue = {};
+            }
+
+            storedValue[storeCode] = value;
+
+            return storedValue;
+        },
+        clearFflBillingData: function (data, dealerIdentity) {
+            var billingAddressFromData =
+                    this.getCurrentStoreValue(data['billingAddressFromData']),
+                newCustomerBillingAddress =
+                    this.getCurrentStoreValue(data['newCustomerBillingAddress']),
+                hasDealerBillingAddress =
+                    fflAddress.isDealerDerivedAddress(billingAddressFromData, dealerIdentity) ||
+                    fflAddress.isDealerDerivedAddress(newCustomerBillingAddress, dealerIdentity);
+
+            if (fflAddress.isDealerDerivedAddress(billingAddressFromData, dealerIdentity)) {
+                data['billingAddressFromData'] =
+                    this.clearCurrentStoreValue(data['billingAddressFromData']);
+            }
+
+            if (fflAddress.isDealerDerivedAddress(newCustomerBillingAddress, dealerIdentity)) {
+                data['newCustomerBillingAddress'] =
+                    this.clearCurrentStoreValue(data['newCustomerBillingAddress']);
+            }
+
+            if (hasDealerBillingAddress &&
+                (data['selectedBillingAddress'] === 'new-customer-address' ||
+                    data['selectedBillingAddress'] === 'new-customer-billing-address')
+            ) {
                 data['selectedBillingAddress'] = null;
+            }
+
+            if (window.checkoutConfig &&
+                fflAddress.isDealerDerivedAddress(
+                    window.checkoutConfig.billingAddressFromData,
+                    dealerIdentity
+                )
+            ) {
+                window.checkoutConfig.billingAddressFromData = null;
             }
         },
         /**
@@ -148,7 +203,19 @@ define([
             // Set new shipping address as the selected address
             var storageData = storage.get('checkout-data')() || {};
             storageData['selectedShippingAddress'] = newShippingAddress.getKey();
-            this.clearFflBillingData(storageData);
+            this.clearFflBillingData(
+                storageData,
+                this.getCurrentStoreValue(storageData['fflDealerAddressIdentity'])
+            );
+            storageData['fflDealerAddressIdentity'] = this.setCurrentStoreValue(
+                storageData['fflDealerAddressIdentity'],
+                {
+                    firstname: addressData['firstname'],
+                    lastname: addressData['lastname'],
+                    company: addressData['company'],
+                    telephone: addressData['telephone']
+                }
+            );
             this.saveCheckoutData(storageData);
 
             $("#dealers-popup").modal("closeModal");
