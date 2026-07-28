@@ -11,132 +11,52 @@ const moduleSource = fs.readFileSync(
     ),
     'utf8'
 );
+const helperSource = fs.readFileSync(
+    process.env.FFL_ADDRESS_HELPER_PATH || path.resolve(
+        __dirname,
+        '../../core/view/frontend/web/js/checkout/helper/ffl-address.js'
+    ),
+    'utf8'
+);
+const underscore = {
+    isArray: Array.isArray,
+    isFunction: (value) => typeof value === 'function',
+    isNull: (value) => value === null,
+    isObject: (value) => value !== null && typeof value === 'object',
+    isUndefined: (value) => value === undefined
+};
 
 function clone(value) {
     return value === undefined ? undefined : JSON.parse(JSON.stringify(value));
 }
 
-function getAddressValue(address, field) {
-    let value;
+function loadFflAddressHelper() {
+    let helper;
 
-    if (!address || address[field] === undefined || address[field] === null) {
-        return null;
-    }
+    vm.runInNewContext(helperSource, {
+        define(dependencies, factory) {
+            assert.deepEqual(Array.from(dependencies), ['underscore']);
+            helper = factory(underscore);
+        }
+    }, {
+        filename: 'ffl-address.js'
+    });
 
-    value = address[field];
-
-    if (typeof value === 'function') {
-        value = value.call(address);
-    }
-
-    if (value && typeof value === 'object' && value.value !== undefined) {
-        return value.value;
-    }
-
-    return value;
+    return helper;
 }
 
-function getAttributeValue(attributes, code) {
-    let attribute;
-
-    if (!attributes) {
-        return null;
-    }
-
-    if (typeof attributes === 'function') {
-        attributes = attributes();
-    }
-
-    if (Array.isArray(attributes)) {
-        attribute = attributes.find((item) => item.attribute_code === code);
-    } else {
-        attribute = attributes[code];
-    }
-
-    if (attribute && typeof attribute === 'object' && attribute.value !== undefined) {
-        return attribute.value;
-    }
-
-    return attribute || null;
-}
-
-const fflAddress = {
-    getAddressValue,
-
-    normalizeIdentityValue(value) {
-        if (value === null || value === undefined) {
-            return '';
-        }
-
-        return String(value).toLowerCase().replace(/[^a-z0-9]/g, '');
-    },
-
-    matchesDealerIdentity(address, identity) {
-        let matchedFields = 0;
-        let matches = true;
-
-        if (!address || !identity) {
-            return false;
-        }
-
-        ['firstname', 'lastname', 'company', 'telephone'].forEach((field) => {
-            const expected = this.normalizeIdentityValue(getAddressValue(identity, field));
-
-            if (!expected) {
-                return;
-            }
-
-            matchedFields += 1;
-
-            if (this.normalizeIdentityValue(getAddressValue(address, field)) !== expected) {
-                matches = false;
-            }
-        });
-
-        return matches && matchedFields >= 3;
-    },
-
-    isDealerAddress(address) {
-        const isFfl = getAddressValue(address, 'is_ffl');
-
-        if (isFfl === true || isFfl === 1 || isFfl === '1') {
-            return true;
-        }
-
-        return Boolean(
-            getAddressValue(address, 'dealer_license') ||
-            getAddressValue(address, 'ffl_license') ||
-            getAttributeValue(address && address.custom_attributes, 'ffl_license') ||
-            getAttributeValue(address && address.customAttributes, 'ffl_license') ||
-            getAttributeValue(address && address.extension_attributes, 'ffl_license') ||
-            getAttributeValue(address && address.extensionAttributes, 'ffl_license')
-        );
-    },
-
-    isDealerDerivedAddress(address, identity) {
-        return this.isDealerAddress(address) ||
-            this.matchesDealerIdentity(address, identity);
-    }
-};
-
-function getStoredAddress(storedAddress, storeCode) {
-    if (storedAddress &&
-        Object.prototype.hasOwnProperty.call(storedAddress, storeCode)
-    ) {
-        return storedAddress[storeCode];
-    }
-
-    return storedAddress || null;
-}
+const fflAddress = loadFflAddressHelper();
 
 function loadMixin({
     checkoutDataState,
     configBillingAddress = null,
     configShippingAddress = null,
     isFfl = 0,
+    standaloneCheckoutDataState = null,
     storeCode = 'default'
 }) {
     let mixinFactory;
+    let standaloneData = clone(standaloneCheckoutDataState);
     let storedData = clone(checkoutDataState);
     const storage = {
         get(key) {
@@ -150,6 +70,18 @@ function loadMixin({
             storedData = value;
         }
     };
+    const localStorage = {
+        getItem(key) {
+            assert.equal(key, 'checkout-data');
+
+            return standaloneData === null ? null : JSON.stringify(standaloneData);
+        },
+
+        setItem(key, value) {
+            assert.equal(key, 'checkout-data');
+            standaloneData = JSON.parse(value);
+        }
+    };
     const checkoutConfig = {
         customerData: {
             is_ffl: isFfl
@@ -161,11 +93,11 @@ function loadMixin({
     };
     const checkoutData = {
         getShippingAddressFromData() {
-            return getStoredAddress(storedData.shippingAddressFromData, storeCode);
+            return storedData.shippingAddressFromData || null;
         },
 
         getNewCustomerShippingAddress() {
-            return getStoredAddress(storedData.newCustomerShippingAddress, storeCode);
+            return storedData.newCustomerShippingAddress || null;
         }
     };
     const sandbox = {
@@ -180,7 +112,8 @@ function loadMixin({
             mixinFactory = factory(storage, fflAddress);
         },
         window: {
-            checkoutConfig
+            checkoutConfig,
+            localStorage
         }
     };
 
@@ -193,6 +126,7 @@ function loadMixin({
 
     return {
         checkoutConfig,
+        getStandaloneData: () => standaloneData,
         getStoredData: () => storedData
     };
 }
@@ -212,6 +146,29 @@ function scopedDealerIdentity(storeCode = 'default') {
     };
 }
 
+function loggedInDealerIdentity() {
+    return {
+        company: 'RIFLEGEAR',
+        firstname: 'Ada',
+        lastname: 'Lovelace',
+        telephone: '(972)292-7678'
+    };
+}
+
+function loggedInDealerAddress() {
+    return {
+        city: 'Lewisville',
+        company: 'RIFLEGEAR',
+        country_id: 'US',
+        firstname: 'Ada',
+        lastname: 'Lovelace',
+        postcode: '75056-5104',
+        region: 'Texas',
+        street: ['4001 State Highway 121'],
+        telephone: '(972) 292-7678'
+    };
+}
+
 function vertexDealerAddress() {
     return {
         city: 'Lewisville',
@@ -222,6 +179,22 @@ function vertexDealerAddress() {
         postcode: '75056-5104',
         street: ['4001 State Highway 121'],
         telephone: '(972) 292-7678'
+    };
+}
+
+function provenLegacyGuestDealerAddress() {
+    return {
+        city: 'Lewisville',
+        company: 'RIFLEGEAR',
+        country_id: 'US',
+        firstname: 'FFL',
+        lastname: 'Dealer',
+        postcode: '75056-5104',
+        region: 'Texas',
+        street: {
+            0: '4001 State Highway 121'
+        },
+        telephone: '(972)292-7678'
     };
 }
 
@@ -238,7 +211,7 @@ function customerAddress() {
     };
 }
 
-test('clears a markerless dealer address normalized by Vertex', () => {
+test('clears a markerless dealer address normalized by Vertex using provenance', () => {
     const dealerAddress = vertexDealerAddress();
     const result = loadMixin({
         checkoutDataState: {
@@ -269,6 +242,190 @@ test('clears a markerless dealer address normalized by Vertex', () => {
     assert.equal(storedData.selectedBillingAddress, null);
     assert.equal(result.checkoutConfig.shippingAddressFromData, null);
     assert.equal(result.checkoutConfig.selectedShippingMethod, null);
+});
+
+test('recovers standalone provenance and clears the proven guest dealer address', () => {
+    const dealerAddress = provenLegacyGuestDealerAddress();
+    const result = loadMixin({
+        checkoutDataState: {
+            fflDealerAddressIdentity: null,
+            newCustomerShippingAddress: null,
+            selectedShippingAddress: 'new-customer-address',
+            selectedShippingMethod: 'ups_02',
+            selectedShippingRate: 'ups_02',
+            shippingAddressFromData: clone(dealerAddress)
+        },
+        standaloneCheckoutDataState: {
+            fflDealerAddressIdentity: scopedDealerIdentity(
+                'wilson_combat_store_view'
+            ),
+            selectedShippingAddress: 'new-customer-address',
+            shippingAddressFromData: clone(dealerAddress)
+        },
+        storeCode: 'wilson_combat_store_view'
+    });
+    const standaloneData = result.getStandaloneData();
+    const storedData = result.getStoredData();
+
+    assert.equal(storedData.shippingAddressFromData, null);
+    assert.equal(storedData.newCustomerShippingAddress, null);
+    assert.equal(storedData.selectedShippingAddress, null);
+    assert.equal(storedData.selectedShippingMethod, null);
+    assert.equal(storedData.selectedShippingRate, null);
+    assert.equal(storedData.fflDealerAddressIdentity, null);
+    assert.equal(standaloneData.shippingAddressFromData, null);
+    assert.equal(standaloneData.selectedShippingAddress, null);
+    assert.equal(standaloneData.fflDealerAddressIdentity, null);
+    assert.equal(result.checkoutConfig.shippingAddressFromData, null);
+});
+
+test('recovers only the current store standalone dealer provenance', () => {
+    const dealerAddress = provenLegacyGuestDealerAddress();
+    const buyerAddress = customerAddress();
+    const canonicalStoreIdentity = {
+        company: 'CANONICAL STORE DEALER',
+        firstname: 'FFL',
+        lastname: 'Dealer',
+        telephone: '720-555-0100'
+    };
+    const secondStoreIdentity = {
+        company: 'SECOND STORE DEALER',
+        firstname: 'FFL',
+        lastname: 'Dealer',
+        telephone: '303-555-0199'
+    };
+    const result = loadMixin({
+        checkoutDataState: {
+            fflDealerAddressIdentity: {
+                canonical_store: clone(canonicalStoreIdentity)
+            },
+            newCustomerShippingAddress: {
+                second_store: clone(buyerAddress),
+                wilson_combat_store_view: clone(dealerAddress)
+            },
+            selectedShippingAddress: 'new-customer-address',
+            shippingAddressFromData: {
+                second_store: clone(buyerAddress),
+                wilson_combat_store_view: clone(dealerAddress)
+            }
+        },
+        standaloneCheckoutDataState: {
+            fflDealerAddressIdentity: {
+                second_store: clone(secondStoreIdentity),
+                wilson_combat_store_view: dealerIdentity()
+            }
+        },
+        storeCode: 'wilson_combat_store_view'
+    });
+    const standaloneData = result.getStandaloneData();
+    const storedData = result.getStoredData();
+
+    assert.deepEqual(storedData.shippingAddressFromData, {
+        second_store: buyerAddress
+    });
+    assert.deepEqual(storedData.newCustomerShippingAddress, {
+        second_store: buyerAddress
+    });
+    assert.deepEqual(clone(storedData.fflDealerAddressIdentity), {
+        canonical_store: canonicalStoreIdentity,
+        second_store: secondStoreIdentity
+    });
+    assert.equal(storedData.selectedShippingAddress, null);
+    assert.deepEqual(clone(standaloneData), clone(storedData));
+});
+
+test('recovers standalone logged-in provenance and clears the dealer address', () => {
+    const dealerAddress = loggedInDealerAddress();
+    const result = loadMixin({
+        checkoutDataState: {
+            fflDealerAddressIdentity: null,
+            newCustomerShippingAddress: clone(dealerAddress),
+            selectedShippingAddress: 'new-customer-address',
+            selectedShippingMethod: 'ups_02',
+            selectedShippingRate: 'ups_02',
+            shippingAddressFromData: clone(dealerAddress)
+        },
+        configShippingAddress: dealerAddress,
+        standaloneCheckoutDataState: {
+            fflDealerAddressIdentity: {
+                default: loggedInDealerIdentity()
+            }
+        }
+    });
+    const standaloneData = result.getStandaloneData();
+    const storedData = result.getStoredData();
+
+    assert.equal(storedData.shippingAddressFromData, null);
+    assert.equal(storedData.newCustomerShippingAddress, null);
+    assert.equal(storedData.selectedShippingAddress, null);
+    assert.equal(storedData.selectedShippingMethod, null);
+    assert.equal(storedData.selectedShippingRate, null);
+    assert.equal(storedData.fflDealerAddressIdentity, null);
+    assert.equal(standaloneData.fflDealerAddressIdentity, null);
+    assert.equal(standaloneData.shippingAddressFromData, null);
+    assert.equal(result.checkoutConfig.shippingAddressFromData, null);
+});
+
+test('preserves a markerless logged-in business address without provenance', () => {
+    const buyerAddress = {
+        city: 'Denver',
+        company: 'Analytical Engines LLC',
+        country_id: 'US',
+        firstname: 'Ada',
+        lastname: 'Lovelace',
+        postcode: '80202',
+        region: 'Colorado',
+        street: ['1701 Wynkoop Street'],
+        telephone: '303-555-0100'
+    };
+    const originalData = {
+        newCustomerShippingAddress: clone(buyerAddress),
+        selectedShippingAddress: 'new-customer-address',
+        selectedShippingMethod: 'ups_02',
+        selectedShippingRate: 'ups_02',
+        shippingAddressFromData: clone(buyerAddress)
+    };
+    const result = loadMixin({
+        checkoutDataState: originalData,
+        configShippingAddress: buyerAddress
+    });
+
+    assert.deepEqual(result.getStoredData(), originalData);
+    assert.deepEqual(result.checkoutConfig.shippingAddressFromData, buyerAddress);
+    assert.equal(result.checkoutConfig.selectedShippingMethod, 'ups_02');
+});
+
+test('preserves a logged-in buyer when only standalone provenance remains', () => {
+    const buyerAddress = customerAddress();
+    const originalData = {
+        newCustomerShippingAddress: clone(buyerAddress),
+        selectedShippingAddress: 'customer-address-42',
+        selectedShippingMethod: 'ups_02',
+        selectedShippingRate: 'ups_02',
+        shippingAddressFromData: clone(buyerAddress)
+    };
+    const result = loadMixin({
+        checkoutDataState: originalData,
+        configShippingAddress: buyerAddress,
+        standaloneCheckoutDataState: {
+            fflDealerAddressIdentity: {
+                default: loggedInDealerIdentity()
+            }
+        }
+    });
+    const standaloneData = result.getStandaloneData();
+    const storedData = result.getStoredData();
+
+    assert.deepEqual(storedData.shippingAddressFromData, buyerAddress);
+    assert.deepEqual(storedData.newCustomerShippingAddress, buyerAddress);
+    assert.equal(storedData.selectedShippingAddress, 'customer-address-42');
+    assert.equal(storedData.selectedShippingMethod, 'ups_02');
+    assert.equal(storedData.selectedShippingRate, 'ups_02');
+    assert.equal(storedData.fflDealerAddressIdentity, null);
+    assert.equal(standaloneData.fflDealerAddressIdentity, null);
+    assert.deepEqual(standaloneData.shippingAddressFromData, buyerAddress);
+    assert.deepEqual(result.checkoutConfig.shippingAddressFromData, buyerAddress);
+    assert.equal(result.checkoutConfig.selectedShippingMethod, 'ups_02');
 });
 
 test('preserves an ordinary customer address when there is no dealer provenance', () => {
