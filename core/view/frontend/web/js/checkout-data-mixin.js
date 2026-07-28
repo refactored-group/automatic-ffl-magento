@@ -20,6 +20,17 @@ define([
              */
             saveData = function (data) {
                 storage.set(cacheKey, data);
+
+                /*
+                 * AutoFFL dealer selection also persists this standalone copy.
+                 * Keep it synchronized so recovered provenance cannot restore
+                 * stale checkout state on a later page load.
+                 */
+                try {
+                    window.localStorage.setItem(cacheKey, JSON.stringify(data));
+                } catch (error) {
+                    // Magento customer-data remains the canonical saved copy.
+                }
             },
 
             /**
@@ -27,6 +38,25 @@ define([
              */
             getData = function () {
                 return storage.get(cacheKey)();
+            },
+
+            /**
+             * Return the standalone checkout-data copy written during dealer
+             * selection. Magento customer-data can drop custom provenance while
+             * this copy retains it.
+             *
+             * @return {Object|null}
+             */
+            getStandaloneData = function () {
+                var data;
+
+                try {
+                    data = JSON.parse(window.localStorage.getItem(cacheKey) || 'null');
+                } catch (error) {
+                    return null;
+                }
+
+                return data && typeof data === 'object' ? data : null;
             },
 
             isAddressLike = function (value) {
@@ -112,6 +142,49 @@ define([
                 return null;
             },
 
+            /**
+             * Merge store-scoped provenance from Magento customer-data and the
+             * standalone AutoFFL copy without replacing another store's state.
+             *
+             * @param {Object|null} storedIdentity
+             * @param {Object|null} standaloneIdentity
+             * @return {Object|null}
+             */
+            mergeStoredDealerIdentity = function (storedIdentity, standaloneIdentity) {
+                var mergedIdentity = {},
+                    storeCode = window.checkoutConfig && window.checkoutConfig.storeCode;
+
+                if (!storedIdentity) {
+                    return standaloneIdentity || null;
+                }
+
+                if (!standaloneIdentity || !storeCode) {
+                    return storedIdentity;
+                }
+
+                if (isAddressLike(storedIdentity)) {
+                    mergedIdentity[storeCode] = storedIdentity;
+                } else {
+                    Object.keys(storedIdentity).forEach(function (key) {
+                        mergedIdentity[key] = storedIdentity[key];
+                    });
+                }
+
+                if (isAddressLike(standaloneIdentity)) {
+                    if (!Object.prototype.hasOwnProperty.call(mergedIdentity, storeCode)) {
+                        mergedIdentity[storeCode] = standaloneIdentity;
+                    }
+                } else {
+                    Object.keys(standaloneIdentity).forEach(function (key) {
+                        if (!Object.prototype.hasOwnProperty.call(mergedIdentity, key)) {
+                            mergedIdentity[key] = standaloneIdentity[key];
+                        }
+                    });
+                }
+
+                return mergedIdentity;
+            },
+
             clearStoredDealerIdentity = function (storedIdentity) {
                 var storeCode = window.checkoutConfig && window.checkoutConfig.storeCode;
 
@@ -181,12 +254,14 @@ define([
                 configShippingAddress,
                 configBillingAddress,
                 dealerIdentity,
+                dealerIdentityState,
                 hasDealerProvenance,
                 shippingAddressFromDataIsDealer,
                 newCustomerShippingAddressIsDealer,
                 configShippingAddressIsDealer,
                 hasDealerShippingAddress,
-                data;
+                data,
+                standaloneData;
 
             if (!customerData ||
                 !Object.prototype.hasOwnProperty.call(customerData, 'is_ffl')
@@ -201,12 +276,22 @@ define([
                 return false;
             }
 
-            shippingAddressFromData = checkoutData.getShippingAddressFromData();
-            newCustomerShippingAddress = checkoutData.getNewCustomerShippingAddress();
+            shippingAddressFromData = getStoredAddress(
+                checkoutData.getShippingAddressFromData()
+            );
+            newCustomerShippingAddress = getStoredAddress(
+                checkoutData.getNewCustomerShippingAddress()
+            );
             configShippingAddress = config.shippingAddressFromData;
             configBillingAddress = config.billingAddressFromData;
             data = getData() || {};
-            dealerIdentity = getStoredDealerIdentity(data.fflDealerAddressIdentity);
+            standaloneData = getStandaloneData() || {};
+            dealerIdentityState = mergeStoredDealerIdentity(
+                data.fflDealerAddressIdentity,
+                standaloneData.fflDealerAddressIdentity
+            );
+            dealerIdentity = getStoredDealerIdentity(dealerIdentityState);
+
             hasDealerProvenance = Boolean(dealerIdentity);
             shippingAddressFromDataIsDealer =
                 fflAddress.isDealerDerivedAddress(shippingAddressFromData, dealerIdentity);
@@ -251,7 +336,7 @@ define([
             data.dealer_license = null;
             data.ffl_license = null;
             data.fflDealerAddressIdentity =
-                clearStoredDealerIdentity(data.fflDealerAddressIdentity);
+                clearStoredDealerIdentity(dealerIdentityState);
             clearDealerBillingData(data, dealerIdentity);
             saveData(data);
 
