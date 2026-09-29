@@ -6,9 +6,11 @@
 namespace RefactoredGroup\AutoFflCheckoutMultiShipping\Block\Checkout;
 
 use Magento\Customer\Model\Address\Config as AddressConfig;
+use RefactoredGroup\AutoFflCore\Helper\Data as AutoFflHelper;
 
 class Addresses extends \Magento\Multishipping\Block\Checkout\Addresses
 {
+    private $autoFflHelper;
     /**
      * Constructor
      *
@@ -27,6 +29,7 @@ class Addresses extends \Magento\Multishipping\Block\Checkout\Addresses
         \Magento\Customer\Api\CustomerRepositoryInterface $customerRepository,
         AddressConfig $addressConfig,
         \Magento\Customer\Model\Address\Mapper $addressMapper,
+        AutoFflHelper $autoFflHelper,
         array $data = []
     ) {
         parent::__construct(
@@ -38,6 +41,7 @@ class Addresses extends \Magento\Multishipping\Block\Checkout\Addresses
             $addressMapper,
             $data
         );
+        $this->autoFflHelper = $autoFflHelper;
     }
 
     /**
@@ -59,9 +63,11 @@ class Addresses extends \Magento\Multishipping\Block\Checkout\Addresses
      */
     public function getSelectDealerConfig($item, $index)
     {
+        $quote = $this->getCheckout()->getQuote();
         return json_encode([
             'dealerButtonId' => $index,
-            'addressFieldName' => $this->getFflAddressFieldName($item, $index)
+            'addressFieldName' => $this->getFflAddressFieldName($item, $index),
+            'routingState' => $this->autoFflHelper->multishippingRoutingState($quote, $item->getAddress())
         ]);
     }
 
@@ -116,17 +122,31 @@ class Addresses extends \Magento\Multishipping\Block\Checkout\Addresses
         if (is_array($items) && count($items)) {
             usort($items, function($a, $b) {
                 if ($a->getQuoteItem() !== null && $b->getQuoteItem() !== null) {
-                    if ($a->getQuoteItem()->getProduct()->getRequiredFfl() ==
-                        $b->getQuoteItem()->getProduct()->getRequiredFfl()) {
+                    $aRequired = $this->isFflItem($a);
+                    $bRequired = $this->isFflItem($b);
+                    if ($aRequired == $bRequired) {
                         return 0;
                     }
-                    return $a->getQuoteItem()->getProduct()->getRequiredFfl()
-                        > $b->getQuoteItem()->getProduct()->getRequiredFfl()
-                        ? -1 : 1;
+                    return $aRequired ? -1 : 1;
                 }
+                return 0;
             });
         }
 
         return $items;
+    }
+
+    public function isFflItem($item)
+    {
+        $quote = $this->getCheckout()->getQuote();
+        $state = $this->autoFflHelper->multishippingRoutingState($quote, $item->getAddress());
+        return $this->autoFflHelper->isFflItem($item, $quote, $state);
+    }
+
+    public function requiresRoutingState($item)
+    {
+        $quote = $this->getCheckout()->getQuote();
+        $state = $this->autoFflHelper->multishippingRoutingState($quote, $item->getAddress());
+        return $this->autoFflHelper->isUnresolvedAmmoItem($item, $quote, $state);
     }
 }

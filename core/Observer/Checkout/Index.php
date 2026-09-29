@@ -138,14 +138,21 @@ class Index implements ObserverInterface
         }
 
         if (!$this->helper->hasFflItem($quote)) {
-            if ($quote->getFflLicense()) {
+            $hasConditionalAmmo = $this->helper->hasConditionalAmmo();
+            if ($quote->getFflLicense() || $quote->getFflDealerData() ||
+                (!$hasConditionalAmmo && $quote->getFflRoutingState())) {
                 $quote->setFflLicense(null);
+                $quote->setFflDealerData(null);
+                if (!$hasConditionalAmmo) {
+                    $quote->setFflRoutingState(null);
+                }
                 $this->quoteRepository->save($quote);
             }
             return;
         }
 
         $quote->setFflLicense(null);
+        $quote->setFflDealerData(null);
         $quote->setTotalsCollectedFlag(false);
 
         $shippingAddress = $quote->getShippingAddress();

@@ -4,12 +4,12 @@
  * @copyright Copyright © 2022. All rights reserved.
  */
  -->
-<div class="ffl-address" data-bind="html: dealerAddress[dealerButtonId]"></div>
+<div class="ffl-address" data-bind="text: dealerAddress[dealerButtonId]"></div>
 <input type="text" class="ffl-cart-input-address" data-validate="{number: true, required:true, 'validate-greater-than-zero':true}" data-bind="attr: {
             name: addressFieldName,
             id: addressFieldName,
             value: dealerAddressId[dealerButtonId]
     }">
 <button type="button" class="action update select-dealer" data-bind="click: openSelectDealerModal">
-    <span data-bind="html: fflButtonLabel"></span>
+    <span data-bind="text: fflButtonLabel"></span>
 </button>

@@ -40,7 +40,10 @@ class Shipping extends \Magento\Multishipping\Block\Checkout\Shipping
     public function hasFflItem($items)
     {
         foreach ($items as $item) {
-            if ($item->getProduct()->getRequiredFfl()) {
+            $quote = $this->getCheckout()->getQuote();
+            $helper = $this->getData('auto_ffl_helper');
+            $state = $helper->multishippingRoutingState($quote, $item->getAddress());
+            if ($helper->isFflItem($item, $quote, $state)) {
                 return true;
             }
         }

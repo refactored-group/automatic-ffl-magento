@@ -1,65 +1,6 @@
-<!--
-/**
- * Copyright © Refactored Group (https://www.refactored.group)
- * @copyright Copyright © 2022. All rights reserved.
- */
- -->
-
-<div class="main-block">
-    <!-- Popup content with main div display none -->
-    <div id="dealers-popup" style="display:none; height: 100%; min-height: 100%">
-        <div class="ffl-flex-container ffl-header-container">
-            <div class="ffl-heading"><h1 data-bind="i18n: 'Find your dealer'"></h1></div>
-            <div class="ffl-search-field"><input type="text" id="ffl-input-search"
-                                                 placeholder="Enter your Zip Code, City or FFL"
-                                                 name="ffl_search" value="" size="2" min="0"
-                                                 class="input-text ffl-search-input"
-                                                 autocomplete="off" event="{keypress: onEnter}"></div>
-            <div class="ffl-miles"><span>
-                        <select name="ffl_miles_search" id="ffl-miles-search" class="select-ffl dealers-modal-button">
-                        <option value="5" data-bind="i18n: '5 Miles'"></option>
-                        <option value="10" data-bind="i18n: '10 Miles'"></option>
-                        <option value="30" data-bind="i18n: '30 Miles'"></option>
-                        <option value="75" data-bind="i18n: '75 Miles'"></option>
-                    </select>
-                    </span></div>
-            <div class="ffl-placeholder"></div>
-            <div class="ffl-search">
-                <button type="button" class="action primary dealers-modal-button" data-bind="click: getFflResults">
-                    <span data-bind="i18n: 'Search'"></span>
-                </button>
-            </div>
-            <div class="ffl-placeholder"></div>
-            <div class="ffl-cancel">
-                <button type="button" data-role="closeBtn" class="dealers-modal-button">
-                    <span data-bind="i18n: 'Cancel'"></span>
-                </button>
-            </div>
-        </div>
-        <div class="ffl-flex-container flex-container-results">
-            <div class="ffl-results">
-                <div class="ffl-searching-message" data-bind="i18n: 'Searching for dealers...', visible: isSearchingMessageVisible"></div>
-                <div class="ffl-no-dealers-message" data-bind="i18n: 'No dealers have been found.', visible: isNoDealersMessageVisible"></div>
-                <div data-bind="visible: isResultsVisible">
-                    <div data-bind="foreach: {data: fflResults, as: 'dealer'}">
-                        <div data-bind="{click: function(data, event) { return $parent.selectDealer($index()) }, attr: {class: $data.class}}">
-                            <p class="ffl-dealer-name"><!-- ko text: $data.business_name_formatted --><!-- /ko --></p>
-                            <p class="ffl-dealer-address"><!-- ko text: $data.formatted_address --><!-- /ko --></p>
-                            <p class="ffl-dealer-phone"><a data-bind="attr: {'href': 'tel:+1' + $data.phone_number}, text: $data.phone_number"></a></p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="ffl-toast-container" id="ffl-floating-toast">
-                <div class="message-ffl ffl message">
-                    <div>
-                        <a href="#" onclick="javascript:jQuery('#ffl-floating-toast').hide();" class="close-button"></a>
-                        <div id="ffl-toast-message"></div>
-                    </div>
-                </div>
-            </div>
-            <div class="ffl-map" id="ffl-map"></div>
-        </div>
-    </div>
+<div id="dealers-popup" style="display:none" role="dialog" aria-label="FFL dealer selection">
+    <div class="message message-error" role="alert" data-bind="visible: selectionError, text: selectionError"></div>
+    <iframe id="automaticffl-map-iframe" data-bind="attr: { src: iframeUrl }"
+            title="Find an FFL dealer" style="width:100%;height:70vh;min-height:400px;border:0"></iframe>
 </div>
 <div data-bind="afterRender: renderDealersModal"></div>

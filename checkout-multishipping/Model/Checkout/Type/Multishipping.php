@@ -103,7 +103,7 @@ class Multishipping extends \Magento\Multishipping\Model\Checkout\Type\Multiship
      * @param array $data
      * @param CartExtensionFactory|null $cartExtensionFactory
      * @param AllowedCountries|null $allowedCountryReader
-     * @param \Magento\Multishipping\Model\Checkout\Type\Multishipping|null $placeOrderFactory
+     * @param \Magento\Multishipping\Model\Checkout\Type\Multishipping\PlaceOrderFactory|null $placeOrderFactory
      * @param LoggerInterface|null $logger
      * @param DataObjectHelper|null $dataObjectHelper
      */
@@ -134,7 +134,7 @@ class Multishipping extends \Magento\Multishipping\Model\Checkout\Type\Multiship
         array $data = [],
         ?\Magento\Quote\Api\Data\CartExtensionFactory $cartExtensionFactory = null,
         ?AllowedCountries $allowedCountryReader = null,
-        ?\Magento\Multishipping\Model\Checkout\Type\Multishipping $placeOrderFactory = null,
+        ?\Magento\Multishipping\Model\Checkout\Type\Multishipping\PlaceOrderFactory $placeOrderFactory = null,
         ?LoggerInterface $logger = null,
         ?DataObjectHelper $dataObjectHelper = null
     ) {

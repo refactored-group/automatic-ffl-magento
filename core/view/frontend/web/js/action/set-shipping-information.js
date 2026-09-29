@@ -52,7 +52,9 @@ define([
                 payload.addressInformation.extension_attributes = _.extend(
                     payload.addressInformation.extension_attributes || {},
                     {
-                        ffl_license: fflLicense
+                        ffl_license: fflLicense,
+                        ffl_dealer_data: shippingAddress.ffl_dealer_data ||
+                            (shippingAddress.extension_attributes && shippingAddress.extension_attributes.ffl_dealer_data) || null
                     }
                 );
             }

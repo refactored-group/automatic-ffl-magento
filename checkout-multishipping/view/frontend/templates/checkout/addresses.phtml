@@ -46,7 +46,7 @@
             <tbody>
             <?php foreach ($block->getItems() as $_index => $_item): ?>
                 <?php if ($_item->getQuoteItem()): ?>
-                    <?php $isRequiredFfl = $_item->getQuoteItem()->getProduct()->getRequiredFfl(); ?>
+                    <?php $isRequiredFfl = $block->isFflItem($_item); ?>
                     <tr class="<?= ($isRequiredFfl) ? 'ffl-item' : 'non-ffl-item' ?>">
                         <td class="col product" data-th="<?= $block->escapeHtml(__('Product')) ?>">
                             <?= $block->getItemHtml($_item->getQuoteItem()) ?>
@@ -56,6 +56,11 @@
                                         <?php $fflMsg = __('This item must be shipped to a licensed dealer (FFL)'); ?>
                                         <?= $block->escapeHtml($fflMsg); ?>
                                     </div>
+                                </div>
+                            <?php endif; ?>
+                            <?php if ($block->requiresRoutingState($_item)): ?>
+                                <div class="message notice">
+                                    <?= $block->escapeHtml(__('Select the intended delivery address, then update addresses to check ammunition routing rules.')) ?>
                                 </div>
                             <?php endif; ?>
                         </td>

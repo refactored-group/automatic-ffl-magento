@@ -4,25 +4,27 @@ namespace RefactoredGroup\AutoFflCore\Observer\Model;
 
 use Magento\Framework\Event\Observer;
 use Magento\Framework\Event\ObserverInterface;
-use Magento\Sales\Api\OrderRepositoryInterface;
+use RefactoredGroup\AutoFflCore\Model\OrderMetadata;
 
 class SalesModelServiceQuoteSubmitBeforeObserver implements ObserverInterface
 {
-    private $orderRepository;
+    private $metadata;
     
     public function __construct(
-        OrderRepositoryInterface $orderRepository
+        OrderMetadata $metadata
     ) {
-        $this->orderRepository = $orderRepository;
+        $this->metadata = $metadata;
     }
 
     public function execute(Observer $observer)
     {
         $quote = $observer->getData('quote');
         $order = $observer->getData('order');
-        $fflLicense = $quote->getFflLicense() ?? null;
-        $order->setFflLicense($fflLicense);
-        $this->orderRepository->save($order);
+        $data = json_decode((string) $quote->getFflDealerData(), true);
+        if (is_array($data) && isset($data['standard']['license'])) {
+            $this->metadata->apply($order, $data['standard']);
+        } elseif ($quote->getFflLicense()) {
+            $order->setFflLicense($quote->getFflLicense());
+        }
     }
 }
-

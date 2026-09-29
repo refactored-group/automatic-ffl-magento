@@ -17,6 +17,7 @@ define([
         },
         // These observables will be shared across all instances of this UI Component
         currentFflItemId: ko.observable(),
+        currentRoutingState: ko.observable(''),
         currentFullAddress: ko.observable(),
         dealerAddress: ko.observableArray(),
         dealerAddressId: ko.observableArray(),
@@ -67,6 +68,7 @@ define([
          */
         openSelectDealerModal: function () {
             this.currentFflItemId(this.dealerButtonId);
+            this.currentRoutingState(this.routingState || '');
             $("#dealers-popup").modal("openModal");
         }
     });

@@ -12,6 +12,7 @@
             <block class="RefactoredGroup\AutoFflCheckoutMultiShipping\Block\Checkout\Shipping" name="checkout_shipping" template="RefactoredGroup_AutoFflCheckoutMultiShipping::checkout/shipping.phtml" cacheable="false">
                 <arguments>
                     <argument name="renderer_template" xsi:type="string">Magento_Multishipping::checkout/item/default.phtml</argument>
+                    <argument name="auto_ffl_helper" xsi:type="object">RefactoredGroup\AutoFflCore\Helper\Data</argument>
                 </arguments>
                 <block class="Magento\Framework\View\Element\RendererList" name="checkout.cart.item.renderers" as="renderer.list"/>
                 <block class="Magento\Multishipping\Block\Checkout\Billing\Items" name="checkout_billing_items" template="Magento_Multishipping::checkout/billing/items.phtml" cacheable="false">

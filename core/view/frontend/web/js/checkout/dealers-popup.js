@@ -79,49 +79,38 @@ define([
             }
         },
         /**
-         * Returns phone number in the format (xxx)-xxx-xxxx
-         *
-         * @param phoneNumberString
-         * @returns {string|null}
+         * Apply the validated shared-map payload through Magento's native address actions.
          */
-        formatPhoneNumber: function (phoneNumberString) {
-            const cleaned = ('' + phoneNumberString).replace(/\D/g, '');
-            const match = cleaned.match(/^(\d{3})(\d{3})(\d{4})$/);
-            if (match) {
-                return '(' + match[1] + ')' + match[2] + '-' + match[3];
-            }
-            return null;
-        },
-        /**
-         *
-         * @param dealerId
-         */
-        selectDealer: function (dealerId) {
+        applySelectedDealer: function (dealer) {
             var self = this;
-            var dealer = this.fflResults()[dealerId]
-            var region = this.getRegionData(dealer.premise_state);
+            var region = this.getRegionData(dealer.state);
+            if (!region) {
+                this.selectionError('The selected dealer state is unavailable. Please try another dealer.');
+                this.applyingSelection = false;
+                return;
+            }
             var addressData = {
-                city: dealer.premise_city,
-                company: dealer.business_name,
+                city: dealer.city,
+                company: dealer.company,
                 country_id: "US",
-                firstname: this.default_firstname,
-                lastname: this.default_lastname,
+                firstname: dealer.firstName || this.default_firstname,
+                lastname: dealer.lastName || this.default_lastname,
                 dealer_license: dealer.license,
+                ffl_dealer_data: JSON.stringify(dealer),
                 custom_attributes: {
                     ffl_license: dealer.license
                 },
                 extension_attributes: {
-                    ffl_license: dealer.license
+                    ffl_license: dealer.license,
+                    ffl_dealer_data: JSON.stringify(dealer)
                 },
-                postcode: dealer.premise_zip,
+                postcode: dealer.postalCode,
                 region: region.name,
                 region_id: region.id,
                 is_ffl: 1,
-                street: {
-                    0: dealer.premise_street,
-                },
-                telephone: self.formatPhoneNumber(dealer.phone_number),
-                telephone_link: 'tel:+1' + dealer.phone_number,
+                street: dealer.address2 ? [dealer.address1, dealer.address2] : [dealer.address1],
+                telephone: dealer.phone,
+                telephone_link: 'tel:' + dealer.phone.replace(/[^+\d]/g, ''),
                 save_in_address_book: 0
             };
             
@@ -138,7 +127,9 @@ define([
             this.saveCheckoutData(storageData);
 
             $("#dealers-popup").modal("closeModal");
-            dealerButton().dealerAddressId[self.currentFflItemId()]('1');
+            self.modalActive = false;
+            self.applyingSelection = false;
+            dealerButton().dealerAddressId[self.currentFflItemId()](dealer.id);
 
             /**
              * Set default values to the form in order to avoid validation errors.
