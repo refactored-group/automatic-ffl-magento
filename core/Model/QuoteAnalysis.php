@@ -54,6 +54,16 @@ class QuoteAnalysis
         }
 
         $policy = $this->client->getPolicy($storeId);
+        $categoryRules = array_merge(
+            (array) ($policy['firearm_category_ids'] ?? []),
+            (array) ($policy['ammo_category_ids'] ?? [])
+        );
+        foreach ($descriptors as $index => $descriptor) {
+            if (array_intersect($descriptor['categoryIds'], $categoryRules)) {
+                // The old flag is a fallback, including with older compatible backends.
+                $descriptors[$index]['required_ffl'] = false;
+            }
+        }
         $restrictions = $this->client->getProducts($storeId, $descriptors);
         $firearms = [];
         $ammo = [];
@@ -111,20 +121,14 @@ class QuoteAnalysis
         }
         $categories = [];
         $forced = false;
-        $type = '';
         foreach ($products as $product) {
             $categories = array_merge($categories, (array) $product->getCategoryIds());
             $forced = $forced || (bool) $product->getRequiredFfl();
-            $productType = strtolower((string) $product->getFflType());
-            if ($productType === 'firearm' || ($productType === 'ammo' && $type !== 'firearm')) {
-                $type = $productType;
-            }
         }
         return [
             'id' => (string) $item->getId(),
             'productId' => (string) $item->getProductId(),
             'required_ffl' => $forced,
-            'ffl_type' => $type,
             'categoryIds' => array_values(array_unique(array_map('intval', $categories)))
         ];
     }

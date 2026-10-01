@@ -1,6 +1,14 @@
-# Magento upgrade 1.0.35
+# Magento upgrade 1.0.36
 
-This release connects the Magento locator to the shared Automatic FFL iframe, reads shared firearm and ammunition policy, saves a dealer snapshot on the quote and order, adds a private order note, and queues placed-order attribution for Magento cron. It also adds scoped Store Hash, Store Secret, sandbox, shipping, and Maps settings. The optional `ffl_type` product attribute supplements existing `required_ffl` and category rules.
+This release connects the Magento locator to the shared Automatic FFL iframe, reads shared firearm and ammunition policy, saves a dealer snapshot on the quote and order, adds a private order note, and queues placed-order attribution for Magento cron. It also adds scoped Store Hash, Store Secret, sandbox, shipping, and Maps settings. Product classification uses saved category rules first and the existing `required_ffl` flag as a compatibility fallback.
+
+## Product classification
+
+1. A product in a configured firearm category requires an FFL. This takes precedence if the product also belongs to an ammunition category.
+2. Otherwise, a product in a configured ammunition category follows the store's ammunition subscription, destination-state rules, and mixed-cart policy. Its old `required_ffl` flag does not turn it into a firearm.
+3. When neither category matches, the existing **FFL Required** product setting remains effective for backward compatibility.
+
+The `ffl_type` dropdown introduced in 1.0.35 is no longer used or created. The 1.0.36 data patch hides it on installations that already have it, preserving any saved values. Its source model remains available for existing attribute metadata. No product needs a new type setting.
 
 ## Upgrade order
 
@@ -8,7 +16,7 @@ This release connects the Magento locator to the shared Automatic FFL iframe, re
 2. Release the shared iframe with `platform=Magento` and nullable `expirationDate` support.
 3. Install this Magento package in a controlled environment, run Magento's normal `setup:upgrade`, dependency compilation, and static-content deployment, then clear the applicable caches. Review declarative-schema changes before applying them.
 4. In **Stores → Configuration → Refactored Group → Automatic FFL**, enable only the intended store views. Set each store view's existing AutoFFL Store Hash and Store Secret; use inheritance or explicit website/store overrides as appropriate. The secret stays in Magento server configuration. It is never a Maps key or frontend setting.
-5. Confirm Magento cron is running. `autoffl_order_attributions` delivers up to 25 due records per run. If credentials or the original hash/environment change, reporting blocks instead of sending an old order to a new store. After correcting configuration, an operator can requeue one blocked/failed order with `bin/magento autoffl:attribution:retry <sales_order_entity_id>`.
+5. Confirm Magento cron is running. `autoffl_send_order_attributions` delivers up to 25 due records per run. If credentials or the original hash/environment change, reporting blocks instead of sending an old order to a new store. After correcting configuration, an operator can requeue one blocked/failed order with `bin/magento autoffl:attribution:retry <sales_order_entity_id>`.
 
 The category browser calls the installed Magento `autoffl/integration/categories` route over HTTPS using the Store Secret. Category IDs and labels are read in the Magento store scope. Existing saved category IDs remain in AutoFFL if this read fails; missing IDs are shown for explicit removal. Checkout reads current product facts from Magento and shared policy from the backend, so category browsing is not part of an order placement request.
 
@@ -20,6 +28,7 @@ Magento AsyncOrder is outside this release's supported checkout path. The admin 
 
 - Check one enabled and one disabled store view, two different hashes/secrets/environments and category roots, and a deliberately shared root configuration. Confirm the map, policy, category tree, and cron target resolve to the correct store view.
 - Test a firearm, conditional ammunition in a restricted and unrestricted state, ordinary goods, a mixed cart, and a virtual product. Test both ship-non-gun settings and both mixed-ammunition policy settings.
+- Check an ammunition-category product with the old **FFL Required** flag enabled: it must still follow ammunition rules. Check an unmatched product with that flag enabled: it must still require an FFL. Confirm the retired **FFL Type** dropdown is hidden after `setup:upgrade`.
 - Complete a standard dealer checkout. Confirm the shipping address, saved snapshot, private order note, order history/REST representation, pending-to-sent attribution transition, and one backend ledger row. Repeat during a simulated attribution outage: checkout should still complete and cron should retry.
 - Complete native multishipping with two dealer destinations and a non-FFL destination, including a split-quantity line. Confirm each successful child order gets only its own dealer data. Induce a partial placement failure and verify the failed child remains retryable and only confirmed successful child orders report attribution.
 - Check guest and signed-in checkout, saved-cart restoration, payment retry, billing address independence, narrow-screen iframe behavior, browser CSP, and Maps referrer configuration on the installed theme/payment stack.

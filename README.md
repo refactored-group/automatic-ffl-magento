@@ -2,7 +2,7 @@
 
 This metapackage contains a collection of the extensions necessary to implement the Automatic FFL into a Magento 2 store.
 
-For the shared iframe, restrictions, store-scoped configuration, and order-attribution upgrade, see [Magento upgrade 1.0.35](docs/magento-upgrade-1.0.35.md).
+For the shared iframe, restrictions, store-scoped configuration, and order-attribution upgrade, see [Magento upgrade 1.0.36](docs/magento-upgrade-1.0.36.md).
 Each one of these directories contain a Magento 2 extension:
 
 ```

@@ -30,16 +30,21 @@ namespace RefactoredGroup\AutoFflCore\Model {
         public $mixedPolicy = true;
         public function getPolicy($storeId) {
             $this->calls++;
-            return ['apply_ammo_state_rules_in_mixed_carts' => $this->mixedPolicy];
+            return [
+                'apply_ammo_state_rules_in_mixed_carts' => $this->mixedPolicy,
+                'firearm_category_ids' => [10],
+                'ammo_category_ids' => [20]
+            ];
         }
         public function getProducts($storeId, array $descriptors) {
             $this->calls++;
             $this->descriptors = $descriptors;
             $rules = [];
             foreach ($descriptors as $descriptor) {
-                if ($descriptor['required_ffl']) {
+                // Simulate the older backend's flag-first behavior during a rolling upgrade.
+                if ($descriptor['required_ffl'] || in_array(10, $descriptor['categoryIds'], true)) {
                     $rules[] = ['id' => $descriptor['id']];
-                } elseif ($descriptor['ffl_type'] === 'ammo') {
+                } elseif (in_array(20, $descriptor['categoryIds'], true)) {
                     $rules[] = ['id' => $descriptor['id'], 'conditions' => [
                         ['type' => 'ship_state', 'states' => ['CA']]
                     ]];
@@ -63,14 +68,13 @@ namespace {
     class Product {
         private $virtual;
         private $forced;
-        private $type;
-        public function __construct($virtual = false, $forced = false, $type = '') {
-            $this->virtual = $virtual; $this->forced = $forced; $this->type = $type;
+        private $categories;
+        public function __construct($virtual = false, $forced = false, array $categories = []) {
+            $this->virtual = $virtual; $this->forced = $forced; $this->categories = $categories;
         }
         public function isVirtual() { return $this->virtual; }
         public function getRequiredFfl() { return $this->forced; }
-        public function getFflType() { return $this->type; }
-        public function getCategoryIds() { return []; }
+        public function getCategoryIds() { return $this->categories; }
     }
     class Item {
         private $id;
@@ -93,15 +97,22 @@ namespace {
     $analysis = new \RefactoredGroup\AutoFflCore\Model\QuoteAnalysis($client, $config);
     $firearm = new Item(11, 100, new Product(false, true));
     $virtual = new Item(12, 200, new Product(true));
-    $ammo = new Item(13, 100, new Product(false, false, 'ammo'));
+    $ammo = new Item(13, 100, new Product(false, true, [20]));
+    $categoryFirearm = new Item(14, 300, new Product(false, false, [10]));
 
     $result = $analysis->analyze(new \Magento\Quote\Model\Quote([$firearm, $virtual]));
     check($result['allRequired'], 'Virtual items must not make a firearm cart mixed.');
     check(count($client->descriptors) === 1, 'Virtual items must not be classified.');
+    check($client->descriptors[0]['required_ffl'], 'An unmatched legacy flag must remain effective.');
+    check(!array_key_exists('ffl_type', $client->descriptors[0]), 'The retired type field must not be sent.');
+
+    $result = $analysis->analyze(new \Magento\Quote\Model\Quote([$categoryFirearm]));
+    check($result['allRequired'], 'A firearm category must work without the legacy flag.');
 
     $quote = new \Magento\Quote\Model\Quote([$firearm, $ammo]);
     $result = $analysis->analyze($quote, '');
     check($result['unresolved'], 'Ammo without an original destination state is unresolved.');
+    check(!$client->descriptors[1]['required_ffl'], 'An ammunition category must take precedence over the old flag.');
     check($client->descriptors[0]['id'] !== $client->descriptors[1]['id'],
         'Separate quote lines with the same product ID need separate restriction IDs.');
 
