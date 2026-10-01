@@ -50,6 +50,7 @@ class DefaultConfigProvider
             $result['customerData']['addresses'] = [];
         }
         $result['customerData']['is_ffl'] = (int) $this->helper->isFfl();
+        $result['autofflRouting'] = $this->helper->getCheckoutRoutingConfig();
 
         return $result;
     }

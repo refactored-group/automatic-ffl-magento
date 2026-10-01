@@ -28,6 +28,8 @@ namespace RefactoredGroup\AutoFflCore\Model {
         public $calls = 0;
         public $descriptors = [];
         public $mixedPolicy = true;
+        public $subscribed = true;
+        public $states = ['CA'];
         public function getPolicy($storeId) {
             $this->calls++;
             return [
@@ -44,9 +46,9 @@ namespace RefactoredGroup\AutoFflCore\Model {
                 // Simulate the older backend's flag-first behavior during a rolling upgrade.
                 if ($descriptor['required_ffl'] || in_array(10, $descriptor['categoryIds'], true)) {
                     $rules[] = ['id' => $descriptor['id']];
-                } elseif (in_array(20, $descriptor['categoryIds'], true)) {
+                } elseif ($this->subscribed && in_array(20, $descriptor['categoryIds'], true)) {
                     $rules[] = ['id' => $descriptor['id'], 'conditions' => [
-                        ['type' => 'ship_state', 'states' => ['CA']]
+                        ['type' => 'ship_state', 'states' => $this->states]
                     ]];
                 }
             }
@@ -56,6 +58,7 @@ namespace RefactoredGroup\AutoFflCore\Model {
 }
 namespace {
     require __DIR__ . '/../core/Model/QuoteAnalysis.php';
+    require __DIR__ . '/../core/Model/CheckoutRouting.php';
 
     class Config implements \Magento\Framework\App\Config\ScopeConfigInterface {
         public $shipAll = false;
@@ -99,6 +102,37 @@ namespace {
     $virtual = new Item(12, 200, new Product(true));
     $ammo = new Item(13, 100, new Product(false, true, [20]));
     $categoryFirearm = new Item(14, 300, new Product(false, false, [10]));
+    $ordinary = new Item(15, 400, new Product());
+    $secondAmmo = new Item(16, 500, new Product(false, false, [20]));
+    $router = new \RefactoredGroup\AutoFflCore\Model\CheckoutRouting();
+
+    $cases = [
+        [[$ordinary], '', 'standard'],
+        [[$ammo], '', 'standard'],
+        [[$ammo, $secondAmmo, $virtual], '', 'standard'],
+        [[$ammo], 'CA', 'standard'],
+        [[$ammo], 'CO', 'standard'],
+        [[$ammo, $ordinary], '', 'state'],
+        [[$ammo, $ordinary], 'CA', 'multishipping'],
+        [[$ammo, $ordinary], 'CO', 'standard'],
+        [[$firearm, $ammo], '', 'state'],
+        [[$firearm, $ammo], 'CA', 'standard'],
+        [[$firearm, $ammo], 'CO', 'multishipping'],
+        [[$firearm, $ordinary], '', 'multishipping'],
+        [[$firearm, $ammo, $ordinary], '', 'multishipping'],
+        [[$firearm, $ammo, $ordinary], 'CA', 'multishipping'],
+        [[$firearm, $ammo, $ordinary], 'CO', 'multishipping']
+    ];
+    foreach ($cases as $index => $case) {
+        [$caseItems, $state, $route] = $case;
+        check($router->decide($analysis->analyze(new \Magento\Quote\Model\Quote($caseItems), $state)) === $route,
+            'Checkout route matrix case ' . $index . ' failed.');
+    }
+
+    $client->mixedPolicy = false;
+    $oldPolicy = new \RefactoredGroup\AutoFflCore\Model\QuoteAnalysis($client, $config);
+    check(count($oldPolicy->analyze(new \Magento\Quote\Model\Quote([$firearm, $ammo]), 'CO')['required']) === 1,
+        'An old ammo-with-firearms policy must not override the destination state.');
 
     $result = $analysis->analyze(new \Magento\Quote\Model\Quote([$firearm, $virtual]));
     check($result['allRequired'], 'Virtual items must not make a firearm cart mixed.');
@@ -110,6 +144,7 @@ namespace {
     check($result['allRequired'], 'A firearm category must work without the legacy flag.');
 
     $quote = new \Magento\Quote\Model\Quote([$firearm, $ammo]);
+    $analysis = new \RefactoredGroup\AutoFflCore\Model\QuoteAnalysis($client, $config);
     $result = $analysis->analyze($quote, '');
     check($result['unresolved'], 'Ammo without an original destination state is unresolved.');
     check(!$client->descriptors[1]['required_ffl'], 'An ammunition category must take precedence over the old flag.');
@@ -127,6 +162,21 @@ namespace {
     $fresh = new \RefactoredGroup\AutoFflCore\Model\QuoteAnalysis($client, $config);
     $result = $fresh->analyze($quote, 'CO');
     check(count($result['required']) === 2, 'Ship-all mode includes all physical lines.');
+    check(!$fresh->analyze($quote, '')['unresolved'], 'Known whole-cart dealer delivery needs no state preflight.');
+    $result = $fresh->analyze(new \Magento\Quote\Model\Quote([$ammo, $ordinary]), 'CA');
+    check($result['allRequired'], 'Ship-all mode must also group restricted ammo with ordinary products.');
+    check(!$fresh->analyze(new \Magento\Quote\Model\Quote([$ammo, $ordinary]), 'CO')['required'],
+        'Ship-all must not require a dealer for unrestricted ammo without firearms.');
+
+    $config->shipAll = false;
+    $client->states = [];
+    $emptyStates = new \RefactoredGroup\AutoFflCore\Model\QuoteAnalysis($client, $config);
+    check($router->decide($emptyStates->analyze(new \Magento\Quote\Model\Quote([$ammo, $ordinary]))) === 'standard',
+        'An empty ammunition state list must not introduce a preflight.');
+    $client->subscribed = false;
+    $unsubscribed = new \RefactoredGroup\AutoFflCore\Model\QuoteAnalysis($client, $config);
+    check($router->decide($unsubscribed->analyze(new \Magento\Quote\Model\Quote([$firearm, $ammo]))) === 'multishipping',
+        'Unsubscribed ammo must be treated as ordinary shipping alongside firearms.');
 
     $calls = $client->calls;
     $result = $fresh->analyze(new \Magento\Quote\Model\Quote([$virtual]));

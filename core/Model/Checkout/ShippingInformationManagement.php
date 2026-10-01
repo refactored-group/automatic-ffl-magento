@@ -53,6 +53,9 @@ class ShippingInformationManagement
         ShippingInformationInterface $addressInformation
     ) {
         $quote = $this->quoteRepository->getActive($cartId);
+        if (!$this->autoFflHelper->isEnabled((int) $quote->getStoreId())) {
+            return null;
+        }
         $extAttributes = $addressInformation->getExtensionAttributes();
         $shippingAddress = $addressInformation->getShippingAddress();
         if (!$extAttributes || !$extAttributes->getFflLicense()) {
@@ -67,6 +70,10 @@ class ShippingInformationManagement
         $analysis = $this->analysis->analyze($quote);
         if ($analysis['unresolved']) {
             throw new LocalizedException(__('Select a delivery state before continuing with ammunition.'));
+        }
+
+        if (!empty($analysis['required']) && !$analysis['allRequired']) {
+            throw new LocalizedException(__('These items need separate shipping addresses. Continue with multishipping checkout.'));
         }
 
         if (empty($analysis['required'])) {

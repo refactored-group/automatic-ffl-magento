@@ -33,7 +33,7 @@
                                                                 <item name="ffl_routing_state" xsi:type="array">
                                                                     <item name="component" xsi:type="string">RefactoredGroup_AutoFflCore/js/checkout/routing-state</item>
                                                                     <item name="config" xsi:type="array">
-                                                                        <item name="isVisible" xsi:type="helper" helper="RefactoredGroup\AutoFflCore\Helper\Data::hasConditionalAmmo" />
+                                                                        <item name="isVisible" xsi:type="helper" helper="RefactoredGroup\AutoFflCore\Helper\Data::showRoutingStateInCheckout" />
                                                                         <item name="selectedState" xsi:type="helper" helper="RefactoredGroup\AutoFflCore\Helper\Data::getRoutingState" />
                                                                         <item name="routingStateUrl" xsi:type="helper" helper="RefactoredGroup\AutoFflCore\Helper\Data::getRoutingStateUrl" />
                                                                         <item name="formKey" xsi:type="helper" helper="RefactoredGroup\AutoFflCore\Helper\Data::getFormKey" />

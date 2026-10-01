@@ -13,6 +13,7 @@ use Magento\Framework\Encryption\EncryptorInterface;
 use Magento\Store\Model\ScopeInterface;
 use Magento\Directory\Model\ResourceModel\Region\CollectionFactory as RegionCollectionFactory;
 use RefactoredGroup\AutoFflCore\Model\QuoteAnalysis;
+use RefactoredGroup\AutoFflCore\Model\CheckoutRouting;
 use Magento\Multishipping\Helper\Data as MultishippingHelper;
 
 /**
@@ -286,12 +287,17 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
      */
     public function isFfl()
     {
-        return $this->isEnabled() && $this->hasFflItem();
+        return $this->isEnabled() && !empty($this->quoteAnalysis->analyze($this->quote)['required']);
     }
 
     public function hasConditionalAmmo()
     {
         return $this->isEnabled() && $this->quoteAnalysis->analyze($this->quote)['hasAmmunition'];
+    }
+
+    public function showRoutingStateInCheckout()
+    {
+        return $this->isFfl() && $this->hasConditionalAmmo();
     }
 
     public function getRoutingState()
@@ -304,13 +310,44 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
         return $this->_getUrl('autoffl/routing/state');
     }
 
+    public function getCheckoutRoute($quote = null, $state = null)
+    {
+        if (!$this->isEnabled()) {
+            return 'standard';
+        }
+        return (new CheckoutRouting())->decide($this->quoteAnalysis->analyze($quote ?: $this->quote, $state));
+    }
+
+    public function getRoutingPromptUrl()
+    {
+        return $this->_getUrl('autoffl/routing/index');
+    }
+
+    public function getCheckoutRoutingConfig()
+    {
+        if (!$this->isEnabled()) {
+            return ['enabled' => false, 'ammoOnly' => false];
+        }
+        $analysis = $this->quoteAnalysis->analyze($this->quote);
+        $ammoCount = 0;
+        foreach ($analysis['ammo'] as $entry) {
+            $ammoCount += count($entry['items']);
+        }
+        return [
+            'enabled' => (bool) $this->isEnabled() && $analysis['hasAmmunition'],
+            'ammoOnly' => $ammoCount > 0 && $ammoCount === $analysis['physicalCount'],
+            'stateUrl' => $this->getRoutingStateUrl(),
+            'checkoutUrl' => $this->_getUrl('checkout/index'),
+            'formKey' => $this->getFormKey()
+        ];
+    }
+
     /**
      * @return bool
      */
     public function isMixedCart()
     {
-        $analysis = $this->quoteAnalysis->analyze($this->quote);
-        return !$analysis['unresolved'] && !empty($analysis['required']) && !$analysis['allRequired'];
+        return $this->getCheckoutRoute() === 'multishipping';
     }
 
     public function isFflItem($item, $quote = null, $destinationState = null)

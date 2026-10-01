@@ -1,6 +1,6 @@
 <div class="automaticffl-routing-state" data-bind="visible: isVisible">
-    <label for="automaticffl-routing-state" data-bind="i18n: 'Delivery state for ammunition rules'"></label>
+    <label for="automaticffl-routing-state" data-bind="i18n: 'Which state is the ammunition going to?'"></label>
     <select id="automaticffl-routing-state" data-bind="options: states, optionsText: 'name', optionsValue: 'code', optionsCaption: 'Select a state', value: state"></select>
-    <button type="button" class="action primary" data-bind="click: saveState, disable: saving"><span data-bind="i18n: 'Apply state'"></span></button>
+    <button type="button" class="action primary" data-bind="click: saveState, disable: saving() || !state()"><span data-bind="i18n: beforeCheckout ? 'Continue to checkout' : 'Update destination'"></span></button>
     <p class="message message-error" role="alert" data-bind="visible: error, text: error"></p>
 </div>

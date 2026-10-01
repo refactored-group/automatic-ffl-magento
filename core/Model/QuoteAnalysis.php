@@ -38,7 +38,8 @@ class QuoteAnalysis
         }
         if (!$descriptors) {
             return ['required' => [], 'firearms' => [], 'ammo' => [], 'unresolved' => false,
-                'allRequired' => false, 'hasAmmunition' => false, 'state' => ''];
+                'allRequired' => false, 'hasAmmunition' => false, 'state' => '', 'ordinary' => [],
+                'physicalCount' => 0];
         }
 
         $sandbox = (bool) $this->scopeConfig->getValue(
@@ -90,15 +91,24 @@ class QuoteAnalysis
         $required = $firearms;
         $unresolved = false;
         foreach ($ammo as $entry) {
-            $forceWithFirearms = $firearms && ($shipAll || empty($policy['apply_ammo_state_rules_in_mixed_carts']));
-            if ($forceWithFirearms || in_array($state, $entry['states'], true)) {
+            if (in_array($state, $entry['states'], true)) {
                 $required = array_merge($required, $entry['items']);
             } elseif ($state === '' && !empty($entry['states'])) {
                 $unresolved = true;
             }
         }
-        if ($firearms && $shipAll) {
+        if ($required && $shipAll) {
             $required = $physicalItems;
+            $unresolved = false;
+        }
+        $classifiedIds = [];
+        foreach ($firearms as $item) {
+            $classifiedIds[(string) $item->getId()] = true;
+        }
+        foreach ($ammo as $entry) {
+            foreach ($entry['items'] as $item) {
+                $classifiedIds[(string) $item->getId()] = true;
+            }
         }
         return $this->cache[$key] = [
             'required' => $required,
@@ -109,7 +119,11 @@ class QuoteAnalysis
             'hasAmmunition' => (bool) array_filter($ammo, function ($entry) {
                 return !empty($entry['states']);
             }),
-            'state' => $state
+            'state' => $state,
+            'ordinary' => array_values(array_filter($physicalItems, function ($item) use ($classifiedIds) {
+                return !isset($classifiedIds[(string) $item->getId()]);
+            })),
+            'physicalCount' => count($physicalItems)
         ];
     }
 

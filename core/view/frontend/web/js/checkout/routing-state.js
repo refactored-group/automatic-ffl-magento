@@ -1,8 +1,8 @@
-define(['jquery', 'uiComponent', 'ko'], function ($, Component, ko) {
+define(['jquery', 'uiComponent', 'ko', 'RefactoredGroup_AutoFflCore/js/checkout/routing'], function ($, Component, ko, routing) {
     'use strict';
 
     return Component.extend({
-        defaults: { template: 'RefactoredGroup_AutoFflCore/checkout/routing-state' },
+        defaults: { template: 'RefactoredGroup_AutoFflCore/checkout/routing-state', beforeCheckout: false },
         state: ko.observable(''),
         error: ko.observable(''),
         saving: ko.observable(false),
@@ -28,8 +28,11 @@ define(['jquery', 'uiComponent', 'ko'], function ($, Component, ko) {
             }
             this.saving(true);
             this.error('');
-            $.post(this.routingStateUrl, { form_key: this.formKey, state: this.state() })
-                .done(function () { window.location.reload(); })
+            routing.check({ stateUrl: this.routingStateUrl, formKey: this.formKey }, null, this.state())
+                .done(function (result) {
+                    self.saving(false);
+                    routing.continueTo(result);
+                })
                 .fail(function () {
                     self.error('The delivery state could not be saved. Please try again.');
                     self.saving(false);

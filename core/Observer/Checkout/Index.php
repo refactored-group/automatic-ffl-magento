@@ -13,6 +13,8 @@ use RefactoredGroup\AutoFflCore\Helper\Data as Helper;
 use Magento\Checkout\Model\Session;
 use Magento\Framework\UrlInterface;
 use Magento\Quote\Api\CartRepositoryInterface;
+use Magento\Framework\App\ActionFlag;
+use Magento\Framework\App\Action\Action;
 
 class Index implements ObserverInterface
 {
@@ -47,6 +49,7 @@ class Index implements ObserverInterface
      */
 
     private $request;
+    private $actionFlag;
 
     public function __construct(
         Helper $helper,
@@ -55,7 +58,8 @@ class Index implements ObserverInterface
         UrlInterface $url,
         \Magento\Framework\App\ResponseFactory $responseFactory,
         Request $request,
-        CartRepositoryInterface $quoteRepository
+        CartRepositoryInterface $quoteRepository,
+        ActionFlag $actionFlag
     ) {
         $this->helper = $helper;
         $this->messageManager = $messageManager;
@@ -64,6 +68,7 @@ class Index implements ObserverInterface
         $this->responseFactory = $responseFactory;
         $this->request = $request;
         $this->quoteRepository = $quoteRepository;
+        $this->actionFlag = $actionFlag;
     }
 
     /**
@@ -79,6 +84,18 @@ class Index implements ObserverInterface
         $eventName = $observer->getEvent()->getName();
 
         if ($this->helper->isEnabled() && $eventName === 'controller_action_predispatch_checkout_index_index') {
+            $route = $this->helper->getCheckoutRoute();
+            if ($route === 'state' || $route === 'multishipping') {
+                $path = $route === 'state' ? 'autoffl/routing/index' : 'multishipping/checkout';
+                if ($route === 'multishipping' && !$this->helper->isMultishippingCheckoutAvailable()) {
+                    $path = 'checkout/cart';
+                    $this->messageManager->addErrorMessage(
+                        __('These items need separate shipping addresses. Please place separate orders.')
+                    );
+                }
+                $this->actionFlag->set('', Action::FLAG_NO_DISPATCH, true);
+                return $observer->getControllerAction()->getResponse()->setRedirect($this->url->getUrl($path));
+            }
             $this->resetFflCheckoutState();
         }
 
@@ -137,7 +154,7 @@ class Index implements ObserverInterface
             return;
         }
 
-        if (!$this->helper->hasFflItem($quote)) {
+        if (!$this->helper->isFfl()) {
             $hasConditionalAmmo = $this->helper->hasConditionalAmmo();
             if ($quote->getFflLicense() || $quote->getFflDealerData() ||
                 (!$hasConditionalAmmo && $quote->getFflRoutingState())) {

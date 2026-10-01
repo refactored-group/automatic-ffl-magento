@@ -1,0 +1,8 @@
+<?php /** @var \RefactoredGroup\AutoFflCore\Block\RoutingState $block */ ?>
+<?php if ($block->shouldRender()): ?>
+<div class="automaticffl-destination" data-bind="scope: 'autofflDestination'"
+     data-mage-init="<?= $block->escapeHtmlAttr($block->getComponentConfig()) ?>">
+    <p><?= $block->escapeHtml(__('Your shipping state determines whether these items need one or two shipping addresses.')) ?></p>
+    <!-- ko template: getTemplate() --><!-- /ko -->
+</div>
+<?php endif; ?>

@@ -101,12 +101,13 @@ class ModelOrderPlugin
                 ? ($snapshot['routingState'] ?? '')
                 : $this->helper->getAddressState($shipping);
         } else {
-            $destinationState = $quote->getFflRoutingState();
-            if (!$destinationState && !is_array($snapshot)) {
-                $destinationState = $this->helper->getAddressState($shipping);
-            }
+            $destinationState = is_array($snapshot) || $subject->getFflLicense()
+                ? $quote->getFflRoutingState() : $this->helper->getAddressState($shipping);
         }
         $analysis = $this->analysis->analyze($quote, $destinationState);
+        if (!$quote->getIsMultiShipping() && !empty($analysis['required']) && !$analysis['allRequired']) {
+            throw new LocalizedException(__('These items need separate shipping addresses. Continue with multishipping checkout.'));
+        }
         $requiredQuoteItemIds = [];
         foreach ($analysis['required'] as $item) {
             $requiredQuoteItemIds[(int) $item->getId()] = true;
@@ -125,7 +126,6 @@ class ModelOrderPlugin
             }
             if (isset($requiredQuoteItemIds[$quoteItemId])) {
                 $needsDealer = true;
-                break;
             }
         }
         if (!$needsDealer) {

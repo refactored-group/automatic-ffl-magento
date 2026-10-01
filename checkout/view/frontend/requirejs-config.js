@@ -9,6 +9,9 @@ var config = {
     },
     config: {
         mixins: {
+            'Magento_Checkout/js/view/shipping': {
+                'RefactoredGroup_AutoFflCheckout/js/view/shipping-routing-mixin': true
+            },
             'Magento_Checkout/js/model/new-customer-address': {
                 'RefactoredGroup_AutoFflCheckout/js/checkout/model/new-customer-address-mixin': true
             },

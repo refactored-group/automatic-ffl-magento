@@ -64,6 +64,9 @@ class Index
      */
     public function aroundExecute(ParentControllor $subject, Closure $proceed)
     {
+        if ($this->helper->getCheckoutRoute() === 'state') {
+            return $this->resultRedirectFactory->create()->setPath('autoffl/routing/index');
+        }
         /**
          * This is to track which button was pressed on the Shopping Cart page.
          * If the "Proceed to Checkout" button is pressed from the sidebar or minicart,
