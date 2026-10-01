@@ -8,13 +8,13 @@ use RefactoredGroup\AutoFflCore\Helper\Data;
 class RoutingState extends Template
 {
     private $helper;
-    private $directory;
+    private $directoryHelper;
 
     public function __construct(Template\Context $context, Data $helper, Directory $directory, array $data = [])
     {
         parent::__construct($context, $data);
         $this->helper = $helper;
-        $this->directory = $directory;
+        $this->directoryHelper = $directory;
     }
 
     public function shouldRender()
@@ -31,7 +31,7 @@ class RoutingState extends Template
             'selectedState' => $this->helper->getRoutingState(),
             'routingStateUrl' => $this->helper->getRoutingStateUrl(),
             'formKey' => $this->helper->getFormKey(),
-            'regionJson' => $this->directory->getRegionJson()
+            'regionJson' => $this->directoryHelper->getRegionJson()
         ]]]]);
     }
 }
