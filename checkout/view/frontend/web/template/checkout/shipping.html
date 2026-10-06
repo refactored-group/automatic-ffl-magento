@@ -4,7 +4,7 @@
  * See COPYING.txt for license details.
  */
 -->
-<li id="shipping" class="checkout-shipping-address" data-bind="fadeVisible: visible()">
+<li id="shipping" class="checkout-shipping-address" data-bind="fadeVisible: visible(), css: { 'automaticffl-ammo-checkout': autofflConfig.enabled && autofflConfig.ammoOnly }">
     <div class="step-title" translate="'Shipping Address'" data-role="title"></div>
     <div id="checkout-step-shipping"
          class="step-content"
@@ -13,18 +13,20 @@
         <each if="!quoteIsVirtual" args="getRegion('customer-email')" render=""></each>
         <each args="getRegion('address-list')" render=""></each>
         <each args="getRegion('address-list-additional-addresses')" render=""></each>
+        <each args="getRegion('autoffl-routing-state')" render=""></each>
 
         <!-- Address form pop up -->
-        <if args="!isFormInline">
+        <if args="!isFormInline && !autofflDestination.requiresDealer()">
             <div class="new-address-popup">
                 <button type="button"
                         class="action action-show-popup"
                         click="showFormPopUp"
-                        visible="checkoutConfig.customerData.is_ffl != 1 && !isNewAddressAdded()">
+                        visible="!isNewAddressAdded()">
                     <span translate="'New Address'"></span>
                 </button>
             </div>
             <div id="opc-new-shipping-address"
+                 data-bind="css: { 'automaticffl-home-destination': autofflHideShippingRegion }"
                  visible="isFormPopUpVisible()"
                  render="shippingFormTemplate"></div>
         </if>
@@ -32,7 +34,10 @@
         <each args="getRegion('before-form')" render=""></each>
 
         <!-- Inline address form -->
-        <render if="isFormInline" args="shippingFormTemplate"></render>
+        <div data-bind="css: { 'automaticffl-home-destination': autofflHideShippingRegion, 'automaticffl-dealer-recipient': autofflDestination.requiresDealer }">
+            <render if="isFormInline || autofflDestination.requiresDealer()" args="shippingFormTemplate"></render>
+        </div>
+        <each args="getRegion('autoffl-dealer-controls')" render=""></each>
     </div>
 </li>
 
@@ -55,7 +60,7 @@
              aria-hidden="false">
             <form id="co-shipping-method-form"
                   class="form methods-shipping"
-                  if="rates().length"
+                  if="rates().length && (!autofflDestination.requiresDealer() || hasDealerAddress())"
                   submit="setShippingInformation"
                   novalidate="novalidate">
 
@@ -71,18 +76,18 @@
                 </div>
                 <div class="actions-toolbar" id="shipping-method-buttons-container">
                     <div class="primary">
-                        <button data-role="opc-continue" type="submit" class="button action continue primary">
+                        <button data-role="opc-continue" type="submit" class="button action continue primary" disable="autofflDestination.saving() || !!autofflDestination.error()">
                             <span translate="'Next'"></span>
                         </button>
                     </div>
                 </div>
             </form>
             <div class="no-quotes-block"
-                 if="rates().length === 0 && checkoutConfig.customerData.is_ffl == 1"
+                 if="autofflDestination.requiresDealer() && (rates().length === 0 || !hasDealerAddress())"
                  translate="'Select a Dealer to see shipping rates'"></div>
 
             <div class="no-quotes-block"
-                 if="rates().length === 0 && checkoutConfig.customerData.is_ffl != 1"
+                 if="rates().length === 0 && !autofflDestination.requiresDealer()"
                  translate="'Sorry, no quotes are available for this order at this time'"></div>
         </div>
     </div>

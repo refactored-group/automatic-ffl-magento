@@ -118,6 +118,17 @@ define([
                 return isAddressLike(storedAddress) ? storedAddress : null;
             },
 
+            setStoredAddress = function (storedAddress, address) {
+                var storeCode = window.checkoutConfig && window.checkoutConfig.storeCode;
+
+                if (!storeCode) {
+                    return address;
+                }
+                storedAddress = storedAddress && !isAddressLike(storedAddress) ? storedAddress : {};
+                storedAddress[storeCode] = JSON.parse(JSON.stringify(address));
+                return storedAddress;
+            },
+
             getStoredDealerIdentity = function (storedIdentity) {
                 var storeCode = window.checkoutConfig && window.checkoutConfig.storeCode;
 
@@ -313,6 +324,13 @@ define([
             }
 
             if (isFflCart || shippingAddressFromDataIsDealer) {
+                // Keep the shopper's destination available when ammunition
+                // routing later changes back from dealer to home delivery.
+                if (isFflCart && shippingAddressFromData && !shippingAddressFromDataIsDealer) {
+                    data.autofflCustomerShippingAddress = setStoredAddress(
+                        data.autofflCustomerShippingAddress, shippingAddressFromData
+                    );
+                }
                 data.shippingAddressFromData = clearStoredAddress(data.shippingAddressFromData);
             }
 
@@ -379,6 +397,36 @@ define([
             var data = getData() || {};
 
             return data.fflQuoteLineItemId || false;
+        };
+
+        checkoutData.setFflDealerAddressIdentity = function (address) {
+            var data = getData() || {},
+                identity = {},
+                previousIdentity = getStoredDealerIdentity(data.fflDealerAddressIdentity),
+                config = window.checkoutConfig;
+
+            clearDealerBillingData(data, previousIdentity);
+            if (config && fflAddress.isDealerDerivedAddress(config.billingAddressFromData, previousIdentity)) {
+                config.billingAddressFromData = null;
+            }
+            ['firstname', 'lastname', 'company', 'telephone'].forEach(function (field) {
+                identity[field] = fflAddress.getAddressValue(address, field);
+            });
+            data.fflDealerAddressIdentity = setStoredAddress(data.fflDealerAddressIdentity, identity);
+            saveData(data);
+        };
+
+        checkoutData.setAutofflCustomerShippingAddress = function (address) {
+            var data = getData() || {};
+
+            data.autofflCustomerShippingAddress = address
+                ? setStoredAddress(data.autofflCustomerShippingAddress, address)
+                : clearStoredAddress(data.autofflCustomerShippingAddress);
+            saveData(data);
+        };
+
+        checkoutData.getAutofflCustomerShippingAddress = function () {
+            return getStoredAddress((getData() || {}).autofflCustomerShippingAddress);
         };
 
         return checkoutData;

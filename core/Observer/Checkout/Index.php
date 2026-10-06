@@ -9,9 +9,13 @@ use Magento\Framework\App\Request\Http as Request;
 use Magento\Framework\Event\Observer;
 use Magento\Framework\Event\ObserverInterface;
 use Magento\Framework\Message\ManagerInterface;
+use Magento\Framework\Message\MessageInterface;
 use RefactoredGroup\AutoFflCore\Helper\Data as Helper;
 use Magento\Checkout\Model\Session;
 use Magento\Framework\UrlInterface;
+use Magento\Quote\Api\CartRepositoryInterface;
+use Magento\Framework\App\ActionFlag;
+use Magento\Framework\App\Action\Action;
 
 class Index implements ObserverInterface
 {
@@ -37,10 +41,16 @@ class Index implements ObserverInterface
     private $responseFactory;
 
     /**
+     * @var CartRepositoryInterface
+     */
+    private $quoteRepository;
+
+    /**
      * @param Helper $helper
      */
 
     private $request;
+    private $actionFlag;
 
     public function __construct(
         Helper $helper,
@@ -48,7 +58,9 @@ class Index implements ObserverInterface
         Session $session,
         UrlInterface $url,
         \Magento\Framework\App\ResponseFactory $responseFactory,
-        Request $request
+        Request $request,
+        CartRepositoryInterface $quoteRepository,
+        ActionFlag $actionFlag
     ) {
         $this->helper = $helper;
         $this->messageManager = $messageManager;
@@ -56,6 +68,8 @@ class Index implements ObserverInterface
         $this->url = $url;
         $this->responseFactory = $responseFactory;
         $this->request = $request;
+        $this->quoteRepository = $quoteRepository;
+        $this->actionFlag = $actionFlag;
     }
 
     /**
@@ -70,11 +84,24 @@ class Index implements ObserverInterface
     {
         $eventName = $observer->getEvent()->getName();
 
-        if (!$this->helper->isEnabled()) {
-            return;
+        if ($this->helper->isEnabled() && $eventName === 'controller_action_predispatch_checkout_index_index') {
+            $route = $this->helper->getCheckoutEntryRoute();
+            if ($route === 'state' && $this->helper->consumeCheckoutEntry()) {
+                $route = $this->helper->getCheckoutRoute();
+            }
+            if ($route === 'state' || $route === 'multishipping') {
+                $path = $route === 'state' ? 'autoffl/routing/index' : 'multishipping/checkout';
+                if ($route === 'multishipping' && !$this->helper->isMultishippingCheckoutAvailable()) {
+                    $path = 'checkout/cart';
+                    // The cart observer owns the notice after this redirect.
+                }
+                $this->actionFlag->set('', Action::FLAG_NO_DISPATCH, true);
+                return $observer->getControllerAction()->getResponse()->setRedirect($this->url->getUrl($path));
+            }
+            $this->resetFflCheckoutState();
         }
 
-        if ($this->helper->isMixedCart()) {
+        if ($this->helper->isEnabled() && $this->helper->isMixedCart()) {
             if ($eventName === 'controller_action_predispatch_checkout_index_index') {
                 if ($this->helper->isMultishippingCheckoutAvailable()) {
                     return $observer->getControllerAction()
@@ -87,13 +114,9 @@ class Index implements ObserverInterface
                 }
             } elseif ($eventName === 'controller_action_predispatch_checkout_cart_index') {
                 if ($this->helper->isMultishippingCheckoutAvailable()) {
-                    // @TODO: This message seems a little confusing, we need to work on a better one
-                    $message  = __('Your cart has items that need to be shipped to a Dealer. '
-                        . 'You can not perform a regular checkout with a mixed cart,'
-                        . ' so we will redirect you to the Multi-Shipping Checkout.');
+                    $message = __('Some items in your order must ship to an FFL dealer.');
                 } elseif (!$this->helper->shipNonGunItems()) {
-                    $message  = __('Some items in your cart must be shipped to a Licensed Firearm Dealer (FFL). '
-                        . 'To proceed, please remove non-FFL items and place a separate order for them.');
+                    $message = __('Some of your items require shipment to an FFL dealer. You will need to order them separately.');
                 } elseif ($this->helper->shipNonGunItems()) {
                     $message  = __('Your cart has items that need to be shipped to a Dealer. '
                         . "All items will be shipped together. You'll be requested to select a Dealer on the next step.");
@@ -111,18 +134,16 @@ class Index implements ObserverInterface
             }
 
             if (!empty($message)) {
-                $this->messageManager->addErrorMessage($message);
+                $this->messageManager->addUniqueMessages([
+                    $this->messageManager->createMessage(MessageInterface::TYPE_ERROR)->setText($message)
+                ]);
             }
-        }
-
-        if ($eventName === 'controller_action_predispatch_checkout_index_index') {
-            $this->resetFflCheckoutState();
         }
     }
 
     /**
-     * Clear stale FFL shipping state when a dealer must be selected again or
-     * when the cart no longer contains an FFL item.
+     * Clear stale FFL shipping state so every regular checkout page load requires
+     * a fresh dealer selection.
      *
      * @return void
      */
@@ -133,15 +154,25 @@ class Index implements ObserverInterface
             return;
         }
 
-        $hadFflSelection = trim((string) $quote->getFflLicense()) !== '';
-        $hasFflItem = $this->helper->hasFflItem($quote);
-
-        $quote->setFflLicense(null);
-
-        if (!$hasFflItem && !$hadFflSelection) {
-            return;
+        $hadDealer = (bool) ($quote->getFflLicense() || $quote->getFflDealerData());
+        if (!$this->helper->isFfl()) {
+            $hasConditionalAmmo = $this->helper->hasConditionalAmmo();
+            $clearRoutingState = !$hasConditionalAmmo && $quote->getFflRoutingState();
+            if ($clearRoutingState) {
+                $quote->setFflRoutingState(null);
+            }
+            if (!$hadDealer) {
+                if ($clearRoutingState) {
+                    $this->quoteRepository->save($quote);
+                }
+                return;
+            }
+            // Removing the last dealer-required item must also remove its
+            // delivery address and rates before native checkout resolves them.
         }
 
+        $quote->setFflLicense(null);
+        $quote->setFflDealerData(null);
         $quote->setTotalsCollectedFlag(false);
 
         $shippingAddress = $quote->getShippingAddress();
@@ -162,8 +193,15 @@ class Index implements ObserverInterface
             if (method_exists($shippingAddress, 'removeAllShippingRates')) {
                 $shippingAddress->removeAllShippingRates();
             }
+
+            // QuoteRepository also saves the cached shipping assignment.
+            // Its old method cannot be applied to the cleared dealer address.
+            $extensionAttributes = $quote->getExtensionAttributes();
+            foreach ($extensionAttributes ? ($extensionAttributes->getShippingAssignments() ?: []) : [] as $assignment) {
+                $assignment->getShipping()->setAddress($shippingAddress)->setMethod(null);
+            }
         }
-        // Keep this request-local. Saving here can persist an intentionally
-        // incomplete shipping address before the checkout UI collects a dealer.
+
+        $this->quoteRepository->save($quote);
     }
 }

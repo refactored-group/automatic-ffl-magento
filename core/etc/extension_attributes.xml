@@ -2,5 +2,13 @@
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:Api/etc/extension_attributes.xsd">
     <extension_attributes for="Magento\Checkout\Api\Data\ShippingInformationInterface">
         <attribute code="ffl_license" type="string" />
+        <attribute code="ffl_dealer_data" type="string" />
+    </extension_attributes>
+    <extension_attributes for="Magento\Sales\Api\Data\OrderInterface">
+        <attribute code="autoffl_license" type="string" />
+        <attribute code="autoffl_dealer_id" type="int" />
+        <attribute code="autoffl_expiration_date" type="string" />
+        <attribute code="autoffl_certificate_url" type="string" />
+        <attribute code="autoffl_ezcheck_url" type="string" />
     </extension_attributes>
 </config>

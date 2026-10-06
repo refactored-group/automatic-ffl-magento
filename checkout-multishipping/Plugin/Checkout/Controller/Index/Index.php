@@ -64,13 +64,13 @@ class Index
      */
     public function aroundExecute(ParentControllor $subject, Closure $proceed)
     {
+        if ($this->helper->getCheckoutRoute() === 'state') {
+            return $this->resultRedirectFactory->create()->setPath('autoffl/routing/index');
+        }
         if ($this->helper->isMultishippingCheckoutAvailable()) {
             $this->msHelper->clearCustomerSession();
             if ($this->helper->isMixedCart()) {
-                /**
-                 * Normal checkout redirects mixed FFL carts into multishipping,
-                 * where FFL and non-FFL rows should behave as grouped sections.
-                 */
+                // Only the automatic mixed-cart redirect uses grouped rows.
                 $this->customerSession->setData(
                     self::FFL_CHECKOUT_BUTTON_KEY,
                     'proceed_to_checkout'

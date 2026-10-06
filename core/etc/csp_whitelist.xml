@@ -2,6 +2,12 @@
 <csp_whitelist xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Csp:etc/csp_whitelist.xsd">
     <policies>
+        <policy id="frame-src">
+            <values>
+                <value id="automaticffl_map" type="host">https://static.automaticffl.com</value>
+                <value id="automaticffl_map_stage" type="host">https://static-stage.automaticffl.com</value>
+            </values>
+        </policy>
         <policy id="connect-src">
             <values>
                 <value id="automaticffl" type="host">*.automaticffl.com</value>

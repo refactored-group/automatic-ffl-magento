@@ -246,6 +246,8 @@ class Quote extends \Magento\Quote\Model\Quote
     }
 
     /**
+     * Recover an address-item quantity that Magento has not populated yet.
+     *
      * @param \Magento\Quote\Model\Quote\Address\Item $item
      * @return void
      */

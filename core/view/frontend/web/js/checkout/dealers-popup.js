@@ -11,8 +11,8 @@ define([
     'ko',
     'RefactoredGroup_AutoFflCore/js/checkout/select-dealer-button',
     'Magento_Customer/js/customer-data',
-    'RefactoredGroup_AutoFflCore/js/checkout/helper/ffl-address',
-], function ($, Component, checkoutData, createShippingAddress, selectShippingAddress, ko, dealerButton, storage, fflAddress) {
+    'uiRegistry'
+], function ($, Component, checkoutData, createShippingAddress, selectShippingAddress, ko, dealerButton, storage, registry) {
     'use strict';
 
     return Component.extend({
@@ -22,119 +22,20 @@ define([
             this._super();
             this.regionJson = JSON.parse(this.regionJson);
 
-            if (checkoutConfig.customerData.is_ffl == 1) {
-                // Hide manual shipping-address controls from FFL checkout.
-                // @TODO: find a better way of doing this
-                var styleTag = $(
-                    '<style>' +
-                    '.checkout-shipping-address .new-address-popup,' +
-                    '#shipping-new-address-form,' +
-                    '.checkout-shipping-address .edit-address-link { display: none !important; }' +
-                    '</style>'
-                )
-                $('html > head').append(styleTag);
-            }
-
+            // checkout-data clears stale addresses before native resolution.
+            // Repeating the reset here would erase the hydrated shopper form.
             return this;
-        },
-        getCurrentStoreValue: function (storedValue) {
-            var storeCode = window.checkoutConfig && window.checkoutConfig.storeCode;
-
-            if (storedValue &&
-                storeCode &&
-                Object.prototype.hasOwnProperty.call(storedValue, storeCode)
-            ) {
-                return storedValue[storeCode];
-            }
-
-            return this.isAddressLike(storedValue) ? storedValue : null;
-        },
-        clearCurrentStoreValue: function (storedValue) {
-            var storeCode = window.checkoutConfig && window.checkoutConfig.storeCode;
-
-            if (storedValue &&
-                storeCode &&
-                Object.prototype.hasOwnProperty.call(storedValue, storeCode)
-            ) {
-                delete storedValue[storeCode];
-
-                return Object.keys(storedValue).length ? storedValue : null;
-            }
-
-            if (this.isAddressLike(storedValue)) {
-                return null;
-            }
-
-            return storedValue && Object.keys(storedValue).length ? storedValue : null;
-        },
-        isAddressLike: function (value) {
-            return Boolean(
-                value &&
-                (
-                    fflAddress.getAddressValue(value, 'firstname') ||
-                    fflAddress.getAddressValue(value, 'lastname') ||
-                    fflAddress.getAddressValue(value, 'company') ||
-                    fflAddress.getAddressValue(value, 'telephone') ||
-                    fflAddress.getAddressValue(value, 'street')
-                )
-            );
-        },
-        setCurrentStoreValue: function (storedValue, value) {
-            var storeCode = window.checkoutConfig && window.checkoutConfig.storeCode;
-
-            if (!storeCode) {
-                return value;
-            }
-
-            if (!storedValue || this.isAddressLike(storedValue)) {
-                storedValue = {};
-            }
-
-            storedValue[storeCode] = value;
-
-            return storedValue;
-        },
-        clearFflBillingData: function (data, dealerIdentity) {
-            var billingAddressFromData =
-                    this.getCurrentStoreValue(data['billingAddressFromData']),
-                newCustomerBillingAddress =
-                    this.getCurrentStoreValue(data['newCustomerBillingAddress']),
-                hasDealerBillingAddress =
-                    fflAddress.isDealerDerivedAddress(billingAddressFromData, dealerIdentity) ||
-                    fflAddress.isDealerDerivedAddress(newCustomerBillingAddress, dealerIdentity);
-
-            if (fflAddress.isDealerDerivedAddress(billingAddressFromData, dealerIdentity)) {
-                data['billingAddressFromData'] =
-                    this.clearCurrentStoreValue(data['billingAddressFromData']);
-            }
-
-            if (fflAddress.isDealerDerivedAddress(newCustomerBillingAddress, dealerIdentity)) {
-                data['newCustomerBillingAddress'] =
-                    this.clearCurrentStoreValue(data['newCustomerBillingAddress']);
-            }
-
-            if (hasDealerBillingAddress &&
-                (data['selectedBillingAddress'] === 'new-customer-address' ||
-                    data['selectedBillingAddress'] === 'new-customer-billing-address')
-            ) {
-                data['selectedBillingAddress'] = null;
-            }
-
-            if (window.checkoutConfig &&
-                fflAddress.isDealerDerivedAddress(
-                    window.checkoutConfig.billingAddressFromData,
-                    dealerIdentity
-                )
-            ) {
-                window.checkoutConfig.billingAddressFromData = null;
-            }
         },
         /**
          * @param {Object} data
          */
         saveCheckoutData: function (data) {
             storage.set('checkout-data', data);
-            window.localStorage.setItem('checkout-data', JSON.stringify(data));
+            try {
+                window.localStorage.setItem('checkout-data', JSON.stringify(data));
+            } catch (error) {
+                // Magento customer-data remains the canonical saved copy.
+            }
         },
         /**
          *
@@ -147,95 +48,69 @@ define([
             }
         },
         /**
-         * Returns phone number in the format (xxx)-xxx-xxxx
-         *
-         * @param phoneNumberString
-         * @returns {string|null}
+         * Apply the validated shared-map payload through Magento's native address actions.
          */
-        formatPhoneNumber: function (phoneNumberString) {
-            const cleaned = ('' + phoneNumberString).replace(/\D/g, '');
-            const match = cleaned.match(/^(\d{3})(\d{3})(\d{4})$/);
-            if (match) {
-                return '(' + match[1] + ')' + match[2] + '-' + match[3];
-            }
-            return null;
-        },
-        /**
-         *
-         * @param dealerId
-         */
-        selectDealer: function (dealerId) {
+        applySelectedDealer: function (dealer) {
             var self = this;
-            var dealer = this.fflResults()[dealerId]
-            var region = this.getRegionData(dealer.premise_state);
-            var addressData = {
-                city: dealer.premise_city,
-                company: dealer.business_name,
-                country_id: "US",
-                firstname: this.default_firstname,
-                lastname: this.default_lastname,
-                dealer_license: dealer.license,
-                custom_attributes: {
-                    ffl_license: dealer.license
-                },
-                extension_attributes: {
-                    ffl_license: dealer.license
-                },
-                postcode: dealer.premise_zip,
-                region: region.name,
-                region_id: region.id,
-                is_ffl: 1,
-                street: {
-                    0: dealer.premise_street,
-                },
-                telephone: self.formatPhoneNumber(dealer.phone_number),
-                telephone_link: 'tel:+1' + dealer.phone_number,
-                save_in_address_book: 0
-            };
-            
-            checkoutData.setShippingAddressFromData(addressData);
-
-            // New address must be selected as a shipping address
-            var newShippingAddress = createShippingAddress(addressData);
-            selectShippingAddress(newShippingAddress);
-            checkoutData.setNewCustomerShippingAddress($.extend(true, {}, addressData));
-
-            // Set new shipping address as the selected address
-            var storageData = storage.get('checkout-data')() || {};
-            storageData['selectedShippingAddress'] = newShippingAddress.getKey();
-            this.clearFflBillingData(
-                storageData,
-                this.getCurrentStoreValue(storageData['fflDealerAddressIdentity'])
-            );
-            storageData['fflDealerAddressIdentity'] = this.setCurrentStoreValue(
-                storageData['fflDealerAddressIdentity'],
-                {
-                    firstname: addressData['firstname'],
-                    lastname: addressData['lastname'],
-                    company: addressData['company'],
-                    telephone: addressData['telephone']
-                }
-            );
-            this.saveCheckoutData(storageData);
-
-            $("#dealers-popup").modal("closeModal");
-            dealerButton().dealerAddressId[self.currentFflItemId()]('1');
-
-            /**
-             * Set default values to the form in order to avoid validation errors.
-             */
-            if ($('#shipping-new-address-form')) {
-                $('#shipping-new-address-form input[name=firstname]').val(addressData['firstname']).trigger('change');
-                $('#shipping-new-address-form input[name=lastname]').val(addressData['lastname']).trigger('change');
-                $('#shipping-new-address-form input[name=company]').val(addressData['company']).trigger('change');
-                $('#shipping-new-address-form input[name=\'street[0]\']').val(addressData['street'][0]).trigger('change');
-                $('#shipping-new-address-form select[name=country_id] option[value=US]').attr('selected', 'selected').trigger('change');
-                $('#shipping-new-address-form select[name=region_id] option[value=' + addressData['region_id'] + ']').prop('selected', true).trigger('change');
-                $('#shipping-new-address-form input[name=city]').val(addressData['city']).trigger('change');
-                $('#shipping-new-address-form input[name=postcode]').val(addressData['postcode']).trigger('change');
-                $('#shipping-new-address-form input[name=telephone]').val(addressData['telephone']).trigger('change');
-                $('#shipping-new-address-form input[name=custom_attributes\\[ffl_license\\]]').val(addressData['dealer_license']).trigger('change');
+            var region = this.getRegionData(dealer.state);
+            if (!region) {
+                this.selectionError('The selected dealer state is unavailable. Please try another dealer.');
+                this.applyingSelection = false;
+                return;
             }
+            registry.async('checkoutProvider')(function (provider) {
+                var recipient = provider.get('shippingAddress') || {};
+                var addressData = {
+                    city: dealer.city,
+                    company: dealer.company,
+                    country_id: "US",
+                    firstname: recipient.firstname !== undefined ? recipient.firstname : self.default_firstname,
+                    lastname: recipient.lastname !== undefined ? recipient.lastname : self.default_lastname,
+                    dealer_license: dealer.license,
+                    ffl_dealer_data: JSON.stringify(dealer),
+                    custom_attributes: {
+                        ffl_license: dealer.license
+                    },
+                    extension_attributes: {
+                        ffl_license: dealer.license,
+                        ffl_dealer_data: JSON.stringify(dealer)
+                    },
+                    postcode: dealer.postalCode,
+                    region: region.name,
+                    region_id: region.id,
+                    region_code: dealer.state,
+                    is_ffl: 1,
+                    // checkoutProvider emits nested field updates for objects.
+                    // Arrays leave the native street inputs stale or empty.
+                    street: { '0': dealer.address1, '1': dealer.address2 || '' },
+                    telephone: dealer.phone,
+                    telephone_link: 'tel:' + dealer.phone.replace(/[^+\d]/g, ''),
+                    save_in_address_book: 0
+                };
+
+                checkoutData.setShippingAddressFromData(addressData);
+
+                // New address must be selected as a shipping address
+                var newShippingAddress = createShippingAddress(addressData);
+                selectShippingAddress(newShippingAddress);
+                checkoutData.setNewCustomerShippingAddress($.extend(true, {}, addressData));
+                checkoutData.setFflDealerAddressIdentity(addressData);
+
+                // Set new shipping address as the selected address
+                var storageData = storage.get('checkout-data')() || {};
+                storageData['selectedShippingAddress'] = newShippingAddress.getKey();
+                self.saveCheckoutData(storageData);
+
+                $("#dealers-popup").modal("closeModal");
+                self.modalActive = false;
+                self.applyingSelection = false;
+                dealerButton().dealerAddressId[self.currentFflItemId()](dealer.id);
+
+                // Keep native form validation and rate synchronization on the same
+                // complete address, including the dealer metadata. Updating DOM
+                // fields individually can produce a partial non-dealer quote.
+                provider.set('shippingAddress', $.extend(true, {}, addressData));
+            });
         }
     });
 });

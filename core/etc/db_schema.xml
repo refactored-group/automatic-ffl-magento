@@ -3,8 +3,18 @@
     xsi:noNamespaceSchemaLocation="urn:magento:framework:Setup/Declaration/Schema/etc/schema.xsd">
     <table name="sales_order">
         <column name="ffl_license" xsi:type="varchar" nullable="true" comment="FFL License" />
+        <column name="ffl_dealer_data" xsi:type="text" nullable="true" comment="FFL dealer snapshot" />
+        <column name="ffl_attribution_state" xsi:type="varchar" length="16" nullable="true" comment="FFL attribution state" />
+        <column name="ffl_attribution_attempts" xsi:type="int" nullable="false" default="0" comment="FFL attribution attempts" />
+        <column name="ffl_attribution_next_at" xsi:type="timestamp" nullable="true" comment="FFL attribution next attempt" />
+        <index referenceId="SALES_ORDER_FFL_ATTRIBUTION_DUE" indexType="btree">
+            <column name="ffl_attribution_state"/>
+            <column name="ffl_attribution_next_at"/>
+        </index>
     </table>
     <table name="quote">
         <column name="ffl_license" xsi:type="varchar" nullable="true" comment="FFL License" />
+        <column name="ffl_dealer_data" xsi:type="text" nullable="true" comment="FFL dealer snapshot" />
+        <column name="ffl_routing_state" xsi:type="varchar" length="2" nullable="true" comment="Original ammunition routing state" />
     </table>
 </schema>

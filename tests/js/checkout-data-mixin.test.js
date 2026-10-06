@@ -125,6 +125,7 @@ function loadMixin({
     mixinFactory(checkoutData);
 
     return {
+        checkoutData,
         checkoutConfig,
         getStandaloneData: () => standaloneData,
         getStoredData: () => storedData
@@ -767,4 +768,68 @@ test('continues to clear addresses that retain an AutoFFL marker', () => {
     assert.equal(storedData.shippingAddressFromData, null);
     assert.equal(storedData.newCustomerShippingAddress, null);
     assert.equal(storedData.selectedShippingAddress, null);
+});
+
+
+test('keeps the home destination scoped when FFL entry clears the native shipping form', () => {
+    const home = customerAddress();
+    const otherHome = { ...home, street: ['20 Other Home'] };
+    const result = loadMixin({
+        isFfl: 1,
+        checkoutDataState: {
+            shippingAddressFromData: { default: home, other: otherHome },
+            autofflCustomerShippingAddress: { other: otherHome }
+        }
+    });
+    assert.deepEqual(clone(result.checkoutData.getAutofflCustomerShippingAddress()), home);
+    assert.deepEqual(clone(result.getStoredData().autofflCustomerShippingAddress), { default: home, other: otherHome });
+    assert.deepEqual(clone(result.getStoredData().shippingAddressFromData), { other: otherHome });
+
+    result.checkoutData.setAutofflCustomerShippingAddress({ ...home, city: 'Changed home' });
+    assert.equal(result.checkoutData.getAutofflCustomerShippingAddress().city, 'Changed home');
+    result.checkoutConfig.storeCode = 'other';
+    assert.deepEqual(clone(result.checkoutData.getAutofflCustomerShippingAddress()), otherHome);
+    result.checkoutData.setAutofflCustomerShippingAddress(null);
+    assert.equal(result.checkoutData.getAutofflCustomerShippingAddress(), null);
+    result.checkoutConfig.storeCode = 'default';
+    assert.equal(result.checkoutData.getAutofflCustomerShippingAddress().city, 'Changed home');
+});
+
+test('records a new map selection for cleanup after address markers are stripped', () => {
+    const home = customerAddress();
+    const dealer = loggedInDealerAddress();
+    const result = loadMixin({ checkoutDataState: {
+        shippingAddressFromData: home,
+        fflDealerAddressIdentity: scopedDealerIdentity('other')
+    } });
+    result.checkoutData.setFflDealerAddressIdentity(dealer);
+    const stored = clone(result.getStoredData());
+    const standalone = clone(result.getStandaloneData());
+    assert.equal(stored.fflDealerAddressIdentity.default.firstname, dealer.firstname);
+    assert.deepEqual(stored.fflDealerAddressIdentity.other, dealerIdentity());
+    delete stored.fflDealerAddressIdentity;
+    stored.shippingAddressFromData = { default: dealer };
+    stored.newCustomerShippingAddress = { default: dealer };
+    stored.billingAddressFromData = { default: home };
+    const reloaded = loadMixin({ checkoutDataState: stored, standaloneCheckoutDataState: standalone });
+    assert.equal(reloaded.getStoredData().shippingAddressFromData, null);
+    assert.equal(reloaded.getStoredData().newCustomerShippingAddress, null);
+    assert.deepEqual(clone(reloaded.getStoredData().billingAddressFromData), { default: home });
+    assert.deepEqual(clone(reloaded.getStoredData().fflDealerAddressIdentity), scopedDealerIdentity('other'));
+});
+
+
+test('dealer replacement clears only billing derived from the previous selection', () => {
+    const result = loadMixin({ checkoutDataState: {} });
+    const previousDealer = loggedInDealerAddress();
+    result.checkoutData.setFflDealerAddressIdentity(previousDealer);
+    result.getStoredData().billingAddressFromData = { default: previousDealer, other: customerAddress() };
+    result.getStoredData().newCustomerBillingAddress = { default: customerAddress() };
+    result.getStoredData().selectedBillingAddress = 'new-customer-billing-address';
+    result.checkoutConfig.billingAddressFromData = previousDealer;
+    result.checkoutData.setFflDealerAddressIdentity({ ...previousDealer, company: 'Different Dealer' });
+    assert.deepEqual(clone(result.getStoredData().billingAddressFromData), { other: customerAddress() });
+    assert.deepEqual(clone(result.getStoredData().newCustomerBillingAddress), { default: customerAddress() });
+    assert.equal(result.getStoredData().selectedBillingAddress, null);
+    assert.equal(result.checkoutConfig.billingAddressFromData, null);
 });

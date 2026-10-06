@@ -1,73 +1,50 @@
 define([
-    'jquery',
-    'Magento_Customer/js/customer-data',
-    'Magento_Checkout/js/checkout-data',
-    'RefactoredGroup_AutoFflCore/js/checkout/helper/ffl-address',
-    'ko'
-], function ($, customerData, checkoutData, fflAddress, ko) {
+    'ko',
+    'RefactoredGroup_AutoFflCore/js/checkout/destination',
+    'RefactoredGroup_AutoFflCore/js/checkout/routing',
+    'Magento_Checkout/js/model/quote',
+    'Magento_Customer/js/model/customer'
+], function (ko, destination, routing, quote, customer) {
     'use strict';
 
     return function (Component) {
         return Component.extend({
-            createRendererComponent: function (address) {
-                if (checkoutConfig.customerData.is_ffl == 1 && !this.isFflShippingAddress(address)) {
-                    return;
-                }
-
-                if ((checkoutConfig.customerData.is_ffl === 0 ||
-                    checkoutConfig.customerData.is_ffl === '0') &&
-                    fflAddress.isDealerAddress(address)
-                ) {
-                    return;
-                }
-
-                // Forward every argument (notably `index`) to the parent. The core
-                // list component uses `index` as the renderer's unique name; dropping
-                // it makes all addresses render under `name: undefined`, so they
-                // collide in the registry and collapse to a single card.
-                return this._super.apply(this, arguments);
-            },
-
             initialize: function () {
+                this.requiresDealer = destination.requiresDealer;
+                this.isCustomerLoggedIn = customer.isLoggedIn;
+                this.dealerLicense = ko.pureComputed(function () {
+                    return routing.dealerLicense(quote.shippingAddress());
+                }, this);
                 this._super();
-
-                const checkoutData = customerData.get('checkout-data')();
-                this.dealerLicense = ko.observable('');
-                if (checkoutConfig.customerData.is_ffl != 1) {
-                    this.setDealerLicense(checkoutData);
-                }
-
-                customerData.get('checkout-data').subscribe(function (updatedCheckoutData) {
-                    this.setDealerLicense(updatedCheckoutData);
+                this.autofflRecipientSubscription = quote.shippingAddress.subscribe(function (selected) {
+                    if (!routing.isDealer(selected)) {
+                        return;
+                    }
+                    this.elems().forEach(function (renderer) {
+                        if (renderer.address && this.isAvailableAddress(renderer.address())) {
+                            renderer.address(selected);
+                        }
+                    }, this);
                 }, this);
 
                 return this;
             },
-
-            isFflShippingAddress: function (address) {
-                var newCustomerShippingAddress = checkoutData.getNewCustomerShippingAddress &&
-                    checkoutData.getNewCustomerShippingAddress();
-
-                if (fflAddress.isDealerAddress(address)) {
-                    return true;
-                }
-
-                return Boolean(
-                    newCustomerShippingAddress &&
-                    fflAddress.isDealerAddress(newCustomerShippingAddress) &&
-                    address &&
-                    typeof address.getKey === 'function' &&
-                    address.getKey() === 'new-customer-address'
-                );
+            isAvailableAddress: function (address) {
+                var selected = quote.shippingAddress();
+                var license = routing.dealerLicense(address);
+                // Native rate validation creates a new quote Address object.
+                // Match the selected dealer by its stable key and license.
+                return destination.requiresDealer()
+                    ? routing.isDealer(address) && routing.isDealer(selected) &&
+                        (selected === address || (license && license === routing.dealerLicense(selected) &&
+                            address.getKey() === selected.getKey()))
+                    : customer.isLoggedIn() && !routing.isDealer(address);
             },
-
-            setDealerLicense: function (checkoutData) {
-                this.dealerLicense(
-                    checkoutData?.newCustomerShippingAddress?.dealer_license ||
-                    checkoutData?.newCustomerShippingAddress?.default?.dealer_license ||
-                    ''
-                );
-            },
+            destroy: function () {
+                this.dealerLicense.dispose();
+                this.autofflRecipientSubscription.dispose();
+                return this._super();
+            }
         });
     };
 });

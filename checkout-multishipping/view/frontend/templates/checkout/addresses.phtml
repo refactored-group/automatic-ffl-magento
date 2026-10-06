@@ -10,7 +10,18 @@
  */
 // phpcs:disable Magento2.Files.LineLength, Generic.Files.LineLength
 // phpcs:disable Magento2.Templates.ThisInTemplate.FoundHelper
-$isGroupedFflCheckout = $block->isGroupedFflCheckout() ? 'true' : 'false';
+$items = $block->getItems();
+$routing = [];
+$dealerLead = null;
+foreach ($items as $index => $item) {
+    if (!$item->getQuoteItem()) {
+        continue;
+    }
+    $routing[$index] = ['required' => $block->isFflItem($item), 'ammo' => $block->isConditionalAmmoItem($item)];
+    if ($routing[$index]['required'] && $dealerLead === null) {
+        $dealerLead = $index;
+    }
+}
 ?>
 <form id="checkout_multishipping_form"
       data-mage-init='{
@@ -19,21 +30,23 @@ $isGroupedFflCheckout = $block->isGroupedFflCheckout() ? 'true' : 'false';
           "cartUpdate": {
                "validationURL": "<?= $block->escapeUrl($block->getUrl('multishipping/checkout/checkItems')) ?>",
                "eventName": "updateMulticartItemQty"
-          }}'
+          },
+          "RefactoredGroup_AutoFflCore/js/cart/multishipping-destinations": {}}'
       action="<?= $block->escapeUrl($block->getPostActionUrl()) ?>"
       method="post"
       class="multicheckout address form">
+    <?= $block->getBlockHtml('formkey') ?>
     <div class="title">
         <strong><?= $block->escapeHtml(__('Please select a shipping address for applicable items.')) ?></strong>
     </div>
     <input type="hidden" name="continue" value="0" id="can_continue_flag"/>
     <input type="hidden" name="new_address" value="0" id="add_new_address_flag"/>
     <input type="hidden" name="ffl_current_address" value="" id="ffl_current_address"/>
+    <div id="ffl-routing-error" class="message error" role="alert" hidden></div>
     <div class="table-wrapper">
-        <table class="items data table" id="multiship-addresses-table" data-mage-init='{
-            "RefactoredGroup_AutoFflCheckoutMultiShipping/js/checkout/style-shipping-address-table": {
-                "groupedFflCheckout": <?= /* @noEscape */ $isGroupedFflCheckout ?>
-            }
+        <table class="items data table automaticffl-grouped-dealers" id="multiship-addresses-table" data-mage-init='{
+            "RefactoredGroup_AutoFflCheckoutMultiShipping/js/checkout/style-shipping-address-table": {},
+            "RefactoredGroup_AutoFflCore/js/cart/dealer-group": {}
         }'>
             <caption class="table-caption">
                 <?= $block->escapeHtml(__('Please select a shipping address for applicable items.')) ?>
@@ -47,18 +60,24 @@ $isGroupedFflCheckout = $block->isGroupedFflCheckout() ? 'true' : 'false';
             </tr>
             </thead>
             <tbody>
-            <?php foreach ($block->getItems() as $_index => $_item): ?>
+            <?php foreach ($items as $_index => $_item): ?>
                 <?php if ($_item->getQuoteItem()): ?>
-                    <?php $isRequiredFfl = $_item->getQuoteItem()->getProduct()->getRequiredFfl(); ?>
-                    <tr class="<?= ($isRequiredFfl) ? 'ffl-item' : 'non-ffl-item' ?>">
+                    <?php $isRequiredFfl = $routing[$_index]['required']; ?>
+                    <?php $isAmmo = $routing[$_index]['ammo']; ?>
+                    <tr class="automaticffl-product-row <?= $isRequiredFfl ? 'ffl-item' : 'non-ffl-item' ?><?= $_index === $dealerLead ? ' automaticffl-ffl-group-start' : '' ?>"
+                        data-dealer-slot="<?= /* @noEscape */ $_index ?>">
                         <td class="col product" data-th="<?= $block->escapeHtml(__('Product')) ?>">
+                            <?php if ($isRequiredFfl || $isAmmo): ?>
+                                <div class="message notice automaticffl-ffl-group-notice"
+                                     id="automaticffl-ffl-shipment-<?= /* @noEscape */ $_index ?>"
+                                     <?= $_index !== $dealerLead ? 'hidden' : '' ?>>
+                                    <div><?= $block->escapeHtml(__('These items must ship to a licensed dealer (FFL).')) ?></div>
+                                </div>
+                            <?php endif; ?>
                             <?= $block->getItemHtml($_item->getQuoteItem()) ?>
-                            <?php if ($isRequiredFfl): ?>
-                                <div class="message notice">
-                                    <div>
-                                        <?php $fflMsg = __('This item must be shipped to a licensed dealer (FFL)'); ?>
-                                        <?= $block->escapeHtml($fflMsg); ?>
-                                    </div>
+                            <?php if ($block->requiresRoutingState($_item)): ?>
+                                <div class="note">
+                                    <?= $block->escapeHtml(__('Select a delivery address for the ammunition.')) ?>
                                 </div>
                             <?php endif; ?>
                         </td>
@@ -90,37 +109,46 @@ $isGroupedFflCheckout = $block->isGroupedFflCheckout() ? 'true' : 'false';
                                     <?= $block->escapeHtml(__('A shipping selection is not applicable.')) ?>
                                 </div>
                             <?php else: ?>
-                                <div class="field address">
-                                    <?php $eindex = $block->escapeHtml($_index) ?>
-                                    <label for="ship_<?= /* @noEscape */ $eindex ?>_<?= /* @noEscape */ $qid ?>_address"
-                                        class="label">
-                                        <span><?= $block->escapeHtml(__('Send To')) ?></span>
-                                    </label>
-                                    <div class="control">
-                                        <?php if ($isRequiredFfl): ?>
-                                            <div data-mage-init='
-                                                    { "Magento_Ui/js/core/app":
-                                                        {
-                                                        "components":
-                                                            { "selectDealerButton-<?= /* @noEscape */ $_index?>":
-                                                                {
-                                                                    "component": "RefactoredGroup_AutoFflCore/js/cart/select-dealer-button",
-                                                                    "template": "RefactoredGroup_AutoFflCore/cart/select-dealer-button",
-                                                                    "config": <?= /* @noEscape */ $block->getSelectDealerConfig($_item, $_index) ?>
-                                                                }
-                                                            }
-                                                        }
-                                                    }
-                                                '
-                                            id="dealer_button_<?= /* @noEscape */ $_index . '_' . $_item->getQuoteItemId() ?>"
-                                                 class="action update select-dealer" data-bind="scope:'selectDealerButton-<?= /* @noEscape */ $_index ?>'">
-                                                <!-- ko template: getTemplate() --><!-- /ko -->
-                                            </div>
-                                        <?php else: ?>
-                                            <?= $block->getAddressesHtmlSelect($_item, $_index) ?>
-                                        <?php endif; ?>
+                                <?php if ($isRequiredFfl || $isAmmo): ?>
+                                    <?php $component = ['Magento_Ui/js/core/app' => ['components' => [
+                                        'selectDealerButton-' . $_index => [
+                                            'component' => 'RefactoredGroup_AutoFflCore/js/cart/select-dealer-button',
+                                            'template' => 'RefactoredGroup_AutoFflCore/cart/select-dealer-button',
+                                            'config' => json_decode($block->getSelectDealerConfig($_item, $_index, $_index === $dealerLead), true)
+                                        ]
+                                    ]]]; ?>
+                                    <div data-mage-init="<?= $block->escapeHtmlAttr(json_encode($component)) ?>"
+                                         id="dealer_button_<?= /* @noEscape */ $_index . '_' . $_item->getQuoteItemId() ?>"
+                                         class="automaticffl-dealer-slot" data-dealer-slot="<?= /* @noEscape */ $_index ?>"
+                                         <?= $_index !== $dealerLead ? 'hidden' : '' ?>
+                                         data-bind="scope:'selectDealerButton-<?= /* @noEscape */ $_index ?>'">
+                                        <!-- ko template: getTemplate() --><!-- /ko -->
                                     </div>
-                                </div>
+                                <?php endif; ?>
+                                <?php if ($isAmmo): ?>
+                                    <div class="automaticffl-ammo-destination">
+                                        <div class="automaticffl-ammo-ffl-summary" <?= !$isRequiredFfl ? 'hidden' : '' ?>>
+                                            <span class="automaticffl-ammo-ships-to" aria-live="polite"><?= $block->escapeHtml(__('Ships to selected FFL')) ?></span>
+                                            <button type="button" class="action automaticffl-change-destination"><?= $block->escapeHtml(__('Change destination')) ?></button>
+                                            <span class="automaticffl-ammo-ffl-reason" aria-live="polite"></span>
+                                        </div>
+                                        <div class="automaticffl-ammo-address-picker" <?= $isRequiredFfl ? 'hidden' : '' ?>>
+                                            <label class="automaticffl-sr-only" for="ship_<?= $block->escapeHtml($_index) ?>_<?= /* @noEscape */ $qid ?>_address">
+                                                <?= $block->escapeHtml(__('Send To')) ?>
+                                            </label>
+                                            <?= $block->getAddressesHtmlSelect($_item, $_index, true) ?>
+                                        </div>
+                                    </div>
+                                <?php endif; ?>
+                                <?php if (!$isAmmo && !$isRequiredFfl): ?>
+                                    <div class="field address">
+                                        <?php $eindex = $block->escapeHtml($_index) ?>
+                                        <label for="ship_<?= /* @noEscape */ $eindex ?>_<?= /* @noEscape */ $qid ?>_address" class="label">
+                                            <span><?= $block->escapeHtml(__('Send To')) ?></span>
+                                        </label>
+                                        <div class="control"><?= $block->getAddressesHtmlSelect($_item, $_index) ?></div>
+                                    </div>
+                                <?php endif; ?>
                             <?php endif; ?>
                         </td>
                         <td class="col actions" data-th="<?= $block->escapeHtml(__('Actions')) ?>">

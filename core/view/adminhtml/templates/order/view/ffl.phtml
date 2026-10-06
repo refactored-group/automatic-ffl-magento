@@ -1,0 +1,39 @@
+<?php
+/** @var \RefactoredGroup\AutoFflCore\Block\Adminhtml\Order\Ffl $block */
+$fflData = $block->getFflData();
+?>
+<?php if (!empty($fflData['license'])): ?>
+<section class="admin__page-section autoffl-order-information">
+    <div class="admin__page-section-title">
+        <span class="title"><?= $block->escapeHtml(__('FFL Dealer Information')) ?></span>
+    </div>
+    <div class="admin__page-section-content">
+        <table class="admin__table-secondary">
+            <tr>
+                <th scope="row"><?= $block->escapeHtml(__('FFL License')) ?></th>
+                <td><?= $block->escapeHtml($fflData['license']) ?></td>
+            </tr>
+            <tr>
+                <th scope="row"><?= $block->escapeHtml(__('Expiration Date')) ?></th>
+                <td><?= $block->escapeHtml($fflData['expiration_date'] !== null
+                    ? $block->formatDate($fflData['expiration_date'], \IntlDateFormatter::MEDIUM, false, 'UTC')
+                    : __('Unavailable — verify with ATF eZ Check')) ?></td>
+            </tr>
+            <tr>
+                <th scope="row"><?= $block->escapeHtml(__('ATF eZ Check')) ?></th>
+                <td><a href="<?= $block->escapeUrl($fflData['ezcheck_url']) ?>" target="_blank" rel="noopener noreferrer"><?= $block->escapeHtml(__('Verify FFL')) ?></a></td>
+            </tr>
+            <tr>
+                <th scope="row"><?= $block->escapeHtml(__('FFL Certificate')) ?></th>
+                <td>
+                    <?php if ($fflData['certificate_url'] !== null): ?>
+                    <a href="<?= $block->escapeUrl($fflData['certificate_url']) ?>" target="_blank" rel="noopener noreferrer"><?= $block->escapeHtml(__('View Certificate')) ?></a>
+                    <?php else: ?>
+                    <?= $block->escapeHtml(__('Unavailable')) ?>
+                    <?php endif; ?>
+                </td>
+            </tr>
+        </table>
+    </div>
+</section>
+<?php endif; ?>

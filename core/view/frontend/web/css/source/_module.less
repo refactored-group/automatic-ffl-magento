@@ -59,23 +59,6 @@ select.dealers-modal-button {
     flex-direction: row;
     justify-content: center;
 }
-.modal-slide {
-    .modal-header {
-        padding-right: 0px !important;
-        padding-bottom: 0px !important;
-    }
-    .modal-content {
-        padding-right: 0px !important;
-        padding-bottom: 0px !important;
-    }
-    .modal-footer {
-        padding-right: 0px !important;
-        padding-bottom: 0px !important;
-    }
-}
-.modal-content {
-    height: 100%;
-}
 .ffl-search-input {
     width: 90% !important;
     padding: 20px 40px !important;
@@ -84,9 +67,6 @@ select.dealers-modal-button {
     border-right: 0 !important;
     border-left: 0 !important;
     margin-right: 3px !important;
-}
-.action-close {
-    display: none !important;
 }
 .select-ffl {
     color: #333333;
@@ -240,8 +220,120 @@ select.dealers-modal-button {
 .ffl-cart-input-address {
     width: 0px !important;
     height: 0px !important;
-    padding: 0px !important;
+    padding:0px !important;
     margin: 0px !important;
+}
+
+.automaticffl-grouped-dealers {
+    .automaticffl-ffl-group-notice {
+        margin: 0 0 12px;
+    }
+    .automaticffl-recipient-summary {
+        margin-bottom: 6px;
+        .action {
+            margin-left: 12px;
+        }
+    }
+    .automaticffl-recipient-editor {
+        margin-bottom: 16px;
+        max-width: 400px;
+        .field {
+            margin-bottom: 12px;
+        }
+        > .field > .label {
+            font-weight: normal;
+        }
+        .action + .action {
+            margin-left: 12px;
+        }
+    }
+    .automaticffl-dealer-slot {
+        .ffl-address {
+            line-height: 1.6;
+            overflow-wrap: anywhere;
+        }
+        .select-dealer {
+            margin-top: 4px;
+        }
+    }
+    .note {
+        font-size: 1.2rem;
+    }
+    .automaticffl-ffl-group-start .automaticffl-ammo-ships-to {
+        display: none;
+    }
+}
+
+// Match the original Magento grouping: one address in the first dealer row,
+// no dividers inside the shipment, and native dividers between destinations.
+@media all and (min-width: @screen__s) {
+    .automaticffl-grouped-dealers .automaticffl-product-row.automaticffl-ffl-group-start {
+        position: relative;
+        > td {
+            padding-top: ~"calc(var(--automaticffl-notice-height, 42px) + 22px)";
+        }
+        .automaticffl-ffl-group-notice {
+            position: absolute;
+            top: 10px;
+            left: 0;
+            right: 0;
+            margin: 0;
+        }
+    }
+    .automaticffl-grouped-dealers .automaticffl-product-row.ffl-item:not(.automaticffl-ffl-group-start) > td {
+        border-top: 0;
+    }
+}
+
+.automaticffl-sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+@media screen and (max-width: (@screen__s - 1)) {
+    .automaticffl-grouped-dealers .automaticffl-product-row.ffl-item:not(.automaticffl-ffl-group-end) {
+        margin-bottom: 0 !important;
+    }
+}
+
+#checkout_multishipping_form [hidden] {
+    display: none !important;
+}
+
+.automaticffl-ammo-ffl-summary {
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 0;
+}
+
+.automaticffl-ammo-ffl-reason {
+    flex-basis: 100%;
+    color: #666;
+    font-size: 1.3rem;
+}
+
+.automaticffl-change-destination {
+    background: none;
+    border: 0;
+    box-shadow: none;
+    color: #006bb4;
+    font-weight: normal;
+    padding: 0;
+    &:hover, &:focus, &:active {
+        background: none;
+        border: 0;
+        box-shadow: none;
+        text-decoration: underline;
+    }
 }
 
 .message.ffl {
@@ -334,4 +426,141 @@ select.dealers-modal-button {
             }
         }
     }
+}
+
+// The shared iframe uses the same viewport as WooCommerce's dealers-container.
+.modal-popup.automaticffl-dealer-modal {
+    left: 0;
+    overflow: hidden;
+
+    .modal-inner-wrap,
+    &._show .modal-inner-wrap {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 70%;
+        height: 70%;
+        min-height: 0;
+        max-height: none;
+        margin: 0;
+        padding: 0;
+        transform: translate(-50%, -50%);
+        border-radius: 6px;
+        background: #fff;
+        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.4);
+        overflow: hidden;
+    }
+
+    .modal-header,
+    .modal-footer {
+        display: none;
+    }
+
+    .modal-content {
+        height: 100%;
+        padding: 0;
+        overflow: hidden;
+    }
+
+    #dealers-popup {
+        position: relative;
+        height: 100%;
+    }
+
+    #automaticffl-map-iframe {
+        display: block;
+        width: 100%;
+        height: 100%;
+        border: none;
+    }
+
+    .message-error {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 1;
+        margin: 0;
+    }
+}
+
+body.automaticffl-map-open .modals-overlay {
+    background: rgba(0, 0, 0, 0.5);
+}
+
+body.automaticffl-requires-dealer #shipping .edit-address-link {
+    display: none !important;
+}
+
+// Keep the guest email section and ammo destination in one continuous form.
+#shipping.automaticffl-ammo-checkout .form-login {
+    border-bottom: 0;
+    padding-bottom: 0;
+    margin-bottom: @form-field__vertical-indent;
+
+    > .fieldset {
+        margin-bottom: 0;
+
+        > .field {
+            margin-bottom: 0;
+        }
+    }
+}
+
+// These sections continue the native fields rather than starting another form.
+#shipping.automaticffl-ammo-checkout .form-shipping-address,
+#shipping .automaticffl-dealer-recipient .form-shipping-address {
+    margin-top: @form-field__vertical-indent;
+    margin-bottom: @form-field__vertical-indent;
+}
+
+.automaticffl-routing-state {
+    margin: @form-field__vertical-indent 0;
+    max-width: 500px;
+
+    > .field > .label {
+        font-weight: normal;
+    }
+
+    .message-error {
+        margin-top: 12px;
+    }
+}
+
+// The ammunition dropdown supplies these native shipping values. Billing and
+// non-US forms keep their own region inputs.
+.automaticffl-home-destination [name="shippingAddress.region_id"],
+.automaticffl-home-destination [name="shippingAddress.region"] {
+    display: none !important;
+}
+
+@media screen and (max-width: 800px) {
+    .modal-popup.automaticffl-dealer-modal {
+        .modal-inner-wrap,
+        &._show .modal-inner-wrap {
+            width: 96%;
+            height: 90%;
+        }
+    }
+}
+
+// The dealer supplies the address; the shopper supplies the recipient name.
+.automaticffl-dealer-recipient #shipping-new-address-form > :not([name="shippingAddress.firstname"]):not([name="shippingAddress.lastname"]) {
+    display: none !important;
+}
+
+.automaticffl-dealer-controls {
+    max-width: 500px;
+
+    > .field > .label {
+        font-weight: normal;
+    }
+
+    .message.error {
+        margin: 12px 0 0;
+    }
+}
+
+.automaticffl-recipient-name .field {
+    margin-bottom: 15px;
 }

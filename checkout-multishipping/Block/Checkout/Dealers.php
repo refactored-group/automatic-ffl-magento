@@ -36,12 +36,9 @@ class Dealers extends Template
     public function getJsonConfig()
     {
         return json_encode([
-            'store_hash' => $this->helper->getStoreHash(),
-            'google_maps_url' => $this->helper->getGoogleMapsApiUrl(),
-            'google_maps_api_key' => $this->helper->getGoogleMapsApiKey(),
+            'iframeUrl' => $this->helper->getMapUrl(),
+            'iframeOrigin' => $this->helper->getMapOrigin(),
             'create_address_url' => $this->getUrl('createaddress/index/index'),
-            'ffl_api_url' => $this->helper->getDealersEndpoint(),
-            'stores_endpoint' => $this->helper->getStoresEndpoint(),
             'form_key' => $this->helper->getFormKey(),
             'is_ffl' => true,
             'mode' => 'cart'

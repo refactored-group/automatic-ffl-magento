@@ -3,15 +3,16 @@
  * @copyright Copyright © 2022. All rights reserved.
  */
 define([
-    'jquery'
-], function ($) {
+    'jquery',
+    'RefactoredGroup_AutoFflCore/js/checkout/helper/shipping-mode'
+], function ($, shippingMode) {
     'use strict';
 
     return function (config, element) {
         /**
-         * Only group rows when normal checkout redirected a mixed FFL cart here.
+         * If "Check Out with Multiple Addresses" is clicked, ignore
          */
-        if (!config.groupedFflCheckout) {
+        if (shippingMode.isMultishipping()) {
             return;
         }
 

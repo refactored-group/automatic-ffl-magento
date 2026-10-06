@@ -9,6 +9,11 @@ namespace RefactoredGroup\AutoFflCore\Helper;
 use Magento\Checkout\Model\Session;
 use Magento\Framework\App\Helper\Context;
 use Magento\Framework\Data\Form\FormKey;
+use Magento\Framework\Encryption\EncryptorInterface;
+use Magento\Store\Model\ScopeInterface;
+use Magento\Directory\Model\ResourceModel\Region\CollectionFactory as RegionCollectionFactory;
+use RefactoredGroup\AutoFflCore\Model\QuoteAnalysis;
+use RefactoredGroup\AutoFflCore\Model\CheckoutRouting;
 use Magento\Multishipping\Helper\Data as MultishippingHelper;
 
 /**
@@ -25,9 +30,12 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
     const XML_PATH_GOOGLE_MAPS_API_URL = 'autoffl/configuration/google_maps_api_url';
     const XML_PATH_SANDBOX_MODE = 'autoffl/configuration/sandbox_mode';
     const XML_PATH_SHIP_NON_GUN_ITEMS = 'autoffl/configuration/ship_non_gun_items';
+    const XML_PATH_STORE_SECRET = 'autoffl/configuration/store_secret';
 
     const API_PRODUCTION_URL = 'https://app.automaticffl.com/store-front/api';
     const API_SANDBOX_URL = 'https://app-stage.automaticffl.com/store-front/api';
+    const MAP_PRODUCTION_URL = 'https://static.automaticffl.com/big-commerce-enhanced-checkout/index.html';
+    const MAP_SANDBOX_URL = 'https://static-stage.automaticffl.com/big-commerce-enhanced-checkout/index.html';
 
     const DEFAULT_FIRSTNAME = 'FFL';
     const DEFAULT_LASTNAME = 'Dealer';
@@ -68,7 +76,13 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
     /**
      * @var bool|null
      */
-    private $isEnabled = null;
+    private $isEnabled = [];
+
+    /** @var EncryptorInterface */
+    private $encryptor;
+    private $quoteAnalysis;
+    private $regions;
+    private $regionCodes = [];
     /**
      * @var bool|null
      */
@@ -84,12 +98,18 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
         Context $context,
         Session $checkoutSession,
         FormKey $formKey,
-        MultishippingHelper $multishippingHelper
+        MultishippingHelper $multishippingHelper,
+        EncryptorInterface $encryptor,
+        QuoteAnalysis $quoteAnalysis,
+        RegionCollectionFactory $regions
     ) {
         $this->checkoutSession = $checkoutSession;
         $this->quote = $this->getQuote();
         $this->formKey = $formKey;
         $this->multishippingHelper = $multishippingHelper;
+        $this->encryptor = $encryptor;
+        $this->quoteAnalysis = $quoteAnalysis;
+        $this->regions = $regions;
 
         parent::__construct($context);
     }
@@ -109,12 +129,9 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
      *
      * @return string
      */
-    public function getStoreHash()
+    public function getStoreHash($storeId = null)
     {
-        return $this->getConfig(
-            self::XML_PATH_STORE_HASH,
-            \Magento\Store\Model\ScopeInterface::SCOPE_STORE
-        );
+        return $this->getConfig(self::XML_PATH_STORE_HASH, ScopeInterface::SCOPE_STORE, $storeId);
     }
 
     /**
@@ -122,12 +139,9 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
      *
      * @return string
      */
-    public function getGoogleMapsApiKey()
+    public function getGoogleMapsApiKey($storeId = null)
     {
-        return $this->getConfig(
-            self::XML_PATH_GOOGLE_MAPS_API_KEY,
-            \Magento\Store\Model\ScopeInterface::SCOPE_STORE
-        );
+        return $this->getConfig(self::XML_PATH_GOOGLE_MAPS_API_KEY, ScopeInterface::SCOPE_STORE, $storeId);
     }
 
     /**
@@ -135,12 +149,9 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
      *
      * @return string
      */
-    public function getGoogleMapsApiUrl()
+    public function getGoogleMapsApiUrl($storeId = null)
     {
-        return $this->getConfig(
-            self::XML_PATH_GOOGLE_MAPS_API_URL,
-            \Magento\Store\Model\ScopeInterface::SCOPE_STORE
-        );
+        return $this->getConfig(self::XML_PATH_GOOGLE_MAPS_API_URL, ScopeInterface::SCOPE_STORE, $storeId);
     }
 
     /**
@@ -148,13 +159,9 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
      *
      * @return string
      */
-    public function getFflApiUrl()
+    public function getFflApiUrl($storeId = null)
     {
-
-        if ($this->getConfig(
-            self::XML_PATH_SANDBOX_MODE,
-            \Magento\Store\Model\ScopeInterface::SCOPE_STORE
-        ) == 1) {
+        if ($this->isSandboxMode($storeId)) {
             return self::API_SANDBOX_URL;
         }
 
@@ -164,44 +171,70 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
     /**
      * @return string
      */
-    public function getDealersEndpoint()
+    public function getDealersEndpoint($storeId = null)
     {
-        return sprintf('%s/%s/%s', $this->getFflApiUrl(), $this->getStoreHash(), 'dealers');
+        return sprintf('%s/%s/%s', $this->getFflApiUrl($storeId), $this->getStoreHash($storeId), 'dealers');
     }
 
     /**
      * @return string
      */
-    public function getStoresEndpoint()
+    public function getStoresEndpoint($storeId = null)
     {
-        return sprintf('%s/%s/%s', $this->getFflApiUrl(), 'stores', $this->getStoreHash());
+        return sprintf('%s/%s/%s', $this->getFflApiUrl($storeId), 'stores', $this->getStoreHash($storeId));
+    }
+
+    public function isSandboxMode($storeId = null)
+    {
+        return (bool) $this->getConfig(self::XML_PATH_SANDBOX_MODE, ScopeInterface::SCOPE_STORE, $storeId);
+    }
+
+    public function getStoreSecret($storeId = null)
+    {
+        $encrypted = $this->getConfig(self::XML_PATH_STORE_SECRET, ScopeInterface::SCOPE_STORE, $storeId);
+        return $encrypted ? $this->encryptor->decrypt($encrypted) : '';
+    }
+
+    public function getMapUrl($storeId = null)
+    {
+        $base = $this->isSandboxMode($storeId) ? self::MAP_SANDBOX_URL : self::MAP_PRODUCTION_URL;
+        $params = ['store_hash' => $this->getStoreHash($storeId), 'platform' => 'Magento'];
+        $key = trim((string) $this->getGoogleMapsApiKey($storeId));
+        if ($key !== '') {
+            $params['maps_api_key'] = $key;
+        }
+        return $base . '?' . http_build_query($params, '', '&', PHP_QUERY_RFC3986);
+    }
+
+    public function getMapOrigin($storeId = null)
+    {
+        return $this->isSandboxMode($storeId)
+            ? 'https://static-stage.automaticffl.com'
+            : 'https://static.automaticffl.com';
     }
 
     /**
      * Verify if FFL is enabled
      * @return mixed
      */
-    public function isEnabled()
+    public function isEnabled($storeId = null)
     {
-        if ($this->isEnabled === null) {
-            $this->isEnabled = $this->getConfig(
-                self::XML_PATH_IS_ENABLED,
-                \Magento\Store\Model\ScopeInterface::SCOPE_STORE
+        $resolvedStoreId = $this->resolveStoreId($storeId);
+        if (!array_key_exists($resolvedStoreId, $this->isEnabled)) {
+            $this->isEnabled[$resolvedStoreId] = $this->getConfig(
+                self::XML_PATH_IS_ENABLED, ScopeInterface::SCOPE_STORE, $resolvedStoreId
             );
         }
-        return $this->isEnabled;
+        return $this->isEnabled[$resolvedStoreId];
     }
 
     /**
      * Verify if non-gun items should be shipped together with FFL
      * @return mixed
      */
-    public function shipNonGunItems()
+    public function shipNonGunItems($storeId = null)
     {
-        return $this->getConfig(
-            self::XML_PATH_SHIP_NON_GUN_ITEMS,
-            \Magento\Store\Model\ScopeInterface::SCOPE_STORE
-        );
+        return $this->getConfig(self::XML_PATH_SHIP_NON_GUN_ITEMS, ScopeInterface::SCOPE_STORE, $storeId);
     }
 
     /**
@@ -211,28 +244,9 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
      */
     public function hasFflItem($quoteParam = false)
     {
-        if ($quoteParam === false && $this->hasFfl !== null) {
-            return $this->hasFfl;
-        }
-
-        if (!$quoteParam) {
-            $quote = $this->quote;
-        } else {
-            $quote = $quoteParam;
-        }
-        $hasFfl = false;
-
-        $items = $quote->getAllVisibleItems();
-        foreach ($items as $item) {
-            if ($item->getProduct()->getRequiredFfl()) {
-                $hasFfl = true;
-            }
-        }
-
-        if (!$quoteParam) {
-            $this->hasFfl = $hasFfl;
-        }
-        return $hasFfl;
+        $quote = $quoteParam ?: $this->quote;
+        $analysis = $this->quoteAnalysis->analyze($quote);
+        return !empty($analysis['required']) || $analysis['unresolved'];
     }
 
     /**
@@ -260,21 +274,10 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
      */
     public function isFflCart()
     {
-        if ($this->cartIsFfl === null && $this->isEnabled()) {
-            $totalFflItems = 0;
-            $visibleCartItems = $this->quote->getAllVisibleItems();
-            $totalVisibleItems = count($visibleCartItems);
-
-            foreach ($visibleCartItems as $item) {
-                if ($item->getProduct()->getRequiredFfl() == 1) {
-                    $totalFflItems++;
-                }
-            }
-
-            $this->cartIsFfl = $totalVisibleItems == $totalFflItems;
+        if (!$this->isEnabled()) {
+            return false;
         }
-
-        return $this->cartIsFfl;
+        return $this->quoteAnalysis->analyze($this->quote)['allRequired'];
     }
 
     /**
@@ -284,10 +287,111 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
      */
     public function isFfl()
     {
-        if ($this->isFflCart() || $this->hasFflItem() && $this->shipNonGunItems()) {
-            return true;
+        return $this->isEnabled() && !empty($this->quoteAnalysis->analyze($this->quote)['required']);
+    }
+
+    public function hasConditionalAmmo()
+    {
+        return $this->isEnabled() && $this->quoteAnalysis->analyze($this->quote)['hasAmmunition'];
+    }
+
+    public function showRoutingStateInCheckout()
+    {
+        // Mixed carts already choose the ammunition destination before checkout.
+        // Only ammo-only carts collect it directly in the shipping form.
+        $routing = $this->getCheckoutRoutingConfig();
+        return !empty($routing['enabled']) && !empty($routing['ammoOnly']);
+    }
+
+    public function getRoutingState()
+    {
+        return strtoupper((string) $this->quote->getFflRoutingState());
+    }
+
+    public function getRoutingStateUrl()
+    {
+        return $this->_getUrl('autoffl/routing/state');
+    }
+
+    public function getCheckoutRoute($quote = null, $state = null)
+    {
+        if (!$this->isEnabled()) {
+            return 'standard';
         }
-        return false;
+        return (new CheckoutRouting())->decide($this->quoteAnalysis->analyze($quote ?: $this->quote, $state));
+    }
+
+    public function getRoutingPromptUrl()
+    {
+        return $this->_getUrl('autoffl/routing/index');
+    }
+
+    public function getCheckoutEntryRoute()
+    {
+        $route = $this->getCheckoutRoute();
+        if ($route === 'multishipping') {
+            $analysis = $this->quoteAnalysis->analyze($this->quote);
+            // A firearm and an ordinary item already need separate addresses,
+            // regardless of the ammunition destination chosen in multishipping.
+            if (!empty($analysis['firearms']) && !empty($analysis['ordinary'])) {
+                return $route;
+            }
+        }
+        // Mixed carts confirm the ammo destination on each checkout attempt,
+        // including a saved state that previously sent the whole cart to a dealer.
+        $routing = $this->getCheckoutRoutingConfig();
+        return !empty($routing['enabled']) && empty($routing['ammoOnly'])
+            ? 'state' : $route;
+    }
+
+    public function allowCheckoutEntry($allowed = true)
+    {
+        $this->checkoutSession->setAutofflCheckoutEntry(
+            $allowed && $this->getCheckoutEntryRoute() === 'state' && $this->getCheckoutRoute() === 'standard'
+                ? $this->checkoutEntryKey() : null
+        );
+    }
+
+    public function consumeCheckoutEntry()
+    {
+        $key = $this->checkoutSession->getAutofflCheckoutEntry();
+        $this->checkoutSession->setAutofflCheckoutEntry(null);
+        return is_string($key) && hash_equals($this->checkoutEntryKey(), $key);
+    }
+
+    private function checkoutEntryKey()
+    {
+        $items = [];
+        foreach ($this->quote->getAllVisibleItems() as $item) {
+            $items[] = [(int) $item->getId(), (int) $item->getProductId(), (float) $item->getQty()];
+        }
+        usort($items, function ($left, $right) { return $left[0] <=> $right[0]; });
+        // The destination endpoint grants one entry to native checkout. Cart or
+        // state changes cannot reuse it, and later checkout visits prompt again.
+        return hash('sha256', json_encode([(int) $this->quote->getId(), $this->getRoutingState(), $items]));
+    }
+
+    public function getCheckoutRoutingConfig()
+    {
+        if (!$this->isEnabled()) {
+            return ['enabled' => false, 'ammoOnly' => false];
+        }
+        $analysis = $this->quoteAnalysis->analyze($this->quote);
+        $ammoCount = 0;
+        $dealerStates = [];
+        foreach ($analysis['ammo'] as $entry) {
+            $ammoCount += count($entry['items']);
+            $dealerStates = array_merge($dealerStates, $entry['states']);
+        }
+        return [
+            'enabled' => (bool) $this->isEnabled() && $analysis['hasAmmunition'],
+            'ammoOnly' => $ammoCount > 0 && $ammoCount === $analysis['physicalCount'],
+            'dealerStates' => array_values(array_unique($dealerStates)),
+            'selectedState' => $this->getRoutingState(),
+            'stateUrl' => $this->getRoutingStateUrl(),
+            'checkoutUrl' => $this->_getUrl('checkout/index'),
+            'formKey' => $this->getFormKey()
+        ];
     }
 
     /**
@@ -295,7 +399,119 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
      */
     public function isMixedCart()
     {
-        return $this->hasFflItem() && !$this->isFflCart();
+        return $this->getCheckoutRoute() === 'multishipping';
+    }
+
+    public function isFflItem($item, $quote = null, $destinationState = null)
+    {
+        $quote = $quote ?: $this->quote;
+        $quoteItemId = $item->getQuoteItemId() ?: $item->getId();
+        foreach ($this->quoteAnalysis->analyze($quote, $destinationState)['required'] as $required) {
+            if ((int) $required->getId() === (int) $quoteItemId) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public function isUnresolvedAmmoItem($item, $quote, $destinationState)
+    {
+        $analysis = $this->quoteAnalysis->analyze($quote, $destinationState);
+        if (!$analysis['unresolved']) {
+            return false;
+        }
+        $quoteItemId = (int) ($item->getQuoteItemId() ?: $item->getId());
+        foreach ($analysis['ammo'] as $entry) {
+            if (empty($entry['states'])) {
+                continue;
+            }
+            foreach ($entry['items'] as $ammoItem) {
+                if ((int) $ammoItem->getId() === $quoteItemId) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    public function getMultishippingItemAddress($quote, $item)
+    {
+        // Magento's display filter copies item data without its protected address reference.
+        $address = $item->getAddress();
+        if (!$address && $item->getQuoteAddressId()) {
+            $address = $quote->getAddressById($item->getQuoteAddressId());
+        }
+        if (!$address && $item->getCustomerAddressId()) {
+            $address = $quote->getShippingAddressByCustomerAddressId($item->getCustomerAddressId());
+        }
+        if (!$address) {
+            $itemId = $item->getQuoteItemId() ?: $item->getId();
+            foreach ($quote->getAllShippingAddresses() as $candidate) {
+                if ($candidate->getItemByQuoteItemId($itemId)) {
+                    return $candidate;
+                }
+            }
+        }
+        return $address;
+    }
+
+    public function isConditionalAmmoItem($item, $quote)
+    {
+        $itemId = (int) ($item->getQuoteItemId() ?: $item->getId());
+        foreach ($this->quoteAnalysis->analyze($quote, '')['ammo'] as $entry) {
+            if (empty($entry['states'])) {
+                continue;
+            }
+            foreach ($entry['items'] as $ammo) {
+                if ((int) $ammo->getId() === $itemId) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    public function multishippingRoutingState($quote, $address, $item = null)
+    {
+        if (!$address) {
+            return '';
+        }
+        $customerAddressId = (string) $address->getCustomerAddressId();
+        $data = json_decode((string) $quote->getFflDealerData(), true);
+        $itemId = $item ? (int) ($item->getQuoteItemId() ?: $item->getId()) : 0;
+        if ($itemId && isset($data['addresses'][$customerAddressId]['routingStates'][$itemId])) {
+            return strtoupper((string) $data['addresses'][$customerAddressId]['routingStates'][$itemId]);
+        }
+        if ($customerAddressId !== '' && is_array($data) &&
+            !empty($data['addresses'][$customerAddressId]['routingState'])) {
+            return strtoupper((string) $data['addresses'][$customerAddressId]['routingState']);
+        }
+        return $this->getAddressState($address);
+    }
+
+    public function getAddressState($address)
+    {
+        if (!$address) {
+            return '';
+        }
+        $code = $address instanceof \Magento\Customer\Api\Data\AddressInterface
+            ? ($address->getRegion() ? $address->getRegion()->getRegionCode() : '')
+            : $address->getRegionCode();
+        $code = strtoupper(trim((string) $code));
+        if (preg_match('/^[A-Z]{2}$/', $code)) {
+            return $code;
+        }
+        $regionId = (int) $address->getRegionId();
+        if ($regionId <= 0) {
+            return '';
+        }
+        if (!array_key_exists($regionId, $this->regionCodes)) {
+            $region = $this->regions->create()
+                ->addFieldToFilter('region_id', ['eq' => $regionId])
+                ->getFirstItem();
+            $this->regionCodes[$regionId] = strtoupper((string) $region->getCode());
+        }
+        return $this->regionCodes[$regionId];
     }
 
     /**
@@ -304,13 +520,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
      */
     public function getFflItems()
     {
-        $fflItems = [];
-        foreach ($this->quote->getAllVisibleItems() as $item) {
-            if ($item->getProduct()->getRequiredFfl()) {
-                $fflItems[] = $item;
-            }
-        }
-        return $fflItems;
+        return $this->quoteAnalysis->analyze($this->quote)['required'];
     }
 
     /**
@@ -321,7 +531,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
     {
         $itemNames = [];
         foreach ($this->getFflItems() as $item) {
-            $itemNames = $item->getName();
+            $itemNames[] = $item->getName();
         }
         return implode(', ', $itemNames);
     }
@@ -336,9 +546,20 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
      * @param $path
      * @return mixed
      */
-    public function getConfig($path)
+    public function getConfig($path, $scope = ScopeInterface::SCOPE_STORE, $storeId = null)
     {
-        return $this->scopeConfig->getValue($path);
+        if ($scope === ScopeInterface::SCOPE_STORE) {
+            return $this->scopeConfig->getValue($path, $scope, $this->resolveStoreId($storeId));
+        }
+        return $this->scopeConfig->getValue($path, $scope, $storeId);
+    }
+
+    private function resolveStoreId($storeId)
+    {
+        if ($storeId !== null) {
+            return (int) $storeId;
+        }
+        return (int) $this->quote->getStoreId();
     }
 
     /**
@@ -364,7 +585,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
             
             return $customer->getFirstname();
         }
-        return self::DEFAULT_FIRSTNAME;
+        return '';
     }
 
     /**
@@ -380,6 +601,6 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
             
             return $customer->getLastname();
         }
-        return self::DEFAULT_LASTNAME;
+        return '';
     }
 }

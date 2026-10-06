@@ -1,0 +1,8 @@
+<?php /** @var \RefactoredGroup\AutoFflCore\Block\RoutingState $block */ ?>
+<?php if ($block->shouldRender()): ?>
+<div class="automaticffl-destination" data-bind="scope: 'autofflDestination'"
+     data-mage-init="<?= $block->escapeHtmlAttr($block->getComponentConfig()) ?>">
+    <p><?= $block->escapeHtml(__('Ammunition shipping requirements vary by state. Select the delivery state so we can show the right shipping options for your order.')) ?></p>
+    <!-- ko template: getTemplate() --><!-- /ko -->
+</div>
+<?php endif; ?>

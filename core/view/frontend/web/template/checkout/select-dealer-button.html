@@ -4,13 +4,23 @@
  * @copyright Copyright © 2022. All rights reserved.
  */
  -->
-<!-- ko if: (mode == 'checkout' && is_ffl || mode !== 'checkout') -->
-<input type="hidden" data-bind="attr: {
-            name: addressFieldName,
-            id: addressFieldName,
-            value: dealerAddressId[dealerButtonId]
-    }">
-<button type="button" class="action update select-dealer" data-bind="click: openSelectDealerModal">
-    <span data-bind="html: fflButtonLabel"></span>
-</button>
+<!-- ko if: (mode == 'checkout' && requiresDealer() || mode !== 'checkout') -->
+<div class="automaticffl-dealer-controls fieldset">
+    <div class="field required">
+        <label class="label" data-bind="attr: { for: 'automaticffl-select-dealer-' + dealerButtonId }"><span data-bind="i18n: 'FFL Dealer'"></span></label>
+        <div class="control">
+            <input type="hidden" data-bind="attr: {
+                    name: addressFieldName,
+                    id: addressFieldName,
+                    value: dealerAddressId[dealerButtonId]
+                }">
+            <button type="button" class="action update select-dealer" data-bind="click: openSelectDealerModal, attr: { id: 'automaticffl-select-dealer-' + dealerButtonId }">
+                <span data-bind="text: fflButtonLabel"></span>
+            </button>
+            <div class="message error" role="alert" data-bind="visible: recipientValidationMessage">
+                <span data-bind="text: recipientValidationMessage"></span>
+            </div>
+        </div>
+    </div>
+</div>
 <!--/ko-->

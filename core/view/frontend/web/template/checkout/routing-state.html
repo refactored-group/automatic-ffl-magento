@@ -1,0 +1,16 @@
+<div class="automaticffl-routing-state fieldset" data-bind="visible: isVisible">
+    <div class="field required">
+        <label class="label" for="automaticffl-routing-state"><span data-bind="i18n: 'State'"></span></label>
+        <div class="control">
+            <select class="select" id="automaticffl-routing-state" required aria-required="true" data-bind="options: states, optionsText: 'name', optionsValue: 'code', optionsCaption: 'Select a state', value: state, event: { change: saveState }, disable: beforeCheckout && saving(), attr: { 'aria-busy': saving }"></select>
+            <p class="message message-error" role="alert" data-bind="visible: error, text: error"></p>
+        </div>
+    </div>
+    <div class="actions-toolbar" data-bind="visible: beforeCheckout">
+        <div class="primary">
+            <button class="action primary" type="button" data-bind="click: saveState, disable: !state() || saving()">
+                <span data-bind="i18n: 'Continue'"></span>
+            </button>
+        </div>
+    </div>
+</div>

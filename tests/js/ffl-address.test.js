@@ -90,3 +90,15 @@ test('still recognizes explicit AutoFFL address markers', () => {
         }
     }, null), true);
 });
+
+
+test('recognizes dealer snapshots even when the separate license marker is missing', () => {
+    const helper = loadHelper();
+    for (const address of [
+        { ffl_dealer_data: '{"license":"fixture"}' },
+        { extension_attributes: { ffl_dealer_data: '{"license":"fixture"}' } },
+        { extensionAttributes: { ffl_dealer_data: '{"license":"fixture"}' } }
+    ]) {
+        assert.equal(helper.isDealerAddress(address), true);
+    }
+});

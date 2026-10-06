@@ -1,6 +1,8 @@
 # AutomaticFFL Magento 2 Extension MetaPackage
 
 This metapackage contains a collection of the extensions necessary to implement the Automatic FFL into a Magento 2 store.
+
+For the shared iframe, restrictions, store-scoped configuration, and order-attribution upgrade, see [Magento upgrade 1.0.36](docs/magento-upgrade-1.0.36.md). Version 1.0.37 adds [state-based ammunition checkout routing](docs/ammunition-checkout-1.0.37.md). Version 1.0.38 adds [immediate destination switching and the WooCommerce-sized dealer modal](docs/checkout-ux-1.0.38.md).
 Each one of these directories contain a Magento 2 extension:
 
 ```

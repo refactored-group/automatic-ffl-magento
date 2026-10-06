@@ -105,10 +105,13 @@ define([
             return Boolean(
                 this.getAddressValue(address, 'dealer_license') ||
                 this.getAddressValue(address, 'ffl_license') ||
+                this.getAddressValue(address, 'ffl_dealer_data') ||
                 this.getAttributeValue(address && address.custom_attributes, 'ffl_license') ||
                 this.getAttributeValue(address && address.customAttributes, 'ffl_license') ||
                 this.getAttributeValue(address && address.extension_attributes, 'ffl_license') ||
-                this.getAttributeValue(address && address.extensionAttributes, 'ffl_license')
+                this.getAttributeValue(address && address.extensionAttributes, 'ffl_license') ||
+                this.getAttributeValue(address && address.extension_attributes, 'ffl_dealer_data') ||
+                this.getAttributeValue(address && address.extensionAttributes, 'ffl_dealer_data')
             );
         },
 

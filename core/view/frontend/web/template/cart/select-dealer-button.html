@@ -4,12 +4,40 @@
  * @copyright Copyright © 2022. All rights reserved.
  */
  -->
-<div class="ffl-address" data-bind="html: dealerAddress[dealerButtonId]"></div>
-<input type="text" class="ffl-cart-input-address" data-validate="{number: true, required:true, 'validate-greater-than-zero':true}" data-bind="attr: {
+<div class="automaticffl-recipient-name" if="recipientActive">
+    <div class="automaticffl-recipient-summary" data-bind="visible: !editingRecipient()">
+        <span data-bind="text: recipientFirstName[dealerButtonId]() + ' ' + recipientLastName[dealerButtonId]()"></span>
+        <button type="button" class="action automaticffl-change-destination" data-bind="click: changeRecipientName, disable: dealerSelectionPending"><span translate="'Change Name'"></span></button>
+    </div>
+    <div class="automaticffl-recipient-editor fieldset" if="editingRecipient">
+        <div class="field required">
+            <label class="label" data-bind="attr: { for: 'ffl-recipient-first-' + dealerButtonId }"><span translate="'First Name'"></span></label>
+            <div class="control">
+                <input type="text" class="input-text" autocomplete="given-name" maxlength="255" required data-bind="value: draftFirstName, valueUpdate: 'input', attr: { id: 'ffl-recipient-first-' + dealerButtonId }">
+            </div>
+        </div>
+        <div class="field required">
+            <label class="label" data-bind="attr: { for: 'ffl-recipient-last-' + dealerButtonId }"><span translate="'Last Name'"></span></label>
+            <div class="control">
+                <input type="text" class="input-text" autocomplete="family-name" maxlength="255" required data-bind="value: draftLastName, valueUpdate: 'input', attr: { id: 'ffl-recipient-last-' + dealerButtonId }">
+            </div>
+        </div>
+        <button type="button" class="action update" data-bind="click: saveRecipientName, disable: dealerSelectionPending"><span translate="'Save Name'"></span></button>
+        <button type="button" class="action automaticffl-change-destination" data-bind="visible: validRecipient(recipientFirstName[dealerButtonId](), recipientLastName[dealerButtonId]()), click: function () { editingRecipient(false); recipientError(''); }"><span translate="'Cancel'"></span></button>
+    </div>
+    <div class="message error" role="alert" data-bind="visible: recipientError, text: recipientError"></div>
+    <input type="hidden" data-bind="value: recipientFirstName[dealerButtonId], attr: { name: 'ffl_recipient[' + dealerButtonId + '][firstname]' }">
+    <input type="hidden" data-bind="value: recipientLastName[dealerButtonId], attr: { name: 'ffl_recipient[' + dealerButtonId + '][lastname]' }">
+    <input type="hidden" data-bind="value: recipientEdited[dealerButtonId]() ? 1 : 0, attr: { name: 'ffl_recipient[' + dealerButtonId + '][override]' }">
+    <input type="hidden" data-bind="value: dealerAddressId[dealerButtonId], attr: { name: 'ffl_recipient[' + dealerButtonId + '][address_id]' }">
+</div>
+<div class="ffl-address" data-bind="text: dealerDetails[dealerButtonId]"></div>
+<input type="hidden" class="ffl-cart-input-address" data-bind="value: shippingAddressId, attr: {
             name: addressFieldName,
-            id: addressFieldName,
-            value: dealerAddressId[dealerButtonId]
+            id: addressFieldName
     }">
-<button type="button" class="action update select-dealer" data-bind="click: openSelectDealerModal">
-    <span data-bind="html: fflButtonLabel"></span>
+<button type="button" class="action update select-dealer" data-bind="click: openSelectDealerModal, disable: dealerSelectionPending">
+    <span data-bind="text: fflButtonLabel"></span>
 </button>
+<div role="status" data-bind="visible: dealerSelectionPending" translate="'Saving dealer selection…'"></div>
+<div class="message message-error" role="alert" data-bind="visible: dealerSelectionError, text: dealerSelectionError"></div>

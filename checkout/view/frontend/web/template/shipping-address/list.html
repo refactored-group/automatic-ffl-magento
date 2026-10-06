@@ -4,18 +4,19 @@
  * See COPYING.txt for license details.
  */
 -->
-<!-- ko if: (checkoutConfig.customerData.is_ffl == 1)-->
-<div class="step-title" data-role="title" data-bind="i18n: 'FFL Dealer Shipping Address (required for firearms)'"></div>
+<!-- ko if: requiresDealer -->
 <div class="message warning">
-    <div data-bind="i18n: 'You have a firearm in your cart and must choose a licensed firearm dealer (FFL) for the shipping address.'"></div>
+    <div data-bind="i18n: 'This order must ship to a licensed firearm dealer (FFL). Choose a dealer for the shipping address.'"></div>
 </div>
 <!-- /ko -->
-<!-- ko if: ((checkoutConfig.customerData.is_ffl == 1 && dealerLicense) || checkoutConfig.customerData.is_ffl == 0) -->
+<!-- ko if: (requiresDealer() ? dealerLicense() : isCustomerLoggedIn()) -->
 <div class="field addresses">
     <div class="control">
         <div class="shipping-address-items">
             <!-- ko foreach: { data: elems, as: 'element' } -->
+            <!-- ko if: $parent.isAvailableAddress(element.address()) -->
             <!-- ko template: element.getTemplate() --><!-- /ko -->
+            <!-- /ko -->
             <!-- /ko -->
         </div>
     </div>

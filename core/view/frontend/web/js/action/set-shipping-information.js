@@ -18,9 +18,8 @@ define([
                 return payload;
             }
 
-            if (shippingAddress['extension_attributes'] === undefined) {
-                shippingAddress['extension_attributes'] = {};
-            }
+            var addressAttributes = shippingAddress.extensionAttributes ||
+                shippingAddress.extension_attributes || {};
 
             var customAttributes = shippingAddress.customAttributes;
             var attribute = null;
@@ -45,17 +44,38 @@ define([
             }
 
             if (_.isNull(fflLicense) || _.isUndefined(fflLicense)) {
-                fflLicense = shippingAddress.dealer_license;
+                fflLicense = shippingAddress.dealer_license || addressAttributes.ffl_license;
             }
 
             if(!_.isNull(fflLicense) && !_.isUndefined(fflLicense)) {
                 payload.addressInformation.extension_attributes = _.extend(
                     payload.addressInformation.extension_attributes || {},
                     {
-                        ffl_license: fflLicense
+                        ffl_license: fflLicense,
+                        ffl_dealer_data: shippingAddress.ffl_dealer_data ||
+                            addressAttributes.ffl_dealer_data || null
                     }
                 );
             }
+
+            // FFL extensions belong to ShippingInformationInterface, not to
+            // AddressInterface. Strip them from payload copies only; Magento
+            // must retain the selected dealer metadata in its live quote.
+            ['shipping_address', 'billing_address'].forEach(function (field) {
+                var address = payload.addressInformation[field];
+                if (!address) {
+                    return;
+                }
+                var copy = _.extend({}, address);
+                ['extensionAttributes', 'extension_attributes'].forEach(function (key) {
+                    if (address[key]) {
+                        copy[key] = _.extend({}, address[key]);
+                        delete copy[key].ffl_license;
+                        delete copy[key].ffl_dealer_data;
+                    }
+                });
+                payload.addressInformation[field] = copy;
+            });
             return payload;
         });
     };

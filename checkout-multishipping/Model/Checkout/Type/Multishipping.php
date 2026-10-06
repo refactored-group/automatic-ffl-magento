@@ -31,6 +31,7 @@ use Magento\Sales\Model\OrderFactory;
 use Magento\Store\Model\StoreManagerInterface;
 use Psr\Log\LoggerInterface;
 use Magento\Customer\Model\ResourceModel\Address\CollectionFactory as AddressCollectionFactory;
+use RefactoredGroup\AutoFflCore\Model\AddressHandoff;
 
 class Multishipping extends \Magento\Multishipping\Model\Checkout\Type\Multishipping
 {
@@ -76,6 +77,7 @@ class Multishipping extends \Magento\Multishipping\Model\Checkout\Type\Multiship
      * @var \Magento\Framework\App\RequestInterface
      */
     private $request;
+    private $addressHandoff;
 
     /**
      * @param AddressCollectionFactory $addressCollectionFactory
@@ -103,7 +105,7 @@ class Multishipping extends \Magento\Multishipping\Model\Checkout\Type\Multiship
      * @param array $data
      * @param CartExtensionFactory|null $cartExtensionFactory
      * @param AllowedCountries|null $allowedCountryReader
-     * @param \Magento\Multishipping\Model\Checkout\Type\Multishipping|null $placeOrderFactory
+     * @param \Magento\Multishipping\Model\Checkout\Type\Multishipping\PlaceOrderFactory|null $placeOrderFactory
      * @param LoggerInterface|null $logger
      * @param DataObjectHelper|null $dataObjectHelper
      */
@@ -131,15 +133,17 @@ class Multishipping extends \Magento\Multishipping\Model\Checkout\Type\Multiship
         SearchCriteriaBuilder $searchCriteriaBuilder,
         FilterBuilder $filterBuilder,
         TotalsCollector $totalsCollector,
+        AddressHandoff $addressHandoff,
         array $data = [],
         ?\Magento\Quote\Api\Data\CartExtensionFactory $cartExtensionFactory = null,
         ?AllowedCountries $allowedCountryReader = null,
-        ?\Magento\Multishipping\Model\Checkout\Type\Multishipping $placeOrderFactory = null,
+        ?\Magento\Multishipping\Model\Checkout\Type\Multishipping\PlaceOrderFactory $placeOrderFactory = null,
         ?LoggerInterface $logger = null,
         ?DataObjectHelper $dataObjectHelper = null
     ) {
         $this->addressCollectionFactory = $addressCollectionFactory;
         $this->request = $request;
+        $this->addressHandoff = $addressHandoff;
         $this->_eventManager = $eventManager;
         $this->helper = $helper;
         $this->addressRepository = $addressRepository;
@@ -174,6 +178,18 @@ class Multishipping extends \Magento\Multishipping\Model\Checkout\Type\Multiship
             $logger,
             $dataObjectHelper
         );
+    }
+
+    protected function _init()
+    {
+        if ($this->getCheckoutSession()->getCheckoutState() === \Magento\Checkout\Model\Session::CHECKOUT_STATE_BEGIN) {
+            $addressId = $this->addressHandoff->restoreForCustomer($this->getQuote(), $this->getCustomer());
+            if ($addressId) {
+                // Override this checkout's initial address without changing account defaults.
+                $this->setData('customer_default_shipping_address', $addressId);
+            }
+        }
+        return parent::_init();
     }
 
     /**

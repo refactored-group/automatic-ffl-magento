@@ -1,6 +1,5 @@
 /**
- * Copyright © Refactored Group (https://www.refactored.group)
- * @copyright Copyright © 2022. All rights reserved.
+ * Shared dealer-map adapter for Magento checkout and multishipping.
  */
 define([
     'jquery',
@@ -10,327 +9,212 @@ define([
     'RefactoredGroup_AutoFflCore/js/cart/select-dealer-button',
     'Magento_Checkout/js/checkout-data'
 ], function ($, Component, ko, modal, dealerButton, checkoutData) {
+    'use strict';
 
-    //@TODO: Move the address handling to a model
     return Component.extend({
         defaults: {
             template: 'RefactoredGroup_AutoFflCore/cart/dealers-popup'
         },
         currentFflItemId: ko.observable(),
-        fflResults: ko.observable(),
-        isSearchingMessageVisible: ko.observable(),
-        isNoDealersMessageVisible: ko.observable(),
-        isResultsVisible: ko.observable(),
-        modalOptions: {
-            type: 'slide',
-            responsive: true,
-            innerScroll: true,
-            buttons: false
-        },
-        googleMap: null,
-        mapPositionsList: [],
-        mapMarkersList: [],
-        currentInfowindow: false,
-        blueMarkerUrl: 'https://maps.google.com/mapfiles/kml/paddle/blu-blank.png',
-        redMarkerUrl: 'https://maps.google.com/mapfiles/kml/paddle/red-blank.png',
+        selectionError: ko.observable(''),
+        modalActive: false,
+        applyingSelection: false,
 
-        /** @inheritdoc */
         initialize: function () {
             this._super();
-            var self = this;
-
-            // Watch for changes in the current selected item
-            dealerButton().currentFflItemId.subscribe(function (value) {
-                self.currentFflItemId(value);
-            });
-
-            // Hide messages
-            self.isSearchingMessageVisible(false);
-            self.isNoDealersMessageVisible(false);
-            self.isResultsVisible(false);
-
+            this.currentItemSubscription = dealerButton().currentFflItemId.subscribe(
+                this.currentFflItemId.bind(this)
+            );
+            this.messageListener = this.onIframeMessage.bind(this);
+            window.addEventListener('message', this.messageListener);
             return this;
         },
-        onEnter: function(data, event){
-            event.keyCode === 13 && this.getFflResults();
-            return true;
-        },
-        /**
-         * Render Modal UI and Google Maps
-         */
+
         renderDealersModal: function () {
             var self = this;
-            modal(this.modalOptions, $('#dealers-popup'));
-
-            $.getScript(self.google_maps_url + '?key=' + self.google_maps_api_key)
-                .done(function (script, textStatus) {
-                    self.initMap();
-                })
-                .fail(function (jqxhr, settings, exception) {
-                    console.log('Could not load GoogleMaps')
-                });
+            modal({
+                type: 'popup',
+                modalClass: 'automaticffl-dealer-modal',
+                responsive: false,
+                innerScroll: false,
+                buttons: false,
+                opened: function () {
+                    self.modalActive = true;
+                    self.selectionError('');
+                    $('body').addClass('automaticffl-map-open');
+                },
+                closed: function () {
+                    self.modalActive = false;
+                    $('body').removeClass('automaticffl-map-open');
+                }
+            }, $('#dealers-popup'));
         },
-        /**
-         * Center map after creating markers
-         */
-        centerMap: function () {
-            var self = this;
-            var bounds = new google.maps.LatLngBounds();
 
-            for (var i = 0, LtLgLen = self.mapPositionsList.length; i < LtLgLen; i++) {
-                bounds.extend(self.mapPositionsList[i]);
+        onIframeMessage: function (event) {
+            var iframe = document.getElementById('automaticffl-map-iframe');
+            if (!this.modalActive || this.applyingSelection || !iframe ||
+                event.origin !== this.iframeOrigin || event.source !== iframe.contentWindow ||
+                !event.data || typeof event.data !== 'object') {
+                return;
             }
-            self.googleMap.fitBounds(bounds);
+
+            if (event.data.type === 'closeModal') {
+                $('#dealers-popup').modal('closeModal');
+                return;
+            }
+
+            if (event.data.type !== 'dealerUpdate') {
+                return;
+            }
+
+            var dealer = this.normalizeDealer(event.data.value);
+            if (!dealer) {
+                this.selectionError('The selected dealer data is incomplete. Please try again.');
+                return;
+            }
+
+            this.applyingSelection = true;
+            this.selectionError('');
+            try {
+                this.applySelectedDealer(dealer);
+            } catch (_error) {
+                this.selectionError('The dealer selection could not be applied. Please try again.');
+                this.applyingSelection = false;
+            }
         },
-        /**
-         * Select a dealer, close the modal, and save the address
-         * @param dealer
-         */
-        selectDealer: function (dealer) {
+
+        normalizeDealer: function (value) {
+            if (!value || typeof value !== 'object' || !/^[1-9]\d*$/.test(String(value.id)) ||
+                typeof value.fflID !== 'string' || !value.fflID.trim() ||
+                typeof value.address1 !== 'string' || !value.address1.trim() ||
+                typeof value.city !== 'string' || !value.city.trim() ||
+                typeof value.stateOrProvinceCode !== 'string' ||
+                !/^[A-Z]{2}$/.test(value.stateOrProvinceCode) ||
+                typeof value.postalCode !== 'string' || !value.postalCode.trim() ||
+                value.countryCode !== 'US') {
+                return null;
+            }
+            return {
+                id: String(value.id),
+                license: value.fflID.trim(),
+                uuid: typeof value.uuid === 'string' ? value.uuid : null,
+                expirationDate: /^\d{4}-\d{2}-\d{2}$/.test(value.expirationDate || '')
+                    ? value.expirationDate : null,
+                company: typeof value.company === 'string' ? value.company : '',
+                firstName: typeof value.firstName === 'string' ? value.firstName : null,
+                lastName: typeof value.lastName === 'string' ? value.lastName : null,
+                phone: typeof value.phone === 'string' ? value.phone : '',
+                address1: value.address1,
+                address2: typeof value.address2 === 'string' ? value.address2 : '',
+                city: value.city,
+                state: value.stateOrProvinceCode,
+                postalCode: value.postalCode,
+                countryCode: 'US'
+            };
+        },
+
+        applySelectedDealer: function (dealer) {
             var self = this;
-            var selectedDealer = this.fflResults()[dealer];
-            // Close Modal
-            $("#dealers-popup").modal("closeModal");
+            var button = dealerButton();
+            var selectedItemId = this.currentFflItemId();
+            dealer.routingState = button.currentRoutingState();
+            var replacedAddressId = button.dealerAddressId[selectedItemId]
+                ? button.dealerAddressId[selectedItemId]() : null;
+            var previousLabel = button.dealerAddress[selectedItemId]();
+            var previousDetails = button.dealerDetails[selectedItemId]();
+            var firstName = button.currentRecipientFirstName();
+            var lastName = button.currentRecipientLastName();
+            var previewLabel = [firstName + ' ' + lastName, dealer.company, dealer.address1,
+                dealer.city, dealer.state + ' ' + dealer.postalCode].filter(Boolean).join(', ');
 
-            /**
-             * Send a request to Magento and create the address in the backend.
-             * This address won't be visible in the customer address book.
-             *
-             * See \RefactoredGroup\AutoFflCheckoutMultiShipping\Controller\Index\Index
-             */
-            $.ajax({
-                url: self.create_address_url,
-                data: {...selectedDealer, ...{form_key: self.form_key}},
-                type: 'post',
-                success: function (result) {
-                    var parsedResult = JSON.parse(result);
-                    var fflQuoteLineItemIds = checkoutData.getFflQuoteLineItemId();
+            function failed() {
+                if (button.dealerAddress[selectedItemId]() === previewLabel) {
+                    button.dealerAddress[selectedItemId](previousLabel);
+                    button.dealerDetails[selectedItemId](previousDetails);
+                }
+                button.dealerSelectionError('The dealer address could not be saved. Please select the dealer again.');
+                button.dealerSelectionPending(false);
+                self.applyingSelection = false;
+                $('#checkout_multishipping_form').trigger('automaticffl:dealer-save-failed');
+            }
 
-                    if (fflQuoteLineItemIds && fflQuoteLineItemIds.length) {
-                        /**
-                         * Grouped FFL checkout uses one dealer selection for every FFL row.
-                         */
-                        fflQuoteLineItemIds.forEach(element => {
-                            dealerButton().dealerAddress[element](parsedResult.name);
-                            dealerButton().dealerAddressId[element](parsedResult.id);
+            button.dealerSelectionError('');
+            button.dealerSelectionPending(true);
+            button.dealerAddress[selectedItemId](previewLabel);
+            button.dealerDetails[selectedItemId]([dealer.company, dealer.address1, dealer.city,
+                dealer.state + ' ' + dealer.postalCode].filter(Boolean).join(', '));
+            self.modalActive = false;
+            $('#dealers-popup').modal('closeModal');
+
+            var form = $('#checkout_multishipping_form');
+            function start(selectionVersion) {
+                var data = form.length ? form.serializeArray().filter(function (field) {
+                    return field.name !== 'continue' && field.name !== 'new_address' && field.name !== 'form_key';
+                }) : [];
+                var selection = {
+                    form_key: self.form_key,
+                    ffl_dealer_data: JSON.stringify(dealer),
+                    replaces_address_id: replacedAddressId,
+                    license: dealer.license,
+                    recipient_first_name: firstName,
+                    recipient_last_name: lastName,
+                    recipient_address_id: button.currentRecipientAddressId(),
+                    recipient_override: button.currentRecipientOverride() ? 1 : 0
+                };
+                Object.keys(selection).forEach(function (name) { data.push({name: name, value: selection[name]}); });
+                try {
+                    $.ajax({
+                        url: self.create_address_url,
+                        type: 'post',
+                        data: data
+                    }).done(function (result) {
+                        var address;
+                        try {
+                            address = typeof result === 'string' ? JSON.parse(result) : result;
+                        } catch (_error) {
+                            address = null;
+                        }
+                        if (!address || !address.id || !address.name) {
+                            failed();
+                            return;
+                        }
+                        // Destination changes made during the save determine the final group membership.
+                        var groupedItemIds = checkoutData.getFflQuoteLineItemId();
+                        groupedItemIds = Array.isArray(groupedItemIds) ? groupedItemIds : [selectedItemId];
+                        groupedItemIds.forEach(function (itemId) {
+                            if (dealerButton().dealerAddress[itemId] && dealerButton().dealerAddressId[itemId]) {
+                                dealerButton().recipientFirstName[itemId](address.firstname || firstName);
+                                dealerButton().recipientLastName[itemId](address.lastname || lastName);
+                                dealerButton().dealerAddress[itemId](address.name);
+                                dealerButton().dealerDetails[itemId](address.dealer_label || address.name);
+                                dealerButton().dealerAddressId[itemId](address.id);
+                            }
                         });
-                    } else {
-                        /**
-                         * Explicit multi-address checkout keeps FFL rows independent.
-                         */
-                        dealerButton().dealerAddress[self.currentFflItemId()](parsedResult.name);
-                        dealerButton().dealerAddressId[self.currentFflItemId()](parsedResult.id);
-                    }
-
-                    // If we are on the multi-shipping checkout shipping page, reload
-                    if (window.location.href.includes('multishipping/checkout/shipping')) {
-                        location.reload();
-                    }
+                        button.dealerSelectionPending(false);
+                        form.trigger('automaticffl:dealer-selected', [{persisted: address.assignments_saved === true,
+                            version: selectionVersion}]);
+                        if (window.location.href.indexOf('multishipping/checkout/shipping') !== -1) {
+                            window.location.reload();
+                        }
+                        self.applyingSelection = false;
+                    }).fail(failed);
+                } catch (_error) {
+                    failed();
                 }
-            });
-        },
-        /**
-         * Send API request to FFL and retrieve a list of dealers
-         */
-        getFflResults: function () {
-            var self = this;
-            var searchString = $('#ffl-input-search').val();
-            var searchRadius = $('#ffl-miles-search').val();
-
-            //Display searching for dealers message
-            self.isSearchingMessageVisible(true);
-            self.isNoDealersMessageVisible(false);
-            self.isResultsVisible(false);
-
-            $.ajax({
-                url: self.ffl_api_url + '?location=' + searchString + '&radius=' + searchRadius,
-                headers: {"store-hash": self.store_hash, "origin": window.location.origin},
-                success: function (result) {
-                    //Hide searching for dealers message
-                    self.isSearchingMessageVisible(false);
-                    if (result && result.dealers.length > 0) {
-                        self.parseDealersResult(result.dealers);
-                        self.centerMap();
-                        self.isResultsVisible(true);
-                        self.isNoDealersMessageVisible(false);
-                    } else {
-                        self.isSearchingMessageVisible(false);
-                        self.isResultsVisible(false);
-                        self.isNoDealersMessageVisible(true);
-                        self.removeMarkersFromMap();
-                    }
-                },
-                error: function (result) {
-                    self.isSearchingMessageVisible(false);
-                    self.isResultsVisible(false);
-                    self.isNoDealersMessageVisible(true);
-                    self.removeMarkersFromMap();
-                }
-            });
-        },
-        removeMarkersFromMap: function () {
-            var self = this;
-
-            //Clear all markers
-            for (var i = 0; i < self.mapMarkersList.length; i++) {
-                self.mapMarkersList[i].setMap(null);
             }
-
-            // Clear all positions
-            self.mapPositionsList = [];
-        },
-        /**
-         * Returns phone number in the format (xxx)-xxx-xxxx
-         *
-         * @param phoneNumberString
-         * @returns {string|null}
-         */
-        formatPhoneNumber: function (phoneNumberString) {
-            const cleaned = ('' + phoneNumberString).replace(/\D/g, '');
-            const match = cleaned.match(/^(\d{3})(\d{3})(\d{4})$/);
-            if (match) {
-                return '(' + match[1] + ')' + match[2] + '-' + match[3];
+            if (form.length) {
+                form.trigger('automaticffl:dealer-saving', [start]);
+            } else {
+                start(0);
             }
-            return null;
         },
-        /**
-         * Parse API results and create markers on the map
-         * @param dealers
-         */
-        parseDealersResult: function (dealers) {
-            var self = this;
 
-            //Clear all markers
-            self.removeMarkersFromMap();
-
-            $(dealers).each(function (i, dealer) {
-                // Format address to display in the results list
-                dealers[i].id = (i + 1).toString();
-                dealers[i].index = i.toString();
-                dealers[i].formatted_address = dealer.premise_street + ', ' + dealer.premise_city + ', ' + dealer.premise_state + ' ' + dealer.premise_zip;
-                dealers[i].business_name_formatted = dealers[i].id + '. ' + dealers[i].business_name;
-                dealers[i].phone_number = self.formatPhoneNumber(dealers[i].phone_number);
-                dealers[i].license = dealer.license;
-
-                if (dealers[i].preferred) {
-                    dealers[i].icon_url = self.blueMarkerUrl;
-                    dealers[i].class = 'ffl-dealer-preferred';
-                } else {
-                    dealers[i].icon_url = self.redMarkerUrl;
-                    dealers[i].class = 'ffl-dealer';
-                }
-            });
-            self.fflResults(dealers);
-
-            $(dealers).each(function (i, dealer) {
-                // Add marker to the map
-                self.addMarker(dealers[i], i);
-            });
-        },
-        /**
-         * Add a popup to the marker
-         * @param marker
-         * @param dealer
-         */
-        addPopupToMarker: function (marker, dealer) {
-            var self = this;
-            const contentString =
-                '<div style="display: none"><div id="popupcontent' + dealer.index + '" class="popupContent">' +
-                '<div id="siteNotice' + dealer.index + '">' +
-                "</div>" +
-                '<h2 id="firstHeading" class="firstHeading">' + dealer.business_name_formatted + '</h2>' +
-                '<div id="bodyContent">' +
-                "<p>" + dealer.formatted_address + "</p>" +
-                '<p><b>Phone: </b><a href="tel:+1' + dealer.phone_number + '">' + dealer.phone_number + "</a></p>" +
-                "<p><b>License: </b>" + dealer.license + "</p>" +
-                '<p><a href="#" data-bind="{click: function() {selectDealer(' + dealer.index + ')}}">' +
-                "Select this dealer</a> " +
-                "</p>" +
-                "</div>" +
-                "</div></div>";
-            $('#popupcontent' + dealer.index).remove();
-            $("body").append(contentString);
-            var domElement = document.getElementById('popupcontent' + dealer.index);
-            ko.applyBindings(this, domElement);
-
-            const infowindow = new google.maps.InfoWindow({
-                content: domElement,
-            });
-
-            marker.addListener("click", () => {
-                if (self.currentInfowindow) {
-                    self.currentInfowindow.close();
-                }
-                infowindow.open({
-                    anchor: marker,
-                    map: self.googleMap,
-                    shouldFocus: false,
-                });
-                self.currentInfowindow = infowindow;
-            });
-        },
-        /**
-         * Add marker to the map
-         * @param location
-         */
-        addMarker: function (dealer, zIndex) {
-            var self = this;
-            var marker = new google.maps.Marker({
-                position: {lat: dealer.lat, lng: dealer.lng},
-                zIndex,
-                map: self.googleMap,
-                label: dealer.id,
-                icon: {
-                    url: dealer.icon_url,
-                    labelOrigin: new google.maps.Point(33, 20)
-                },
-            });
-
-            this.addPopupToMarker(marker, dealer);
-            this.mapMarkersList.push(marker);
-            self.mapPositionsList.push(new google.maps.LatLng(dealer.lat, dealer.lng));
-        },
-        /**
-         * Init Google Maps
-         */
-        initMap: function () {
-            // Init Google Maps
-            const myLatLng = {lat: 40.363, lng: -95.044};
-            this.googleMap = new google.maps.Map(document.getElementById("ffl-map"), {
-                zoom: 4,
-                center: myLatLng,
-                mapTypeControlOptions: {
-                    mapTypeIds: []
-                },
-                fullscreenControl: false,
-                panControl: false,
-                streetViewControl: false,
-                mapTypeId: 'roadmap',
-            });
-
-            this.getToastMessage();
-
-            var controlDiv = document.getElementById('ffl-floating-toast');
-            this.googleMap.controls[google.maps.ControlPosition.RIGHT_TOP].push(controlDiv);
-        },
-        getToastMessage: function () {
-            var self = this;
-            $.ajax({
-                url: self.stores_endpoint,
-                headers: {"origin": window.location.origin},
-                success: function (result) {
-                    if (typeof result.announcement !== undefined && result.announcement != null) {
-                        //Set the message on the toast
-                        $('#ffl-toast-message').html(result.announcement);
-                    } else {
-                        $('#ffl-floating-toast').hide();
-                    }
-                },
-                error: function (result) {
-                    // hide the toast message
-                    $('#ffl-floating-toast').hide();
-                }
-            });
-        },
+        destroy: function () {
+            window.removeEventListener('message', this.messageListener);
+            if (this.currentItemSubscription) {
+                this.currentItemSubscription.dispose();
+            }
+            return this._super();
+        }
     });
 });
