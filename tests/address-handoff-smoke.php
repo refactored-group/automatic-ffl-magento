@@ -13,6 +13,7 @@ namespace Magento\Customer\Api\Data {
     class AddressInterfaceFactory { public function create() { return new \FixtureAddress(); } }
 }
 namespace {
+    require __DIR__ . '/../core/Model/Destination.php';
     require __DIR__ . '/../core/Model/AddressHandoff.php';
     function check($condition, $message) { if (!$condition) throw new \RuntimeException($message); }
     class FixtureAddress {
@@ -63,6 +64,11 @@ namespace {
     $handoff->restoreForCustomer($quote, $customer);
     check(count($repository->saved) === 3 && $repository->saved[2]->getStreet() === ['20 New Home St'],
         'Edited address fields must be carried over without changing the original address book record.');
+    $territory = $home; $territory['countryId'] = 'AS';
+    $handoff->capture($quote, $territory, 0, 'AS');
+    check($handoff->restoreForCustomer($quote, $customer) === 101, 'A native territory-country address must survive login.');
+    check($repository->saved[3]->getCountryId() === 'AS' && !$repository->saved[3]->getRegionId(),
+        'A territory-country address must not be coerced to US or invent a region.');
     $handoff->capture($quote, $home, 12); $quote->store = 8;
     check(!$handoff->getPending($quote), 'Address handoff must not cross stores.');
     $quote->store = 7; $repository->fail = true; $handoff->capture($quote, $home, 12);

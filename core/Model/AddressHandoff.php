@@ -21,7 +21,7 @@ class AddressHandoff
         $this->addressFactory = $addressFactory;
     }
 
-    public function capture($quote, array $input, $regionId)
+    public function capture($quote, array $input, $regionId, $countryId = 'US')
     {
         $address = [];
         foreach (['firstname', 'lastname', 'company', 'city', 'postcode', 'telephone'] as $field) {
@@ -34,15 +34,19 @@ class AddressHandoff
                 $address['street'][] = mb_substr(trim((string) $line), 0, 255);
             }
         }
-        $address['country_id'] = 'US';
-        $address['region_id'] = (int) $regionId;
+        $countryId = strtoupper(trim((string) ($input['countryId'] ?? $countryId))) ?: 'US';
+        if ($countryId !== 'US' && !Destination::isTerritoryCountry($countryId)) {
+            return;
+        }
+        $address['country_id'] = $countryId;
+        $address['region_id'] = $countryId === 'US' ? (int) $regionId : 0;
         $address['customer_address_id'] = (int) ($input['customerAddressId'] ?? 0);
         foreach (['firstname', 'lastname', 'city', 'postcode', 'telephone'] as $field) {
             if ($address[$field] === '') {
                 return;
             }
         }
-        if (!$address['street'] || !$address['region_id']) {
+        if (!$address['street'] || ($address['country_id'] === 'US' && !$address['region_id'])) {
             return;
         }
         $this->session->setData(self::SESSION_KEY, [
@@ -74,8 +78,10 @@ class AddressHandoff
             $address->setCity($data['city']);
             $address->setPostcode($data['postcode']);
             $address->setTelephone($data['telephone']);
-            $address->setCountryId('US');
-            $address->setRegionId($data['region_id']);
+            $address->setCountryId($data['country_id']);
+            if ($data['region_id']) {
+                $address->setRegionId($data['region_id']);
+            }
             $saved = $this->addresses->save($address);
             $this->session->unsetData(self::SESSION_KEY);
             return $saved->getId();
@@ -106,7 +112,8 @@ class AddressHandoff
                 return false;
             }
         }
-        return $saved->getCountryId() === 'US' && (int) $saved->getRegionId() === $data['region_id'] &&
+        return strtoupper((string) $saved->getCountryId()) === $data['country_id'] &&
+            (int) $saved->getRegionId() === $data['region_id'] &&
             array_values((array) $saved->getStreet()) === $data['street'];
     }
 

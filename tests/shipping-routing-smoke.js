@@ -72,6 +72,16 @@ routing.continueTo({ route: 'unavailable', url: '/checkout/cart' });
 assert.strictEqual(modals[1].buttons[1].text, 'Return to cart');
 routing.check(window.checkoutConfig.autofflRouting, { ...home, ffl_dealer_data: 'secret', customAttributes: ['secret'] });
 assert.strictEqual(requests.pop().options.data.address.includes('secret'), false);
+for (const code of ['DC', 'AS', 'GU', 'MP', 'PR', 'VI']) {
+    assert.strictEqual(routing.destinationCode({ countryId: 'US', regionCode: code }), code,
+        `Native US region must resolve: ${code}`);
+}
+for (const code of ['AS', 'GU', 'MP', 'VI']) {
+    assert.strictEqual(routing.destinationCode({ countryId: code, regionCode: '' }), code,
+        `Native territory-country alias must resolve: ${code}`);
+}
+assert.strictEqual(routing.destinationCode({ countryId: 'CA', regionCode: 'PR' }), '',
+    'A foreign province collision must not resolve as Puerto Rico.');
 
 const quote = { shippingAddress: observable(home), billingAddress: observable(null), shippingMethod: observable('old-rate') };
 // Native Magento subscribers call getType() for every selected address.
@@ -170,6 +180,21 @@ assert.strictEqual(nativeCalls, 1, 'An old destination must not advance payment.
 quote.shippingAddress(home);
 
 window.checkoutConfig.autofflRouting.ammoOnly = true;
+providerData = { firstname: 'Jane', lastname: 'Buyer', street: ['10 Island St'], city: 'Pago Pago',
+    postcode: '96799', telephone: '6845550100', country_id: 'AS', region_id: '', region_code: '' };
+const islandHome = { ...home, countryId: 'AS', regionCode: '', regionId: null, street: ['10 Island St'],
+    city: 'Pago Pago', postcode: '96799', telephone: '6845550100' };
+quote.shippingAddress(islandHome);
+shipping.checkAmmoOnlyDestination(islandHome);
+assert.strictEqual(destination.state(), 'AS', 'Native territory-country changes must update the canonical rule code.');
+assert.strictEqual(requests[0].options.data.state, 'AS');
+assert.match(requests[0].options.data.address, /"countryId":"AS"/);
+requests.shift().pending.resolve({ state: 'AS', route: 'standard', requiresDealer: false });
+assert.strictEqual(quote.shippingAddress().countryId, 'AS', 'Unrestricted native territory addresses must be restored without US coercion.');
+providerData = { firstname: 'Jane', lastname: 'Buyer', street: ['10 Home St'], city: 'Home City',
+    postcode: '80202', telephone: '5551231234', country_id: 'US', region_id: 13, region_code: 'CO' };
+destination.update('CO', home);
+requests.shift().pending.resolve({ state: 'CO', route: 'standard', requiresDealer: false });
 destination.update('CA', home);
 assert.strictEqual(destination.requiresDealer(), true, 'Dealer selection appears before any network response.');
 assert.strictEqual(quote.shippingAddress().getType(), 'autoffl-pending', 'Home delivery cannot be submitted as a dealer.');

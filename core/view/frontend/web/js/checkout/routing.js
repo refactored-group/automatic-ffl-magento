@@ -1,7 +1,22 @@
 define(['jquery', 'Magento_Ui/js/modal/confirm', 'mage/translate'], function ($, confirm, $t) {
     'use strict';
 
+    var territoryCountries = ['AS', 'GU', 'MP', 'VI'];
+
+    function code(value) {
+        return String(value || '').trim().toUpperCase();
+    }
+
     return {
+        destinationCode: function (address) {
+            var country = code(address && (address.countryId || address.country_id));
+            var region = code(address && (address.regionCode || address.region_code));
+            if (territoryCountries.indexOf(country) !== -1) {
+                return country;
+            }
+            return country === 'US' && /^[A-Z]{2}$/.test(region) ? region : '';
+        },
+
         addressData: function (address) {
             var data = {};
             ['firstname', 'lastname', 'company', 'street', 'city', 'postcode', 'telephone',

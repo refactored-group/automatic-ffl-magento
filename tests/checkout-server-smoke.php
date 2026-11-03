@@ -52,19 +52,22 @@ namespace {
     }
     class FixtureAddress {
         public $state = 'CA'; public $firstname = 'Jane'; public $lastname = 'Buyer';
+        public $country = 'US';
         public $street = ['10 Dealer St', 'Suite 100'];
         public function getFirstname() { return $this->firstname; }
         public function getLastname() { return $this->lastname; }
         public function setFirstname($value) { $this->firstname = $value; return $this; }
         public function setLastname($value) { $this->lastname = $value; return $this; }
         public function getStreet() { return $this->street; }
-        public function getCountryId() { return 'US'; }
+        public function getCountryId() { return $this->country; }
         public function getPostcode() { return '92618'; }
         public function getCity() { return 'Irvine'; }
     }
     class FixtureHelper {
         public function isEnabled($store = null) { return true; }
-        public function getAddressState($address) { return $address->state; }
+        public function getAddressState($address) {
+            return \RefactoredGroup\AutoFflCore\Model\Destination::resolve($address->getCountryId(), $address->state);
+        }
         public function getStoreHash($store) { return 'fixture-store'; }
         public function isSandboxMode($store) { return false; }
     }
@@ -96,6 +99,7 @@ namespace {
         public function getExtensionAttributes() { return $this->extension; }
         public function getShippingAddress() { return $this->address; }
     }
+    require __DIR__ . '/../core/Model/Destination.php';
     require __DIR__ . '/../core/Model/RecipientName.php';
     require __DIR__ . '/../core/Model/Checkout/ShippingInformationManagement.php';
     require __DIR__ . '/../core/Plugin/ModelOrderPlugin.php';
@@ -111,6 +115,21 @@ namespace {
     check($quote->state === 'CA', 'The actual changed shipping state must replace the old cart state.');
     $information->address->state = 'CO';
     $shippingPlugin->beforeSaveAddressInformation(new \Magento\Checkout\Model\ShippingInformationManagement(), 1, $information);
+    foreach (['DC', 'AS', 'GU', 'MP', 'PR', 'VI'] as $code) {
+        $information->address->country = 'US'; $information->address->state = $code; $quote->state = 'CO';
+        $shippingPlugin->beforeSaveAddressInformation(new \Magento\Checkout\Model\ShippingInformationManagement(), 1, $information);
+        check($quote->state === $code, 'Native US territory region must reach server rules: ' . $code);
+    }
+    foreach (['AS', 'GU', 'MP', 'VI'] as $code) {
+        $information->address->country = $code; $information->address->state = ''; $quote->state = 'CO';
+        $shippingPlugin->beforeSaveAddressInformation(new \Magento\Checkout\Model\ShippingInformationManagement(), 1, $information);
+        check($quote->state === $code, 'Native territory-country alias must reach server rules: ' . $code);
+    }
+    $information->address->country = 'CA'; $information->address->state = 'PR'; $quote->state = 'CO';
+    rejects(function () use ($shippingPlugin, $information) {
+        $shippingPlugin->beforeSaveAddressInformation(new \Magento\Checkout\Model\ShippingInformationManagement(), 1, $information);
+    }, 'delivery state');
+    $information->address->country = 'US';
     $quote->state = ''; $information->address->state = '';
     rejects(function () use ($shippingPlugin, $information) {
         $shippingPlugin->beforeSaveAddressInformation(new \Magento\Checkout\Model\ShippingInformationManagement(), 1, $information);

@@ -61,7 +61,7 @@ class ShippingInformationManagement
         $shippingAddress = $addressInformation->getShippingAddress();
         if (!$extAttributes || !$extAttributes->getFflLicense()) {
             $state = $this->autoFflHelper->getAddressState($shippingAddress);
-            if (preg_match('/^[A-Z]{2}$/', $state) && $state !== $quote->getFflRoutingState()) {
+            if ($state !== $quote->getFflRoutingState()) {
                 $quote->setFflRoutingState($state);
                 $quote->setFflLicense(null);
                 $quote->setFflDealerData(null);

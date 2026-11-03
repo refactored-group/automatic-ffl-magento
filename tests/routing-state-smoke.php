@@ -8,6 +8,7 @@ namespace Magento\Framework\App\Action {
     }
 }
 namespace {
+    require __DIR__ . '/../core/Model/Destination.php';
     require __DIR__ . '/../core/Controller/Routing/State.php';
     require __DIR__ . '/../core/Controller/Routing/Index.php';
     function __($text) { return $text; }
@@ -54,7 +55,9 @@ namespace {
     class Factory { public function create() { return new Result(); } }
     class Region {
         public $code;
-        public function getId() { return $this->code === 'CA' ? 12 : ($this->code === 'CO' ? 13 : 0); }
+        public function getId() {
+            return ['CA'=>12, 'CO'=>13, 'DC'=>14, 'AS'=>15, 'GU'=>16, 'MP'=>17, 'PR'=>18, 'VI'=>19][$this->code] ?? 0;
+        }
         public function getCode() { return $this->code; }
     }
     class Regions {
@@ -87,7 +90,10 @@ namespace {
         public function isFfl() { return $this->quote->state === 'CA'; }
     }
     class Url { public function getUrl($path) { return '/' . $path; } }
-    class Handoff { public $region; public function capture($quote, $address, $region) { $this->region = $region; } }
+    class Handoff {
+        public $region; public $country;
+        public function capture($quote, $address, $region, $country = 'US') { $this->region = $region; $this->country = $country; }
+    }
     $request = new Request(); $quote = new Quote(); $session = new Session(); $session->quote = $quote;
     $quote->shipping = new Shipping();
     $quote->assignment = new Assignment();
@@ -114,7 +120,22 @@ namespace {
     check($quote->assignment->method === null && $quote->assignment->address === $quote->shipping,
         'The cached shipping assignment must not retain the previous dealer method.');
     check($handoff->region === 12, 'A native region ID must resolve to the correct US state.');
+    foreach (['DC', 'AS', 'GU', 'MP', 'PR', 'VI'] as $code) {
+        $request->values = ['address' => json_encode(['countryId' => 'US', 'regionCode' => $code])];
+        $response = $controller->execute();
+        check($response->status === 200 && $response->data['state'] === $code,
+            'A native US region must resolve: ' . $code);
+    }
+    foreach (['AS', 'GU', 'MP', 'VI'] as $code) {
+        $request->values = ['state' => 'CA', 'address' => json_encode(['countryId' => $code])];
+        $response = $controller->execute();
+        check($response->status === 200 && $response->data['state'] === $code && $handoff->country === $code && $handoff->region === 0,
+            'A native territory-country alias must resolve without coercion: ' . $code);
+    }
+    $request->values = ['address' => json_encode(['countryId' => 'CA', 'regionCode' => 'PR'])];
+    check($controller->execute()->status === 422, 'A foreign province collision must not resolve as a US territory.');
     $helper->available = false;
+    $request->values = ['state' => 'CA'];
     check($controller->execute()->data['route'] === 'unavailable', 'Unavailable multishipping must not be offered.');
     $request->values = ['state' => 'CO'];
     check($controller->execute()->data['route'] === 'standard', 'Unrestricted mixed carts must remain in ordinary checkout.');

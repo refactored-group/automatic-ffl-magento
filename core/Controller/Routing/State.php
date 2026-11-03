@@ -12,6 +12,7 @@ use Magento\Quote\Api\CartRepositoryInterface;
 use Magento\Customer\Model\Session as CustomerSession;
 use RefactoredGroup\AutoFflCore\Helper\Data;
 use RefactoredGroup\AutoFflCore\Model\AddressHandoff;
+use RefactoredGroup\AutoFflCore\Model\Destination;
 
 class State extends Action implements HttpPostActionInterface
 {
@@ -58,14 +59,17 @@ class State extends Action implements HttpPostActionInterface
         }
         $address = json_decode((string) $this->getRequest()->getParam('address', '{}'), true);
         $address = is_array($address) ? $address : [];
-        if ($address && ($address['countryId'] ?? '') !== 'US') {
-            return $result->setHttpResponseCode(422)->setData(['error' => 'Select a US delivery state to check ammunition shipping.']);
-        }
+        $country = strtoupper(trim((string) ($address['countryId'] ?? 'US'))) ?: 'US';
         $state = strtoupper(trim((string) $this->getRequest()->getParam('state', $address['regionCode'] ?? '')));
         if ($state === '') {
             $state = strtoupper(trim((string) ($address['regionCode'] ?? '')));
         }
-        if ($state === '' && !empty($address['regionId'])) {
+        if (Destination::isTerritoryCountry($country)) {
+            $state = $country;
+        } elseif ($country !== 'US') {
+            return $result->setHttpResponseCode(422)->setData(['error' => 'Select a supported US delivery destination to check ammunition shipping.']);
+        }
+        if ($country === 'US' && $state === '' && !empty($address['regionId'])) {
             $region = $this->regions->create()
                 ->addFieldToFilter('country_id', ['eq' => 'US'])
                 ->addFieldToFilter('region_id', ['eq' => (int) $address['regionId']])
@@ -75,12 +79,16 @@ class State extends Action implements HttpPostActionInterface
         if (!preg_match('/^[A-Z]{2}$/', $state)) {
             return $result->setHttpResponseCode(422)->setData(['error' => 'Invalid state']);
         }
-        $region = $this->regions->create()
-            ->addFieldToFilter('country_id', ['eq' => 'US'])
-            ->addFieldToFilter('code', ['eq' => $state])
-            ->getFirstItem();
-        if (!$region->getId()) {
-            return $result->setHttpResponseCode(422)->setData(['error' => 'Invalid state']);
+        $regionId = 0;
+        if ($country === 'US') {
+            $region = $this->regions->create()
+                ->addFieldToFilter('country_id', ['eq' => 'US'])
+                ->addFieldToFilter('code', ['eq' => $state])
+                ->getFirstItem();
+            $regionId = (int) $region->getId();
+            if (!$regionId) {
+                return $result->setHttpResponseCode(422)->setData(['error' => 'Invalid state']);
+            }
         }
         if ($quote->getFflRoutingState() !== $state) {
             if ($quote->getFflLicense() || $quote->getFflDealerData()) {
@@ -104,7 +112,7 @@ class State extends Action implements HttpPostActionInterface
         }
         $this->quotes->save($quote);
         if ($address) {
-            $this->handoff->capture($quote, $address, $region->getId());
+            $this->handoff->capture($quote, $address, $regionId, $country);
         }
         $route = $this->helper->getCheckoutRoute($quote, $state);
         if ($route === 'multishipping' && !$this->helper->isMultishippingCheckoutAvailable()) {

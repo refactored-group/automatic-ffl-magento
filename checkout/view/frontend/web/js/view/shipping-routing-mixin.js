@@ -229,16 +229,24 @@ define([
                     var state = destination.state();
                     var directory = customerData.get('directory-data')() || {};
                     var regions = directory.US && directory.US.regions || {};
-                    Object.keys(regions).some(function (id) {
-                        if (regions[id].code !== state) {
-                            return false;
-                        }
-                        data.region_id = id;
-                        data.region = regions[id].name;
-                        data.region_code = state;
-                        return true;
-                    });
-                    data.country_id = 'US';
+                    var territoryCountry = ['AS', 'GU', 'MP', 'VI'].indexOf(state) !== -1 &&
+                        String(data.country_id || '').toUpperCase() === state;
+                    if (territoryCountry) {
+                        data.region_id = '';
+                        data.region = '';
+                        data.region_code = '';
+                    } else {
+                        Object.keys(regions).some(function (id) {
+                            if (regions[id].code !== state) {
+                                return false;
+                            }
+                            data.region_id = id;
+                            data.region = regions[id].name;
+                            data.region_code = state;
+                            return true;
+                        });
+                        data.country_id = 'US';
+                    }
                     // A state selected in the routing dropdown is also the state
                     // shown in Magento's restored native shipping form.
                     checkoutData.setShippingAddressFromData(data);
@@ -247,7 +255,7 @@ define([
                     }
                     var original = this.autofflCustomerAddress;
                     var restored = original && original.getType() === 'customer-address' &&
-                        original.regionCode === state ? original : (customer.isLoggedIn()
+                        routing.destinationCode(original) === state ? original : (customer.isLoggedIn()
                             ? createShippingAddress(data) : converter.formAddressDataToQuoteAddress(data));
                     // Guest home delivery uses the inline form. Adding this
                     // address to addressList also renders a duplicate card.
@@ -263,18 +271,17 @@ define([
             checkAmmoOnlyDestination: function (address) {
                 var key = this.destinationKey(address);
                 if (this.autofflSwitching || this.autofflPreviousRequirement || !address || address.getType() === 'autoffl-pending' || routing.isDealer(address) ||
-                    address.countryId !== 'US' || (!address.regionCode && !address.regionId) ||
                     key === this.autofflDestinationKey) {
                     return;
                 }
                 this.autofflDestinationKey = key;
-                var state = address.regionCode;
-                if (!state && address.regionId) {
+                var state = routing.destinationCode(address);
+                if (!state && address.countryId === 'US' && address.regionId) {
                     var directory = customerData.get('directory-data')() || {};
                     var region = directory.US && directory.US.regions || {};
                     state = region[address.regionId] && region[address.regionId].code;
                 }
-                if (this.isFormInline && destination.state()) {
+                if (this.isFormInline && destination.state() && address.countryId === 'US') {
                     // Delayed native form/rate updates must not replace the
                     // destination chosen in the ammunition dropdown.
                     this.syncAmmoShippingState();

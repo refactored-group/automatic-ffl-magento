@@ -6,6 +6,8 @@
 
 namespace RefactoredGroup\AutoFflCore\Helper;
 
+use RefactoredGroup\AutoFflCore\Model\Destination;
+
 use Magento\Checkout\Model\Session;
 use Magento\Framework\App\Helper\Context;
 use Magento\Framework\Data\Form\FormKey;
@@ -494,12 +496,17 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
         if (!$address) {
             return '';
         }
+        $country = strtoupper(trim((string) $address->getCountryId()));
         $code = $address instanceof \Magento\Customer\Api\Data\AddressInterface
             ? ($address->getRegion() ? $address->getRegion()->getRegionCode() : '')
             : $address->getRegionCode();
         $code = strtoupper(trim((string) $code));
-        if (preg_match('/^[A-Z]{2}$/', $code)) {
-            return $code;
+        $destination = Destination::resolve($country, $code);
+        if ($destination !== '') {
+            return $destination;
+        }
+        if ($country !== 'US') {
+            return '';
         }
         $regionId = (int) $address->getRegionId();
         if ($regionId <= 0) {

@@ -53,6 +53,7 @@ namespace {
         public function setPostValue($key, $value) { return $this->setParam($key, $value); }
         public function isPost() { return true; }
     }
+    require __DIR__.'/../core/Model/Destination.php';
     require __DIR__.'/../core/Helper/Data.php';
     require __DIR__.'/../core/Model/CheckoutRouting.php';
     require __DIR__.'/../core/Block/RoutingState.php';
@@ -69,9 +70,9 @@ namespace {
     foreach ([1=>'Firearm', 2=>'Ammo', 3=>'Regular'] as $id=>$name) $quote->items[$id] = new Record([
         'id'=>$id, 'name'=>$name, 'product'=>new Record(['isVirtual'=>false])
     ]);
-    $quote->addresses = [101=>new Record(['customerAddressId'=>41,'regionCode'=>'TX']),
-        102=>new Record(['customerAddressId'=>42,'regionCode'=>'TX']),
-        103=>new Record(['customerAddressId'=>43,'regionCode'=>'CA'])];
+    $quote->addresses = [101=>new Record(['customerAddressId'=>41,'countryId'=>'US','regionCode'=>'TX']),
+        102=>new Record(['customerAddressId'=>42,'countryId'=>'US','regionCode'=>'TX']),
+        103=>new Record(['customerAddressId'=>43,'countryId'=>'US','regionCode'=>'CA'])];
     $helper = inject(\RefactoredGroup\AutoFflCore\Helper\Data::class, ['quote'=>$quote,
         'checkoutSession'=>new Record(['quote'=>$quote]), 'isEnabled'=>[7=>true],
         'quoteAnalysis'=>new class($quote) {
@@ -104,6 +105,7 @@ namespace {
         'Multi-address checkout must use its saved address source without recipient inputs.');
     check($config['selected_address_id']===42 && $config['routingState']==='CA', 'Saved dealer and original ammo state must seed the reloaded selector.');
     $customer = new class implements \Magento\Customer\Api\Data\AddressInterface {
+        public function getCountryId() { return 'US'; }
         public function getRegion() { return new Record(['regionCode'=>'CA']); }
     };
     check($helper->getAddressState($customer)==='CA', 'Posted native customer addresses need their RegionInterface code.');
@@ -114,7 +116,7 @@ namespace {
         private $quote;
         public function __construct($q) { $this->quote=$q; }
         public function getById($id) {
-            return new Record(['customerId'=>9, 'regionCode'=>$id==43?'CA':'TX']);
+            return new Record(['customerId'=>9, 'countryId'=>'US', 'regionCode'=>$id==43?'CA':'TX']);
         }
     };
     $context = new Record(['request'=>$request,'messageManager'=>$messages]);
