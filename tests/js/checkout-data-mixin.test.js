@@ -51,13 +51,18 @@ function loadMixin({
     checkoutDataState,
     configBillingAddress = null,
     configShippingAddress = null,
+    customerDataReady = true,
     isFfl = 0,
     standaloneCheckoutDataState = null,
     storeCode = 'default'
 }) {
     let mixinFactory;
+    let initCallbacks = [];
+    let isCustomerDataReady = customerDataReady;
     let standaloneData = clone(standaloneCheckoutDataState);
     let storedData = clone(checkoutDataState);
+    let writeAttempts = 0;
+    let writes = 0;
     const storage = {
         get(key) {
             assert.equal(key, 'checkout-data');
@@ -67,7 +72,28 @@ function loadMixin({
 
         set(key, value) {
             assert.equal(key, 'checkout-data');
+            writeAttempts += 1;
+
+            if (!isCustomerDataReady) {
+                throw new Error('customer-data write before initialization');
+            }
+
             storedData = value;
+            writes += 1;
+        },
+
+        getInitCustomerData() {
+            return {
+                done(callback) {
+                    if (isCustomerDataReady) {
+                        callback();
+                    } else {
+                        initCallbacks.push(callback);
+                    }
+
+                    return this;
+                }
+            };
         }
     };
     const localStorage = {
@@ -128,7 +154,20 @@ function loadMixin({
         checkoutData,
         checkoutConfig,
         getStandaloneData: () => standaloneData,
-        getStoredData: () => storedData
+        getStoredData: () => storedData,
+        getWriteAttempts: () => writeAttempts,
+        getWrites: () => writes,
+        resolveCustomerData() {
+            const callbacks = initCallbacks;
+
+            if (isCustomerDataReady) {
+                return;
+            }
+
+            isCustomerDataReady = true;
+            initCallbacks = [];
+            callbacks.forEach((callback) => callback());
+        }
     };
 }
 
@@ -211,6 +250,158 @@ function customerAddress() {
         telephone: '303-555-0100'
     };
 }
+
+test('defers stale dealer cleanup until Magento customer data is initialized', () => {
+    const dealerAddress = vertexDealerAddress();
+    const buyerAddress = customerAddress();
+    const secondStoreIdentity = {
+        company: 'SECOND STORE DEALER',
+        firstname: 'FFL',
+        lastname: 'Dealer',
+        telephone: '303-555-0199'
+    };
+    const originalData = {
+        autofflCustomerShippingAddress: {
+            default: clone(buyerAddress),
+            second_store: clone(buyerAddress)
+        },
+        billingAddressFromData: {
+            default: clone(buyerAddress)
+        },
+        fflDealerAddressIdentity: {
+            default: dealerIdentity(),
+            second_store: clone(secondStoreIdentity)
+        },
+        newCustomerBillingAddress: {
+            default: clone(buyerAddress)
+        },
+        newCustomerShippingAddress: {
+            default: clone(dealerAddress),
+            second_store: clone(buyerAddress)
+        },
+        selectedBillingAddress: 'customer-address-42',
+        selectedShippingAddress: 'customer-address-42',
+        selectedShippingMethod: 'ups_02',
+        selectedShippingRate: 'ups_02',
+        shippingAddressFromData: {
+            default: clone(dealerAddress),
+            second_store: clone(buyerAddress)
+        }
+    };
+    const result = loadMixin({
+        checkoutDataState: originalData,
+        configBillingAddress: buyerAddress,
+        configShippingAddress: dealerAddress,
+        customerDataReady: false
+    });
+
+    assert.equal(result.getWriteAttempts(), 0);
+    assert.equal(result.getWrites(), 0);
+    assert.deepEqual(result.getStoredData(), originalData);
+
+    result.resolveCustomerData();
+
+    assert.equal(result.getWriteAttempts(), 1);
+    assert.equal(result.getWrites(), 1);
+    assert.deepEqual(result.getStoredData().shippingAddressFromData, {
+        second_store: buyerAddress
+    });
+    assert.deepEqual(result.getStoredData().newCustomerShippingAddress, {
+        second_store: buyerAddress
+    });
+    assert.deepEqual(result.getStoredData().fflDealerAddressIdentity, {
+        second_store: secondStoreIdentity
+    });
+    assert.deepEqual(result.getStoredData().billingAddressFromData, {
+        default: buyerAddress
+    });
+    assert.deepEqual(result.getStoredData().newCustomerBillingAddress, {
+        default: buyerAddress
+    });
+    assert.deepEqual(result.getStoredData().autofflCustomerShippingAddress, {
+        default: buyerAddress,
+        second_store: buyerAddress
+    });
+    assert.equal(result.getStoredData().selectedBillingAddress, 'customer-address-42');
+    assert.equal(result.getStoredData().selectedShippingAddress, 'customer-address-42');
+    assert.deepEqual(result.checkoutConfig.billingAddressFromData, buyerAddress);
+    assert.equal(result.checkoutConfig.shippingAddressFromData, null);
+
+    result.resolveCustomerData();
+    assert.equal(result.getWrites(), 1);
+});
+
+test('runs stale dealer cleanup once when Magento customer data is already initialized', () => {
+    const dealerAddress = vertexDealerAddress();
+    const result = loadMixin({
+        checkoutDataState: {
+            fflDealerAddressIdentity: scopedDealerIdentity(),
+            newCustomerShippingAddress: clone(dealerAddress),
+            selectedShippingAddress: 'new-customer-address',
+            shippingAddressFromData: clone(dealerAddress)
+        },
+        configShippingAddress: dealerAddress
+    });
+
+    assert.equal(result.getWriteAttempts(), 1);
+    assert.equal(result.getWrites(), 1);
+    assert.equal(result.getStoredData().shippingAddressFromData, null);
+    assert.equal(result.getStoredData().newCustomerShippingAddress, null);
+    assert.equal(result.getStoredData().fflDealerAddressIdentity, null);
+});
+
+test('deferred cleanup handles canonical, standalone, and merged dealer provenance', () => {
+    const dealerAddress = vertexDealerAddress();
+    const secondStoreIdentity = scopedDealerIdentity('second_store');
+    const scenarios = [
+        {
+            checkoutDataState: {
+                fflDealerAddressIdentity: scopedDealerIdentity(),
+                shippingAddressFromData: clone(dealerAddress)
+            },
+            expectedIdentity: null,
+            standaloneCheckoutDataState: null
+        },
+        {
+            checkoutDataState: {
+                fflDealerAddressIdentity: null,
+                shippingAddressFromData: clone(dealerAddress)
+            },
+            expectedIdentity: null,
+            standaloneCheckoutDataState: {
+                fflDealerAddressIdentity: scopedDealerIdentity()
+            }
+        },
+        {
+            checkoutDataState: {
+                fflDealerAddressIdentity: clone(secondStoreIdentity),
+                shippingAddressFromData: clone(dealerAddress)
+            },
+            expectedIdentity: secondStoreIdentity,
+            standaloneCheckoutDataState: {
+                fflDealerAddressIdentity: scopedDealerIdentity()
+            }
+        }
+    ];
+
+    scenarios.forEach((scenario) => {
+        const result = loadMixin({
+            checkoutDataState: scenario.checkoutDataState,
+            configShippingAddress: dealerAddress,
+            customerDataReady: false,
+            standaloneCheckoutDataState: scenario.standaloneCheckoutDataState
+        });
+
+        assert.equal(result.getWriteAttempts(), 0);
+        result.resolveCustomerData();
+        assert.equal(result.getWrites(), 1);
+        assert.equal(result.getStoredData().shippingAddressFromData, null);
+        assert.deepEqual(
+            clone(result.getStoredData().fflDealerAddressIdentity),
+            clone(scenario.expectedIdentity)
+        );
+    });
+});
 
 test('clears a markerless dealer address normalized by Vertex using provenance', () => {
     const dealerAddress = vertexDealerAddress();

@@ -373,7 +373,9 @@ define([
             return true;
         };
 
-        checkoutData.clearStaleFflCheckoutData();
+        storage.getInitCustomerData().done(function () {
+            checkoutData.clearStaleFflCheckoutData();
+        });
 
         /**
          * This function stores the table row index value of FFL items.
