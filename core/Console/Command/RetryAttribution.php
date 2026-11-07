@@ -30,7 +30,7 @@ class RetryAttribution extends Command
             ->addArgument('order_id', InputArgument::REQUIRED, 'Magento sales_order entity ID');
     }
 
-    protected function execute(InputInterface $input, OutputInterface $output)
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $orderId = (string) $input->getArgument('order_id');
         if (!preg_match('/^[1-9][0-9]*$/', $orderId)) {

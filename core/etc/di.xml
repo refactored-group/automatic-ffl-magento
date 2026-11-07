@@ -14,6 +14,11 @@
             </argument>
         </arguments>
     </type>
+    <type name="RefactoredGroup\AutoFflCore\Console\Command\RetryAttribution">
+        <arguments>
+            <argument name="helper" xsi:type="object">RefactoredGroup\AutoFflCore\Helper\Data\Proxy</argument>
+        </arguments>
+    </type>
     <type name="Magento\Customer\Model\ResourceModel\Address\CollectionFactory">
         <plugin name="refactoredgroup_autoffl_address_collection_factory_plugin" type="RefactoredGroup\AutoFflCore\Plugin\AddressCollectionFactoryPlugin" sortOrder="100" disabled="false"/>
     </type>
