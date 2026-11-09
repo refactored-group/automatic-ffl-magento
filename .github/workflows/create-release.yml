@@ -1,111 +1,132 @@
-name: Create Pre-Release or Release after push to develop or master
+name: Prepare Magento release
 
 on:
-  push:
-    branches:
-      - dev
-      - master
+  workflow_dispatch:
+    inputs:
+      create_draft:
+        description: Create draft release after checks (disable for checks only)
+        type: boolean
+        required: true
+        default: true
+
+permissions:
+  contents: read
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
-    environment: 'Proxy Server'
-
+  validate:
+    name: Build and validate Marketplace ZIP
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    outputs:
+      version: ${{ steps.package.outputs.version }}
+    services:
+      mysql:
+        image: mysql:8.4
+        env:
+          MYSQL_ROOT_PASSWORD: autoffl-ci-only
+          MYSQL_DATABASE: autoffl_release
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h localhost -pautoffl-ci-only"
+          --health-interval=10s --health-timeout=5s --health-retries=15
+      opensearch:
+        image: opensearchproject/opensearch:3
+        env:
+          discovery.type: single-node
+          DISABLE_SECURITY_PLUGIN: 'true'
+          DISABLE_INSTALL_DEMO_CONFIG: 'true'
+          OPENSEARCH_JAVA_OPTS: '-Xms512m -Xmx512m'
+        ports:
+          - 9200:9200
+        options: >-
+          --health-cmd="curl --fail http://localhost:9200/_cluster/health"
+          --health-interval=10s --health-timeout=5s --health-retries=20
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: Setup PHP
-        uses: shivammathur/setup-php@v2
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          php-version: '7.4'
-
-      - name: Install Dependencies
-        run: composer install --prefer-dist --no-progress --no-suggest
-
-      - name: Get version
-        id: get_version
+          persist-credentials: false
+      - uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # 2.40.0
+        with:
+          php-version: '8.5'
+          extensions: bcmath, ctype, curl, dom, fileinfo, gd, iconv, intl, mbstring, openssl, pdo_mysql, simplexml, soap, sockets, sodium, xsl, zip
+          tools: composer:v2
+          coverage: none
+          ini-values: memory_limit=3G
+      - name: Build clean package from selected commit
+        id: package
         run: |
-          VERSION=$(cat composer.json | jq -r .version)
-          echo "Version is: $VERSION"
-          echo "::set-output name=version::$VERSION"
+          mkdir -p "$RUNNER_TEMP/release-logs"
+          python3 .github/scripts/build-marketplace-package.py --commit "$GITHUB_SHA" --output-dir "$RUNNER_TEMP/marketplace"
+          echo "version=$(jq -r .version "$RUNNER_TEMP/marketplace/release.json")" >> "$GITHUB_OUTPUT"
+          cat "$RUNNER_TEMP/marketplace/release.json" >> "$GITHUB_STEP_SUMMARY"
+      - name: Test release tools and existing smoke checks
+        run: |
+          PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s .github/tests
+          for test in tests/*-smoke.php; do php "$test"; done
+          for test in tests/*-smoke.js; do node "$test"; done
+      - name: Scan the extracted distribution
+        run: |
+          mkdir -p "$RUNNER_TEMP/coding-standard" "$RUNNER_TEMP/distribution"
+          composer require --working-dir="$RUNNER_TEMP/coding-standard" --no-interaction --no-plugins --no-scripts --no-progress magento/magento-coding-standard:41
+          unzip -q "$RUNNER_TEMP/marketplace/$(jq -r .archive "$RUNNER_TEMP/marketplace/release.json")" -d "$RUNNER_TEMP/distribution"
+          standards="$RUNNER_TEMP/coding-standard/vendor"
+          scan_status=0
+          "$standards/bin/phpcs" --runtime-set installed_paths "$standards/magento/magento-coding-standard,$standards/magento/php-compatibility-fork,$standards/phpcsstandards/phpcsutils" --standard=Magento2 --extensions=php,phtml --error-severity=10 --ignore-annotations --report=json --report-file="$RUNNER_TEMP/release-logs/phpcs.json" "$RUNNER_TEMP/distribution" || scan_status=$?
+          jq -e '.totals.errors == 0' "$RUNNER_TEMP/release-logs/phpcs.json"
+          test "$scan_status" -eq 0 -o "$scan_status" -eq 2
+      - name: Get public Magento Open Source 2.4.9
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: magento/magento2
+          ref: 2.4.9
+          path: .ci-magento
+          persist-credentials: false
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /*
+            !/dev/
+            !/app/code/Magento/*/Test/
+            !/lib/internal/Magento/Framework/Test/
+            !/setup/src/Magento/Setup/Test/
+      - name: Install and build the checked ZIP in Magento
+        run: |
+          bash .github/scripts/validate-magento.sh "$RUNNER_TEMP/marketplace" "$GITHUB_WORKSPACE/.ci-magento" "$RUNNER_TEMP/release-logs" 2>&1 | tee "$RUNNER_TEMP/release-logs/magento-build.log"
+      - name: Save package and provenance
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: marketplace-package
+          path: ${{ runner.temp }}/marketplace/
+          if-no-files-found: error
+      - name: Save diagnostics
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: release-check-logs
+          path: ${{ runner.temp }}/release-logs/
+          if-no-files-found: ignore
 
-      - name: Setup GitHub CLI
-        run: |
-          curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo gpg --dearmor -o /usr/share/keyrings/githubcli-archive-keyring.gpg
-          echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null
-          sudo apt update
-          sudo apt install gh
-          sudo chown -R $USER:$USER /home/runner/.config
-      - name: Auth GitHub CLI
-        run: |
-          gh auth login --with-token <<<"${{ secrets.TOKEN_GITHUB }}"
+  draft:
+    name: Prepare draft for manual publication
+    if: inputs.create_draft
+    needs: validate
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    concurrency:
+      group: magento-release-${{ needs.validate.outputs.version }}
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: marketplace-package
+          path: ${{ runner.temp }}/marketplace
+      - name: Create draft with the checked ZIP
         env:
-          GH_CONFIG_DIR: /tmp/.config/gh
-      - name: Verify if release or tag already exist
+          GH_TOKEN: ${{ github.token }}
         run: |
-          mkdir -p /tmp/.config/gh
-          VERSION=${{ steps.get_version.outputs.version }}
-          BRANCH=${GITHUB_REF##*/}
-          RELEASE_NAME="${VERSION}"
-
-          echo "Currently using branch: $BRANCH"
-
-          if [ "$BRANCH" != "master" ]; then
-            RELEASE_NAME="${VERSION}-dev"
-
-            # Try to delete tag if it already exists
-
-            git fetch --tags
-            if git show-ref --tags | grep -q "refs/tags/$RELEASE_NAME"
-            then
-              echo "Release ${RELEASE_NAME} exists, deleting..."
-              gh release delete "$RELEASE_NAME" -y
-
-              echo "Tag ${RELEASE_NAME} exists, deleting..."
-              git tag --delete "$RELEASE_NAME"
-              git push --delete origin "$RELEASE_NAME"
-            fi
-          fi
-
-          # Create tag name. It shouldn't exist at this point. If it does, show an error as
-          # this may be a production deployment where we forgot to update the version
-          # on composer.json
-
-          if git show-ref --tags | grep -q "refs/tags/$RELEASE_NAME"
-            then
-              echo "Tag ${RELEASE_NAME} exists. Please, update composer.json with a new version number."
-              exit 1
-          fi
-
-          # We will do the same with the release
-          if gh release view "$RELEASE_NAME"; then
-              echo "Release $RELEASE_NAME exists. Please, update composer.json with a new version number."
-              exit 1
-          fi
-        env:
-          GH_CONFIG_DIR: /tmp/.config/gh
-          GITHUB_TOKEN: ${{ secrets.TOKEN_GITHUB }}
-      - name: Create new tag and release
-        run: |
-          mkdir -p /tmp/.config/gh
-          VERSION=${{ steps.get_version.outputs.version }}
-          BRANCH=${GITHUB_REF##*/}
-          RELEASE_NAME="$VERSION"
-
-          if [ "$BRANCH" != "master" ]; then
-            RELEASE_NAME="${VERSION}-dev"
-            PRERELEASE_FLAG="--prerelease"
-          else
-            PRERELEASE_FLAG=""
-          fi
-
-          git checkout "$BRANCH"
-          git tag "$RELEASE_NAME"
-          git push origin "$RELEASE_NAME"
-          gh release create "$RELEASE_NAME" --title "$RELEASE_NAME" --notes "Automated build" --draft=false $PRERELEASE_FLAG
-
-          echo "Release ${RELEASE_NAME} sucessfully created!"
-        env:
-          GH_CONFIG_DIR: /tmp/.config/gh
-          GITHUB_TOKEN: ${{ secrets.TOKEN_GITHUB }}
+          bash .github/scripts/create-draft-release.sh "$RUNNER_TEMP/marketplace" | tee -a "$GITHUB_STEP_SUMMARY"

@@ -32,37 +32,18 @@ The Magento demo used PHP 8.2 at this release. A successful build there would no
 
 ## Build the Marketplace ZIP
 
-Run this Bash block from the Magento extension repository after committing the release. It creates a temporary export and writes the ZIP to the parent workspace's `outputs` directory. It refuses to replace an existing artifact.
+The normal flow is **Actions → Prepare Magento release → Run workflow**. Select the branch containing the intended committed version and leave **Create draft release after checks** enabled. A successful run provides the checked package artifact and a draft release URL. Publish the draft after review, then submit its ZIP through Adobe's portal.
+
+Disable **Create draft release after checks** to validate an already published version. This mode produces the checked artifact and logs while leaving release records intact. The normal draft path refuses an existing tag or release, including an existing draft.
+
+For local packaging, run this from the repository after committing. The script is the same entry point used by Actions and refuses to replace an existing ZIP.
 
 ```bash
-set -euo pipefail
-
-release_commit="$(git rev-parse HEAD)"
-release_version="$(git show "${release_commit}:composer.json" | php -r '$p = json_decode(stream_get_contents(STDIN), true, 512, JSON_THROW_ON_ERROR); echo $p["version"];')"
-release_name="refactored-group-automatic-ffl-magento-${release_version}"
-release_dir="$(cd .. && pwd)/outputs/magento-marketplace-${release_version}"
-release_zip="${release_dir}/${release_name}.zip"
-
-if [ -e "$release_zip" ]; then
-    echo "An artifact already exists at $release_zip. Inspect it before rebuilding."
-    exit 1
-fi
-
-build_root="$(mktemp -d)"
-mkdir -p "$release_dir"
-git archive --format=tar --prefix="${release_name}/" "$release_commit" |
-    tar -xf - -C "$build_root"
-rm -f "${build_root}/${release_name}/.gitignore"
-rm -rf "${build_root}/${release_name}/tests"
-(
-    cd "$build_root"
-    zip -q -r "$release_zip" "$release_name"
-)
-unzip -t "$release_zip"
-shasum -a 256 "$release_zip"
+python3 .github/scripts/build-marketplace-package.py \
+    --commit HEAD --output-dir /absolute/path/to/new-artifact-directory
 ```
 
-Inspect the archive entries. Confirm the root `composer.json` has the intended version, all module registration and autoload files are present, and development files such as `.gitignore`, `tests/`, `.git/`, `vendor/`, editor files, and local output directories are absent. Investigate any newly tracked build artifacts before shipping them.
+The output includes the ZIP, `SHA256SUMS`, and `release.json` with the version, full source commit, archive name, and digest. The builder validates the version and autoload file presence. Inspect the archive entries and confirm development files such as `.github/`, `.gitignore`, `tests/`, `.git/`, `vendor/`, editor files, and local output directories are absent. Investigate any newly tracked build artifacts before shipping them.
 
 Keep the ZIP immutable once testing begins. An edit requires a rebuilt archive, a new checksum, and rerunning the affected checks. Use the named release ZIP asset when uploading to Adobe. GitHub's automatically generated source archives contain the repository's development files.
 
@@ -120,8 +101,8 @@ Choose the service matrix again for each release. Adobe currently lists MariaDB 
 ## Publish and submit
 
 1. Inspect the intended remote branches and tag. Push the validated commit only to the authorized release branches. Avoid force pushes and changes to an existing published tag.
-2. Verify the release workflow result. The current workflow triggers on `dev` and `master`, uses PHP 7.4, and creates a tag/release. It does not run the Magento/PHP runtime checks above or attach the cleaned Marketplace ZIP.
-3. Attach the exact tested ZIP to the matching GitHub release. Verify its SHA-256 against GitHub's asset digest. If the workflow failed before creating a tag, use an authenticated CLI to create the release at the recorded full commit ID and attach that ZIP. Check for an existing tag/release first.
+2. Start **Prepare Magento release** manually and inspect the run results. The validation job has read-only repository access. It runs the existing smoke checks, scans the distribution with Magento standard 41, installs the exact archive in Magento Open Source 2.4.9/PHP 8.5 with MySQL 8.4 and OpenSearch 3, and checks installation, upgrade, compilation, static deployment, production mode, indexing, command registration, and a basic Varnish 8 home-page miss/hit.
+3. Open the resulting draft and verify its source commit, ZIP, and `SHA256SUMS`. A separate job uses the repository's temporary `GITHUB_TOKEN` with `contents: write` to create the draft. The workflow uses no custom `TOKEN_GITHUB` secret. Publish the draft manually. GitHub creates the release tag as part of publication when it does not already exist. Existing tags/releases cause draft preparation to stop. An upload failure may leave a partial draft for operator inspection before retrying.
 4. In the Developer Portal, create the intended version and upload the named ZIP. Confirm the version, compatibility selections, license, customer documentation, release notes, and launch timing.
 5. Submit and confirm Technical Submission. A completed upload or saved draft still requires the final submission confirmation. Verify the completion message and resulting review status.
 6. Complete Marketing Submission as required. Review inherited details before confirming, and record its resulting status separately.
@@ -131,11 +112,13 @@ Adobe's portal provides the submission and report workflow. [Technical submissio
 
 For a failed test, download its raw report before making another package change. Record the tested editions and dependency versions, identify the first failing command and actual error, reproduce it, and validate the correction using the resulting archive. An empty report needs a refreshed or subsequent report. The Installation & Varnish label covers installation and compilation failures as well as cache failures.
 
-## Release automation follow-up
+## Workflow operation and maintenance
 
-At the 1.0.40 release, `.github/workflows/create-release.yml` failed in `Auth GitHub CLI` with HTTP 401. The workflow references `secrets.TOKEN_GITHUB` and the `Proxy Server` environment. Verify the resolved secret and its repository permissions before relying on automated publication. The evidence establishes invalid credentials, without identifying whether the token expired, was revoked, or was unavailable.
+At the 1.0.40 release, the previous workflow failed in `Auth GitHub CLI` with HTTP 401 for `TOKEN_GITHUB`. The replacement removes that custom-secret and environment dependency. GitHub issues an expiring repository token per job. Only draft creation requests write access. The workflow runs solely through manual dispatch. [GitHub token lifecycle](https://docs.github.com/en/actions/concepts/security/github_token)
 
-Future automation should perform the package build, distribution scan, and supported Magento/PHP build checks above, then attach the resulting ZIP. Until implemented, those are operator release gates. Repairing the workflow credential and adding these gates are outstanding work.
+The workflow must be present on the default branch for the **Run workflow** button. To validate current 1.0.40 without creating another draft, run `gh workflow run create-release.yml --ref master -f create_draft=false`. Package and diagnostic artifacts are available on the run page. Draft preparation is serialized per version. A partial draft remains available for operator inspection and is protected from automatic replacement or deletion. [Manual workflow execution](https://docs.github.com/en/actions/how-tos/manage-workflow-runs/manually-running-a-workflow)
+
+Review the pinned Magento/PHP/service versions and coding standard before each release. This automation establishes CE and a basic cache smoke result. Adobe's EE and full product/category invalidation checks, plus checkout/payment acceptance appropriate to the changed code, remain separate gates. Retire the old custom credential after checking whether other workflows use it.
 
 ## 1.0.40 release record
 
